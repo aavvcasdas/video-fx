@@ -1,0 +1,32 @@
+{
+  "id": "whale-maid",
+  "code": "REF-01",
+  "approval": "User explicitly requested a full visual replica of the supplied repository video character.",
+  "referenceSource": {
+    "file": "../../../42868804351-1-192.mp4",
+    "media": "1280x720, 30 fps, approximately 82.5 seconds",
+    "poses": {
+      "hands": { "frameTime": "00:16", "file": "source/hands.png", "action": "hands-to-cheeks surprise" },
+      "laptop": { "frameTime": "00:32", "file": "source/laptop.png", "action": "seated laptop work" },
+      "standing": { "frameTime": "01:04", "file": "source/standing.png", "action": "standing wink" }
+    }
+  },
+  "lockedSilhouette": [
+    "blue-to-cyan long hair with ahoge",
+    "white ruffled maid headband",
+    "whale-fin ears and blue side bows",
+    "navy and white maid dress with whale-apron emblem",
+    "dark-blue whale tail, white socks, navy shoes"
+  ],
+  "styleReferences": {
+    "pixel-rpg": { "file": "styles/pixel-rpg.png", "method": "16-colour nearest-neighbour treatment of standing pose" },
+    "cel-pop": { "file": "styles/cel-pop.png", "method": "ten-colour cel reduction with navy contour" },
+    "ink-tide": { "file": "styles/ink-tide.png", "method": "cyan/navy ink-wash treatment with brush contour" },
+    "neon-sonar": { "file": "styles/neon-sonar.png", "method": "violet/cyan sonar treatment with alpha bloom" }
+  },
+  "runtimePolicy": {
+    "defaultLook": "source pose directly from source/*.png",
+    "otherLooks": "saved style references may replace standing pose only; expression/prop shots retain the matching source pose",
+    "rendering": "all sprites are composed in the 320x180 stage before nearest-neighbour presentation"
+  }
+}

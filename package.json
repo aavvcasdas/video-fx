@@ -5,7 +5,7 @@
   "description": "A beat-synced, code-drawn pixel whale-girl music-video studio.",
   "scripts": {
     "start": "node server.mjs",
-    "check": "node --check app.js && node --check server.mjs"
+    "check": "node --check src/cast.js && node --check src/timeline.js && node --check app.js && node --check server.mjs"
   },
   "engines": {
     "node": ">=18"

@@ -2,7 +2,7 @@
 
 一个可实时预览的中文像素音乐视频原型。它以仓库里的鲸灵少女参考片为唯一的**人物形象母版**，围绕深海蓝、Q 版鲸尾、气泡、信息卡与轻快表情节奏，编排出可编辑的 **《鲸歌深潜计划 / Abyssal Beat》**。
 
-> 用户已指定人物形象必须完全照参考片复刻。因此 `assets/whale-maid-*.png` 是直接从 `42868804351-1-192.mp4` 分离出的三张角色姿势：惊讶捧脸、坐姿笔记本与站姿眨眼。舞台将这些参考锁定立绘绘入 320 × 180 的画布并以最近邻像素化放大；所有新增的镜头、节拍、粒子、其他角色和舞台逻辑由本项目代码创建。
+> 用户已指定人物形象必须完全照参考片复刻。因此 `assets/cast/whale-maid/source/*.png` 是直接从 `42868804351-1-192.mp4` 分离出的三张角色姿势：惊讶捧脸、坐姿笔记本与站姿眨眼。舞台将这些参考锁定立绘绘入 320 × 180 的画布并以最近邻像素化放大；所有新增的镜头、节拍、粒子、其他角色和舞台逻辑由本项目代码创建。
 
 ## 运行
 
@@ -24,8 +24,8 @@ npm run check
 - **48 秒逐秒镜头表**：时间轴中的每 1 秒都有一个明确的角色动作、环境细节、UI 变化或转场提示；点击任意格可跳转预览。
 - **124 BPM 卡点**：所有关键切镜以四拍小节组织，实时预览有拍点指示；可开启浏览器合成的引导节拍（不需要外部音频文件）。
 - **12 个叙事镜头**：信号下潜、鲸尾入镜、投票卡片、规则浮现、珊瑚舞步、水母 DJ、评论泡泡、存档门、近景独白、群像、建造段和收束段。
-- **4 种美术语言**：16-bit 深海、赛璐璐舞台、潮汐水墨、霓虹声呐。同一套镜头和角色动作可直接切换色板与场景规则。
-- **完整角色表**：鲸灵主唱「澜」、水母 DJ「米沫」、信使鱼「波波」、潮汐光团「露玛」均有模型卡、职责、动作/表情或道具规格；不是只建立主角。
+- **4 种美术语言**：原片锁定像素舞台、赛璐璐舞台、潮汐水墨、霓虹声呐。鲸鱼娘的其他三种站姿风格参考图已保存为可追溯 PNG，而非只在运行时临时滤镜。
+- **完整角色表**：参考锁定的鲸鱼娘、水母 DJ「米沫」、信使鱼「波波」、潮汐光团「露玛」均有模型卡、职责、动作/表情或道具规格；不是只建立主角。
 - **可导出的制作蓝图**：界面中的“导出镜头表”会下载 JSON，包含镜头、逐秒提示、节奏参数、角色和风格清单。
 - **参考锁定立绘 + Canvas 舞台**：鲸灵主角使用从用户提供源视频直接分离的三张姿势；舞台内部固定为 `320 × 180` 并以最近邻放大，保证像素感。无运行时后端、无第三方包。
 
@@ -43,10 +43,16 @@ npm run check
 ## 目录
 
 ```text
-index.html       作品集式工作台界面
-styles.css       响应式视觉设计
-app.js           时间轴、节拍、Canvas 角色/场景、音频提示和导出逻辑
-server.mjs       零依赖静态服务器
+src/cast.js                              角色注册表、源片姿势与风格参考的单一入口
+src/timeline.js                          48 秒镜头 / 逐秒提示的单一时间源
+assets/cast/whale-maid/source/*.png      直接自源视频分离的锁定姿势
+assets/cast/whale-maid/styles/*.png      像素 RPG、赛璐璐、水墨、霓虹的保存参考
+assets/cast/whale-maid/manifest.json     来源帧、形象锁定项与风格资产清单
+CAST_BIBLE.md                            角色模型与形象不可变规则
+STORYBOARD.md                            12 段镜头、姿势分配与转场要求
+ANIMATION_GUIDE.md                       按时间函数复刻 MV 的编辑规范
+app.js                                   Canvas 场景、节拍、控件及 JSON 导出
+index.html / styles.css / server.mjs     工作台界面、样式及零依赖静态服务
 ```
 
 ## 方法研究与落地
@@ -55,7 +61,7 @@ server.mjs       零依赖静态服务器
 
 | 研究对象 | 吸收的方法 | 在本项目中的落地 |
 | --- | --- | --- |
-| [JohnHeibel/PDoomVideo](https://github.com/JohnHeibel/PDoomVideo) | 先写 storyboard、以纯时间函数绘制帧、每个镜头有明确叙事和转场 | `shotData` 是 12 段主镜头；Canvas 只由时间 `t`、风格色板和确定性函数驱动。 |
+| [JohnHeibel/PDoomVideo](https://github.com/JohnHeibel/PDoomVideo) | 先写 storyboard / animation guide、把共享角色与时间表拆进 `src/`、以纯时间函数绘制帧 | 已建立 `CAST_BIBLE.md`、`STORYBOARD.md`、`ANIMATION_GUIDE.md`、`src/cast.js` 与 `src/timeline.js`；Canvas 只由时间 `t`、风格色板和确定性函数驱动。 |
 | [lemomo-ai/lemo-opuscar](https://github.com/lemomo-ai/lemo-opuscar) | 原生低分辨率 framebuffer、色板优先、先定 BPM / timeline、模型表先行 | `320 × 180` 最近邻舞台、4 套色板、124 BPM 视觉拍点、四位角色模型卡。 |
 | [Panniantong/Agent-Reach](https://github.com/Panniantong/Agent-Reach) | 先获取/核验资料再形成可执行的结构化结果 | 先读取本仓库视频的尺寸、时长与关键帧，再把观察沉淀成可下载的镜头蓝图。 |
 | [ComposioHQ/awesome-claude-skills](https://github.com/ComposioHQ/awesome-claude-skills) | 将反复使用的创作流程封装成明确的 skill / checklist | 将“镜头表 → 角色表 → 风格 LUT → 节拍提示 → 导出”的流程做成可见的工作台模块。 |
@@ -68,7 +74,7 @@ server.mjs       零依赖静态服务器
 
 当前版本是可交互的视觉预览和制作蓝图。要输出正式 MP4，可沿用以下顺序：
 
-1. 在 `shotData` 与 `secondCues` 锁定音乐、歌词、镜头和每个强拍。
+1. 在 `src/timeline.js` 的 `shots` 与 `secondCues` 锁定音乐、歌词、镜头和每个强拍。
 2. 使用 Playwright / Chrome 在固定时间点抓取 `320 × 180` 或高清 Canvas 帧。
 3. 用 ffmpeg 将帧序列编码，再混入取得授权的最终音乐与人声。
 4. 在每次修改后用导出的 JSON 对照检查：48 秒是否都有可见事件，所有镜头是否都落在预定拍点。

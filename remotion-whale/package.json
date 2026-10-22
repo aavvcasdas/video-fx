@@ -1,0 +1,24 @@
+{
+  "name": "remotion-whale-day0",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Remotion 复刻准备工程：深海鲸鱼娘 Day 0（数据驱动分镜 + 卡拉OK字幕 + 程序化海底背景）",
+  "scripts": {
+    "studio": "remotion studio",
+    "still": "remotion still WhaleDay0 out/still.png --frame=150",
+    "stills": "remotion still WhaleDay0 out/scene-intro.png --frame=150 && remotion still WhaleDay0 out/scene-rules.png --frame=1000 && remotion still WhaleDay0 out/scene-cta.png --frame=2300",
+    "render": "remotion render WhaleDay0 out/whale-day0.mp4",
+    "render:preview": "remotion render WhaleDay0 out/whale-day0-preview.mp4 --frames=0-450 --concurrency=4",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@remotion/cli": "4.0.367",
+    "react": "18.3.1",
+    "react-dom": "18.3.1",
+    "remotion": "4.0.367"
+  },
+  "devDependencies": {
+    "@types/react": "18.3.3",
+    "typescript": "5.5.4"
+  }
+}

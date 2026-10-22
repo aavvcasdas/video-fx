@@ -1,0 +1,13 @@
+{
+  "name": "abyssal-beat-mv",
+  "version": "1.0.0",
+  "private": true,
+  "description": "A beat-synced, code-drawn pixel whale-girl music-video studio.",
+  "scripts": {
+    "start": "node server.mjs",
+    "check": "node --check app.js && node --check server.mjs"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}

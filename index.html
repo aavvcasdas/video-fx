@@ -1,0 +1,150 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#06142d" />
+    <title>深海节拍 · 鲸歌 MV 工作台</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <main class="app-shell">
+      <header class="topbar">
+        <a class="brand" href="#top" aria-label="深海节拍首页">
+          <span class="brand-mark" aria-hidden="true">◒</span>
+          <span><b>ABYSSAL BEAT</b><small>鲸歌 MV 工作台</small></span>
+        </a>
+        <div class="project-pill"><i></i><span>PROJECT</span><b>DAY 0 / 01</b></div>
+        <div class="topbar-actions">
+          <button class="ghost-button compact" id="soundToggle" aria-pressed="false">♪ 引导节拍</button>
+          <button class="accent-button compact" id="exportButton">导出镜头表 <span>↗</span></button>
+        </div>
+      </header>
+
+      <section class="hero-layout" id="top">
+        <div class="hero-copy">
+          <p class="eyebrow"><span></span> CODE-DRAWN MUSIC VIDEO / 124 BPM</p>
+          <h1>鲸歌<br /><em>深潜</em>计划</h1>
+          <p class="hero-description">一支可逐拍预览的原创鲸灵少女像素 MV。每一秒都有动作、景别或特效推进；四种美术语言共用同一组完整角色设定。</p>
+          <div class="hero-ctas">
+            <button class="accent-button large" id="playButton"><span class="play-icon">▶</span><span id="playButtonText">播放第 01 幕</span></button>
+            <button class="text-button" id="jumpButton">查看 48 秒镜头表 <span>↓</span></button>
+          </div>
+          <div class="hero-stats" aria-label="项目数据">
+            <div><b>48</b><span>秒叙事</span></div>
+            <div><b>12</b><span>主镜头</span></div>
+            <div><b>04</b><span>可切换风格</span></div>
+          </div>
+        </div>
+
+        <section class="stage-card" aria-label="实时 MV 预览">
+          <div class="stage-topline">
+            <span class="live-dot"></span><span>LIVE FRAME / <b id="frameLabel">00:00.0</b></span>
+            <span id="sceneLabel">01 · 信号下潜</span>
+          </div>
+          <div class="canvas-wrap">
+            <canvas id="mvCanvas" width="320" height="180" aria-label="动态像素风鲸歌 MV 预览"></canvas>
+            <div class="stage-caption">
+              <span class="caption-kicker" id="captionKicker">VERSE 01</span>
+              <strong id="captionTitle">落入蓝色回声</strong>
+              <small id="captionDetail">气泡 · 光束 · 8 分音符漂移</small>
+            </div>
+            <div class="beat-pips" id="beatPips" aria-label="当前小节节拍"></div>
+          </div>
+          <div class="stage-controls">
+            <button class="round-control" id="rewindButton" aria-label="回到开头">↶</button>
+            <button class="round-control primary" id="stagePlayButton" aria-label="播放或暂停">▶</button>
+            <div class="scrub-wrap">
+              <input id="playhead" aria-label="播放进度" type="range" min="0" max="48" step="0.01" value="0" />
+              <div class="scrub-labels"><span>00:00</span><span>00:48</span></div>
+            </div>
+            <button class="round-control" id="fullScreenButton" aria-label="全屏预览">⛶</button>
+          </div>
+        </section>
+      </section>
+
+      <section class="director-note section-grid">
+        <div class="section-heading">
+          <p class="eyebrow"><span></span> DIRECTOR SYSTEM</p>
+          <h2>不是循环贴图，<br />是逐秒编排。</h2>
+        </div>
+        <div class="note-copy">
+          <p>镜头先于音乐落位：每 4 秒一个叙事单元，每一拍都绑定了表情、镜头、粒子或 UI 变化。播放时，内部 320 × 180 的索引画布会以最近邻放大，保留明确的像素边缘。</p>
+          <div class="principles">
+            <div><b>01</b><span>每秒一个可见事件</span></div>
+            <div><b>02</b><span>每拍一次动作强调</span></div>
+            <div><b>03</b><span>转场落在下一个强拍</span></div>
+          </div>
+        </div>
+        <aside class="quote-card"><span>“</span><p>深海并不安静，<br />它只是把节拍藏得很深。</p><small>— Director note</small></aside>
+      </section>
+
+      <section class="timeline-section" id="timeline">
+        <div class="section-heading horizontal">
+          <div><p class="eyebrow"><span></span> BEAT MAP / 48 SECONDS</p><h2>镜头每秒都有事发生</h2></div>
+          <p>点击任意单元跳转。深色标记为重拍转场，细粒度提示会同步到舞台预览。</p>
+        </div>
+        <div class="timeline-legend"><span><i class="legend-cut"></i> 强拍切镜</span><span><i class="legend-motion"></i> 角色动作</span><span><i class="legend-fx"></i> 环境 / 特效</span></div>
+        <div class="timeline-grid" id="timelineGrid" aria-label="48 秒 MV 镜头时间轴"></div>
+      </section>
+
+      <section class="styles-section">
+        <div class="section-heading horizontal">
+          <div><p class="eyebrow"><span></span> VISUAL LANGUAGE</p><h2>同一片海，四种画法</h2></div>
+          <p>所有角色都有同一份轮廓、表情、动作与道具清单；切换风格不牺牲叙事，只替换色板、线条和光照规则。</p>
+        </div>
+        <div class="style-grid" id="styleGrid">
+          <button class="style-card active" data-style="pixel" aria-pressed="true">
+            <span class="style-index">01</span><span class="style-swatches"><i></i><i></i><i></i><i></i></span><strong>16-bit 深海</strong><small>索引色 · 抖动高光 · 像素浪花</small><b>PIXEL RPG</b>
+          </button>
+          <button class="style-card" data-style="cel" aria-pressed="false">
+            <span class="style-index">02</span><span class="style-swatches"><i></i><i></i><i></i><i></i></span><strong>赛璐璐舞台</strong><small>宽色块 · 星屑灯光 · 表情定格</small><b>CEL POP</b>
+          </button>
+          <button class="style-card" data-style="ink" aria-pressed="false">
+            <span class="style-index">03</span><span class="style-swatches"><i></i><i></i><i></i><i></i></span><strong>潮汐水墨</strong><small>留白 · 墨点 · 流体转场</small><b>INK TIDE</b>
+          </button>
+          <button class="style-card" data-style="neon" aria-pressed="false">
+            <span class="style-index">04</span><span class="style-swatches"><i></i><i></i><i></i><i></i></span><strong>霓虹声呐</strong><small>网格 · 扫描线 · 电子残影</small><b>NEON SONAR</b>
+          </button>
+        </div>
+      </section>
+
+      <section class="character-section">
+        <div class="section-heading horizontal">
+          <div><p class="eyebrow"><span></span> CAST BIBLE</p><h2>全角色先建模，再开拍</h2></div>
+          <p>主角、DJ、信使与光团不只是背景元素。每一位都有可调用的姿态、道具和色彩槽，确保在任意美术风格中都能演完整首歌。</p>
+        </div>
+        <div class="character-layout">
+          <div class="cast-list" id="castList" aria-label="角色列表"></div>
+          <div class="character-inspector">
+            <div class="inspector-top"><span>MODEL SHEET</span><b id="characterCode">M-01</b></div>
+            <div class="character-preview" id="characterPreview"><canvas id="characterCanvas" width="320" height="180" aria-label="角色模型预览"></canvas></div>
+            <div class="inspector-copy"><div><span id="characterRole">主唱 / 深潜领航员</span><h3 id="characterName">澜 · 鲸灵少女</h3></div><p id="characterBio">把潮汐当作节拍器。短促摆尾、发梢漂浮和眼神切换都可绑定到鼓点。</p></div>
+            <div class="model-specs" id="modelSpecs"></div>
+          </div>
+        </div>
+      </section>
+
+      <section class="build-section">
+        <div class="build-copy">
+          <p class="eyebrow"><span></span> SHOT BLUEPRINT</p>
+          <h2>把一首歌拆成<br /><em>可执行的镜头。</em></h2>
+          <p>基于代码动画的工作流：先写时间表与角色表，再由确定性的绘制函数生成每一帧。没有随机闪烁，任何一个时刻都可以准确复现、复查和导出。</p>
+          <button class="accent-button" id="downloadPlan">下载制作蓝图 <span>↓</span></button>
+        </div>
+        <div class="build-table">
+          <div class="table-head"><span>模块</span><span>已建立</span><span>节拍职责</span></div>
+          <div><b>CHARACTER RIG</b><span>04 / 04</span><small>表情、摆尾、持物、群像</small></div>
+          <div><b>SHOT LIBRARY</b><span>12 / 12</span><small>切镜、推拉、匹配转场</small></div>
+          <div><b>MICRO MOTION</b><span>48 / 48</span><small>每秒环境或动作提示</small></div>
+          <div><b>BEAT CUES</b><span>99 / 99</span><small>124 BPM 重拍 / 弱拍</small></div>
+          <div><b>STYLE LUTS</b><span>04 / 04</span><small>色板、光照、线条规则</small></div>
+        </div>
+      </section>
+
+      <footer><span>ABYSSAL BEAT · ORIGINAL CODE-DRAWN STUDY</span><span>SPACE 播放 · ← → 微调 · S 切换节拍</span></footer>
+    </main>
+    <div class="toast" id="toast" role="status" aria-live="polite"></div>
+    <script src="app.js"></script>
+  </body>
+</html>

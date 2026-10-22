@@ -17,6 +17,20 @@ const characterCtx = characterCanvas.getContext('2d');
 ctx.imageSmoothingEnabled = false;
 characterCtx.imageSmoothingEnabled = false;
 
+// User-supplied source-video poses. These are segmented directly from
+// 42868804351-1-192.mp4 so the heroine's silhouette, maid dress, hair,
+// whale tail, apron mark and facial design remain reference-locked.
+const whaleReferenceSprites = {};
+[
+  ['hands', 'assets/whale-maid-hands.png'],
+  ['laptop', 'assets/whale-maid-laptop.png'],
+  ['standing', 'assets/whale-maid-standing.png'],
+].forEach(([name, source]) => {
+  const image = new Image();
+  image.src = source;
+  whaleReferenceSprites[name] = image;
+});
+
 const palettes = {
   pixel: {
     name: '16-bit 深海', bg: '#061a45', bg2: '#0b3a7a', deep: '#04102d', water: '#2d79bf', light: '#86f1ef',
@@ -72,9 +86,9 @@ const secondCues = [
 
 const cast = [
   {
-    id: 'lan', code: 'M-01', icon: '◒', name: '澜 · 鲸灵少女', role: '主唱 / 深潜领航员',
-    bio: '把潮汐当作节拍器。短促摆尾、发梢漂浮和眼神切换都可绑定到鼓点。',
-    specs: [['RIG', '06 姿态'], ['FACE', '05 表情'], ['PROP', '声呐麦克风']], color: '#3866bc', type: 'whale'
+    id: 'lan', code: 'REF-01', icon: '◒', name: '鲸鱼娘 · 参考锁定', role: '主唱 / 源片形象母版',
+    bio: '人物形象直接按用户提供视频复刻：蓝色渐变长发、女仆头饰、耳鳍、蓝白裙装、鲸图围裙和深蓝鲸尾。站姿、捧脸与笔记本三套姿势会按镜头调用。',
+    specs: [['POSE', '03 源片姿势'], ['LOOK', '参考锁定'], ['PROP', '笔记本 / 鲸尾']], color: '#3866bc', type: 'whale'
   },
   {
     id: 'mimo', code: 'M-02', icon: '♧', name: '米沫 · 水母 DJ', role: '节拍设计 / 声呐采样',
@@ -237,7 +251,7 @@ function drawJelly(context, x, y, scale, t, palette, pose = 'mix') {
   context.restore();
 }
 
-function drawWhale(context, x, y, scale, t, palette, options = {}) {
+function drawWhaleVector(context, x, y, scale, t, palette, options = {}) {
   const mood = options.mood || 'smile';
   const dance = options.dance || 0;
   const close = options.close || false;
@@ -295,6 +309,36 @@ function drawWhale(context, x, y, scale, t, palette, options = {}) {
   context.restore();
 }
 
+function sourcePose(options) {
+  if (options.laptop) return 'laptop';
+  if (options.heart) return 'hands';
+  if (options.mood === 'surprise') return 'hands';
+  return 'standing';
+}
+
+function drawWhale(context, x, y, scale, t, palette, options = {}) {
+  const pose = sourcePose(options);
+  const source = whaleReferenceSprites[pose];
+
+  // The reference sprite remains the first-class character rendering. It is
+  // drawn into the native 320 × 180 stage and then nearest-neighbour scaled
+  // by CSS, so the supplied character is exact while still sitting inside a
+  // pixel-MV language. Vector drawing is only a no-network/loading fallback.
+  if (source && source.complete && source.naturalWidth) {
+    const pulse = 1 + beatPulse(t, .025);
+    const bob = Math.sin(t * 3.6 + (options.dance ? .7 : 0)) * (1.1 + options.dance * .9) - beatPulse(t, 1.4);
+    const height = 106 * scale;
+    const width = height * (source.naturalWidth / source.naturalHeight);
+    context.save();
+    context.translate(x, y + bob);
+    context.scale(pulse, pulse);
+    context.drawImage(source, Math.round(-width / 2), Math.round(-height * .56), Math.round(width), Math.round(height));
+    context.restore();
+    return;
+  }
+  drawWhaleVector(context, x, y, scale, t, palette, options);
+}
+
 function drawOverlayEffects(context, t, palette, scene) {
   const p = beatPulse(t, 1);
   if (scene === 0) {
@@ -349,10 +393,10 @@ function drawMV(t) {
     drawFish(ctx, 66 + local * 14, 103, .42, t, palette, 1, true);
     drawWhale(ctx, 204, 112, .9, t, palette, { mood: 'smile', mic: true });
   } else if (scene === 2) {
-    drawWhale(ctx, 255, 121, .79, t, palette, { mood: local > 2 ? 'wink' : 'smile', mic: false });
+    drawWhale(ctx, 255, 121, .79, t, palette, { laptop: true, mood: local > 2 ? 'wink' : 'smile', mic: false });
     drawOrb(ctx, 220, 92, .5, t, palette);
   } else if (scene === 3) {
-    drawWhale(ctx, 236, 115, .83, t, palette, { mood: 'focus', mic: false });
+    drawWhale(ctx, 236, 115, .83, t, palette, { laptop: true, mood: 'focus', mic: false });
   } else if (scene === 4) {
     drawCoral(ctx, t + 1, palette, 1);
     drawWhale(ctx, 155 + Math.sin(t * 2) * 12, 120, .88, t, palette, { mood: 'smile', dance: 1, mic: true });
@@ -374,7 +418,7 @@ function drawMV(t) {
     drawFish(ctx, 272, 75 + Math.sin(t * 4) * 12, .5, t, palette, -1, true);
     drawOrb(ctx, 54, 66, .62, t, palette, true);
   } else if (scene === 10) {
-    drawWhale(ctx, 160, 138 - local * 13, .72 + local * .05, t, palette, { mood: 'focus', dance: 1, mic: true });
+    drawWhale(ctx, 160, 138 - local * 13, .72 + local * .05, t, palette, { heart: true, mood: 'focus', dance: 1, mic: true });
     drawOrb(ctx, 93, 82, .6, t, palette, true); drawOrb(ctx, 230, 96, .45, t + 1, palette, true);
   } else {
     drawWhale(ctx, 157, 107, 1.04, t, palette, { mood: 'wink', dance: 1, mic: true });

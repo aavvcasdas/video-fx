@@ -66,25 +66,27 @@
 
 1. **确定 brief**：先定横/竖屏、片长、目标平台、歌词/旁白语言、歌曲来源和授权、目标风格。当前样片是横屏 16:9；如果要做抖音竖屏，应明确改为 9:16，而不要默认沿用样片比例。
 2. **整理歌词与时间轴**：提供合法可用的音频和校对过的歌词，将每句整理成 `{start, end, text, emotion}`。中文歌词不要让模型凭听感猜字；逐字字幕和字体渲染必须单独校验。
-3. **写 treatment 和分镜**：先设计一个贯穿全片的小故事，再为每句歌词安排动作、场景、镜头/转场和情绪变化。先产出 8–12 个关键镜头的预览/故事板，不要一开始就渲染整首歌。
-4. **锁定视觉语法**：选一种主风格；制作角色表、配色、字体、场景组件和字幕安全区。像素风用统一网格/调色板/精灵；水彩或手绘用可复用的笔触、纸纹和抖动。中文字体要选完整 CJK 字库，并检查标点、换行、字重及移动端可读性。
-5. **逐帧实现与预览**：用 Canvas/SVG/p5.js 或网页组件实现镜头；每帧由时间 `t` 决定，保持可重复渲染。先按节拍输出 contact sheet 或低分辨率 animatic，检查角色连续性、字幕时序、画面留白和转场。
+3. **写 treatment 和分镜**：按用户 brief 设计镜头、动作、字幕与转场；如果用户要求复刻已有 MV，就复用其指定角色/画面并围绕原素材编排，不擅自另写故事或替换角色。先产出 8–12 个关键镜头的预览/故事板，不要一开始就渲染整首歌。
+4. **锁定视觉语法**：按 brief 选择风格；制作角色表、配色、字体、场景组件和字幕安全区。像素风用统一网格/调色板/精灵；水彩或手绘用可复用的笔触、纸纹和抖动。中文字体要选完整 CJK 字库，并检查标点、换行、字重及移动端可读性。
+5. **逐帧实现与预览**：用 Canvas/SVG/p5.js 或网页组件实现镜头；每帧由时间 `t` 决定，保持可重复渲染。先分析音乐节拍、按 beat/bar 输出 contact sheet 或低分辨率 animatic，检查角色连续性、字幕时序、画面留白和转场。
 6. **混音与交付**：用 FFmpeg 合成音轨并输出 MP4；校验开头/结尾、帧率、分辨率、音画同步、响度和字幕。保留 treatment、分镜、歌词时间轴、源代码、字体/素材来源与最终视频，便于修改和复用。
 
 **给 Claude Code 的起始提示词示例：**
 
-> 用 Lemo-Opuscar 做一支 60 秒中文歌词动画，风格选 16-bit Pixel RPG，横屏 16:9。只使用我提供且有权使用的音乐和歌词。先把歌词整理成带起止时间的 JSON，写 TREATMENT.md 和 8–12 镜头分镜；按歌词含义设计一个连续小故事，不要照搬参考视频的角色或画面。中文字体使用完整 CJK 字库，字幕放在安全区并逐句校对。先渲染关键帧 contact sheet 给我检查，再继续全片；最后交付 MP4、源码、歌词时间轴和渲染说明。
+> 用我提供且有权使用的 MV 素材做一支 15 秒横屏复刻。保留我指定的鲸鱼娘形象与原片内容，不另编故事、不生成新角色；将音乐节拍分析为 BPM 与小节线，在小节线上切换镜头，并在几个段落间切换调色风格。不要添加原片里没有的歌词或字幕。先提交 8–12 镜头的时间轴/故事板和关键帧 contact sheet 给我检查，再渲染 MP4；同时交付源码、素材来源说明与重渲染方法。
 
-## 本次复刻样片
+## 本次复刻样片：鲸鱼娘卡点剪辑
 
-- **参考风格：** `每天每天的抖音 - 抖音_2.mp4` 的像素 RPG 叙事语法（夜色城市、角色移动、游戏 UI、底部中文字幕）。
-- **新内容：**原创小故事《月光邮局》——小邮差把星星送到信箱；没有逐帧照搬参考画面，也没有复用原歌词。
-- **输出：**[`renders/moonlight-post-office-pixel-rpg.mp4`](renders/moonlight-post-office-pixel-rpg.mp4)，15 秒、1280×720、30 fps、H.264，静音。静音是因为没有指定可用的歌曲/音轨。
-- **源码：**[`scripts/render_pixel_rpg.py`](scripts/render_pixel_rpg.py)；重渲染方法：创建 Python 虚拟环境、安装 `requirements-video.txt`，再运行 `python scripts/render_pixel_rpg.py`。中文字体子集和 OFL 授权文件位于 `assets/fonts/`。
+- **画面与内容：**直接选用 `42868804351-1-192.mp4` 的鲸鱼娘 / Day 0 原片片段，保留角色与原有画面文字；不新编故事、不生成新角色或字幕。
+- **配乐与卡点：**使用 `每天每天的抖音 - 抖音_6.mp4` 的音轨，从约 0.34 秒处截取 15 秒。音频包络显示约 0.38 秒的短脉冲（双倍拍约 158 BPM，也可按半拍感觉理解为约 79 BPM）；每四个短脉冲约 1.519 秒切换一次镜头。
+- **风格切换：**深海蓝调、赛璐璐海报、暖色胶片、青紫漫画印刷，再回到深海蓝调。每两小节换一次处理；镜头切点有轻微闪光和推镜。
+- **输出：**[`renders/whale-girl-beatcut.mp4`](renders/whale-girl-beatcut.mp4)，15 秒、1280×720、30 fps、H.264 + AAC。此片为两支现有视频素材的交叉剪辑，音乐与鲸鱼娘原片旁白/字幕没有做语义配对。
+- **分镜：**[`renders/whale-girl-beatcut-storyboard.md`](renders/whale-girl-beatcut-storyboard.md)。
+- **源码：**[`scripts/render_whale_girl_beatcut.py`](scripts/render_whale_girl_beatcut.py)；重渲染方法：创建 Python 虚拟环境、安装 `requirements-video.txt`，再运行 `python scripts/render_whale_girl_beatcut.py`。
 
 ## 本轮安装结果与限制
 
 - **已安装 Lemo-Opuscar skill**：`~/.claude/skills/lemo-opuscar/`；其精简风格库在 `~/lemo-opuscar/`。
 - **已安装 Agent-Reach 1.5.0**：隔离虚拟环境 `~/.agent-reach-venv/`，技能在 `~/.claude/skills/agent-reach/`。命令可用 `~/.agent-reach-venv/bin/agent-reach` 调用，或先执行 `source ~/.agent-reach-venv/bin/activate`。只运行了默认 safe-mode 检查，没有安装系统工具、写 Cookie 或配置登录态；检查报告显示 2/16 个渠道可用，`mcporter` 未安装。
 - **PDoomVideo 与 Awesome Claude Skills** 已作为参考源码克隆到 `~/video-fx-tool-references/`。前者是示例工程，后者是技能目录，不是可整体安装的插件。
-- 当前环境**没有 `claude` CLI，也没有系统级 `ffmpeg`**。因此 Lemo skill 采用复制到 Claude Code skill 目录的方式安装，而非 marketplace CLI；Lemo 自身的 Node/Python/无头浏览器依赖尚未安装，不能直接按其标准工作流渲染。但本次复刻使用 Pillow 与 `imageio-ffmpeg` 随包提供的 FFmpeg，在不改系统环境的情况下成功输出了上面的静音 MP4。Node.js 22 与 Python 3.11 已存在。
+- 当前环境**没有 `claude` CLI，也没有系统级 `ffmpeg`**。因此 Lemo skill 采用复制到 Claude Code skill 目录的方式安装，而非 marketplace CLI；Lemo 自身的 Node/Python/无头浏览器依赖尚未安装，不能直接按其标准工作流渲染。本次复刻使用 Pillow 与 `imageio-ffmpeg` 随包提供的 FFmpeg，在不改系统环境的情况下渲染了带 AAC 音轨的 MP4。Node.js 22 与 Python 3.11 已存在。

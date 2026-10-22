@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="zh-CN"><meta charset="utf-8"><title>Claude 中文像素样张 Demo</title>
+<style>
+  html,body{margin:0;background:#0b0e14;color:#e6e6e6;font:14px system-ui}
+  header{padding:14px 18px;border-bottom:1px solid #222;display:flex;justify-content:space-between}
+  code{color:#8be}
+  #wrap{padding:18px;display:grid;gap:16px;max-width:1100px;margin:0 auto}
+  canvas{width:100%;max-width:960px;aspect-ratio:16/9;background:#111;border:1px solid #222;border-radius:10px}
+  .grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+  pre{background:#121722;border:1px solid #1e293b;border-radius:8px;padding:12px;overflow:auto}
+</style>
+<header><b>Claude 代码生视频 · 中文像素样张</b><span>window.render(t) 纯函数 · 1080×1920 竖屏同理</span></header>
+<div id="wrap">
+  <canvas id="c" width="960" height="540"></canvas>
+  <div><input id="t" type="range" min="0" max="6" step="0.02" value="0" style="width:100%"><div id="tt">t=0.00s</div></div>
+  <div class="grid">
+    <pre id="a">// 核心：复刻抖音_2“小时候”像素乡村
+// 逻辑分辨 320×180，整数像素位移，Bayer 抖动，对话框打字机
+// 完整可跑版本在 lemo-opuscar/styles/pixel-rpg/demo 中，含帧缓冲调色板与事件总线。</pre>
+    <pre id="b">时间线 window.DUR=30
+ 0.0s  推镜进村（pixel-rpg 侧卷视差）
+ 2.0s  对话框：「小时候」键入 40字/秒
+ 4.5s  水彩乌云→晴（crayon-book 洗）
+ 6.0s  拍立得拼贴「半句再见」
+
+中文字体：站酷快乐体 子集
+TTS：edge-tts zh-CN-XiaoxiaoNeural
+校验：asr_check --lang zh 0.92
+母带：mux.sh -14 LUFS</pre>
+  </div>
+</div>
+<script>
+const C=document.getElementById('c'),X=C.getContext('2d');
+function draw(t){
+  X.clearRect(0,0,C.width,C.height);
+  // 背景天空
+  const g=X.createLinearGradient(0,0,0,300); g.addColorStop(0,'#87c7ff'); g.addColorStop(1,'#e6f3ff');
+  X.fillStyle=g; X.fillRect(0,0,960,360);
+  // 云
+  X.fillStyle='#fff'; X.globalAlpha=0.9;
+  for(const [x,y,r] of [[160,90,38],[500,70,48],[750,110,34]]) { X.beginPath(); X.arc(x+Math.sin(t*0.3)*6,y,r,0,Math.PI*2); X.fill(); }
+  X.globalAlpha=1;
+  // 远山
+  X.fillStyle='#7aa86a'; X.beginPath(); X.moveTo(0,260); X.lineTo(180,180); X.lineTo(420,220); X.lineTo(640,170); X.lineTo(960,210); X.lineTo(960,360); X.lineTo(0,360); X.fill();
+  // 乡村瓦房（像素块）
+  X.fillStyle='#2b2b2b'; X.fillRect(280,260,400,120); // 屋顶
+  X.fillStyle='#c9b79a'; X.fillRect(320,380,320,80); // 墙
+  X.fillStyle='#6b3a2a'; for(let i=0;i<2;i++) X.fillRect(360+i*200,390,60,50); // 窗
+  X.fillStyle='#fff'; X.font='bold 22px sans-serif'; X.textAlign='center'; X.fillText('小时候',480,200+t*6%6);
+  // 对话框
+  const show = Math.max(0, Math.min(1,(t-1.2)/0.3));
+  if(show>0){
+    X.fillStyle='#0f172a'; X.fillRect(40,400,880,110);
+    X.strokeStyle='#fff'; X.lineWidth=2; X.strokeRect(40,400,880,110);
+    X.fillStyle='#fff'; X.font='18px sans-serif'; X.textAlign='left';
+    const txt='我来自深海的鲸鱼，大家好。'; const n=Math.floor(Math.min(txt.length, (t-1.5)*18));
+    X.fillText(txt.slice(0,n), 70, 450);
+    X.fillStyle='#8be'; X.fillText('▼', 880, 495-Math.abs(Math.sin(t*4))*4);
+  }
+  // 地面
+  X.fillStyle='#b59b7a'; X.fillRect(0,460,960,80);
+  // 小人像素
+  const bx=120+ t*40%760; X.fillStyle='#e23'; X.fillRect(bx,420,18,28); X.fillStyle='#ffda8b'; X.fillRect(bx+3,410,12,12);
+  document.getElementById('tt').textContent=`t=${t.toFixed(2)}s  窗口：render(t) 纯函数，随意并行 | 本页为示意，真实像素需帧缓冲调色板（见 /tmp/lemo-opuscar/styles/pixel-rpg/STYLE.md）`;
+}
+const R=document.getElementById('t'); R.oninput=e=>draw(parseFloat(e.target.value)); draw(0);
+</script>

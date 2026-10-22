@@ -75,9 +75,16 @@
 
 > 用 Lemo-Opuscar 做一支 60 秒中文歌词动画，风格选 16-bit Pixel RPG，横屏 16:9。只使用我提供且有权使用的音乐和歌词。先把歌词整理成带起止时间的 JSON，写 TREATMENT.md 和 8–12 镜头分镜；按歌词含义设计一个连续小故事，不要照搬参考视频的角色或画面。中文字体使用完整 CJK 字库，字幕放在安全区并逐句校对。先渲染关键帧 contact sheet 给我检查，再继续全片；最后交付 MP4、源码、歌词时间轴和渲染说明。
 
+## 本次复刻样片
+
+- **参考风格：** `每天每天的抖音 - 抖音_2.mp4` 的像素 RPG 叙事语法（夜色城市、角色移动、游戏 UI、底部中文字幕）。
+- **新内容：**原创小故事《月光邮局》——小邮差把星星送到信箱；没有逐帧照搬参考画面，也没有复用原歌词。
+- **输出：**[`renders/moonlight-post-office-pixel-rpg.mp4`](renders/moonlight-post-office-pixel-rpg.mp4)，15 秒、1280×720、30 fps、H.264，静音。静音是因为没有指定可用的歌曲/音轨。
+- **源码：**[`scripts/render_pixel_rpg.py`](scripts/render_pixel_rpg.py)；重渲染方法：创建 Python 虚拟环境、安装 `requirements-video.txt`，再运行 `python scripts/render_pixel_rpg.py`。中文字体子集和 OFL 授权文件位于 `assets/fonts/`。
+
 ## 本轮安装结果与限制
 
 - **已安装 Lemo-Opuscar skill**：`~/.claude/skills/lemo-opuscar/`；其精简风格库在 `~/lemo-opuscar/`。
 - **已安装 Agent-Reach 1.5.0**：隔离虚拟环境 `~/.agent-reach-venv/`，技能在 `~/.claude/skills/agent-reach/`。命令可用 `~/.agent-reach-venv/bin/agent-reach` 调用，或先执行 `source ~/.agent-reach-venv/bin/activate`。只运行了默认 safe-mode 检查，没有安装系统工具、写 Cookie 或配置登录态；检查报告显示 2/16 个渠道可用，`mcporter` 未安装。
 - **PDoomVideo 与 Awesome Claude Skills** 已作为参考源码克隆到 `~/video-fx-tool-references/`。前者是示例工程，后者是技能目录，不是可整体安装的插件。
-- 当前环境**没有 `claude` CLI，也没有 `ffmpeg`**。因此 Lemo skill 采用复制到 Claude Code skill 目录的方式安装，而非 marketplace CLI；库已下载，但尚未安装渲染依赖，也不能在这里完整输出新 MP4。Node.js 22 与 Python 3.11 已存在。若要实际渲染，下一步需要安装 FFmpeg，并补齐 Lemo 的 Node/Python/无头浏览器依赖。
+- 当前环境**没有 `claude` CLI，也没有系统级 `ffmpeg`**。因此 Lemo skill 采用复制到 Claude Code skill 目录的方式安装，而非 marketplace CLI；Lemo 自身的 Node/Python/无头浏览器依赖尚未安装，不能直接按其标准工作流渲染。但本次复刻使用 Pillow 与 `imageio-ffmpeg` 随包提供的 FFmpeg，在不改系统环境的情况下成功输出了上面的静音 MP4。Node.js 22 与 Python 3.11 已存在。

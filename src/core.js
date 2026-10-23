@@ -140,7 +140,10 @@
     if (t <= keys[0][0]) return keys[0][1];
     for (let i = 0; i < keys.length - 1; i++) {
       const [t0, v0, f] = keys[i], [t1, v1] = keys[i + 1];
-      if (t <= t1) return lerp(v0, v1, (f || fn)((t - t0) / Math.max(1e-6, t1 - t0)));
+      if (t <= t1) {
+        const k = (f || fn)((t - t0) / Math.max(1e-6, t1 - t0));
+        return Array.isArray(v0) ? v0.map((v, j) => lerp(v, v1[j], k)) : lerp(v0, v1, k);
+      }
     }
     return keys[keys.length - 1][1];
   }
@@ -178,16 +181,34 @@
     return { dy: 0, sq: -0.15 * intensity * (1 - u) * Math.cos(u * TAU) };
   }
 
-  function stroll(t, t0, t1, x0, x1, u = 20) {
-    if (t <= t0) return { x: x0, walk: null, dy: 0, rot: 0, flip: x1 < x0 };
-    if (t >= t1) return { x: x1, walk: null, dy: 0, rot: 0, flip: x1 < x0 };
-    const k = ease((t - t0) / Math.max(1e-6, t1 - t0)), ph = (t - t0) * 3;
+  function stroll(t, t0, t1, x0, x1, u = 24) {
+    const k = ease(seg(t, t0, t1));
+    const x = lerp(x0, x1, k);
+    const moving = t > t0 && t < t1;
+    const d = Math.abs(x - x0) / Math.max(12, 2.1 * u);
     return {
-      x: lerp(x0, x1, k),
-      walk: ph,
-      dy: -Math.abs(Math.sin(ph * Math.PI)) * 0.18 * u,
-      rot: Math.sin(ph * Math.PI) * 0.04,
-      flip: x1 < x0
+      x,
+      walk: moving ? d : 0,
+      view: moving ? 'q' : 'front',
+      flip: x1 < x0,
+      dy: moving ? -Math.abs(Math.sin(d * Math.PI)) * 0.32 : 0,
+      rot: moving ? Math.sin(d * Math.PI * 2) * 0.04 : 0
+    };
+  }
+
+  function runTo(t, t0, t1, x0, x1, u = 24) {
+    const k = ease(seg(t, t0, t1));
+    const x = lerp(x0, x1, k);
+    const moving = t > t0 && t < t1;
+    const d = Math.abs(x - x0) / Math.max(12, 1.45 * u);
+    return {
+      x,
+      walk: moving ? d * 1.45 : 0,
+      view: moving ? 'side' : 'q',
+      flip: x1 < x0,
+      dy: moving ? -Math.abs(Math.sin(d * Math.PI)) * 0.55 : 0,
+      rot: moving ? (x1 < x0 ? -0.09 : 0.09) : 0,
+      smear: moving ? 0.35 * Math.sin(k * Math.PI) : 0
     };
   }
 
@@ -710,18 +731,94 @@
     ctx.restore();
   }
 
+  // Ported directly from tuzhechen2005/opus-video-skills (xz_set.js):
+  // Theatre curtains (k = 0 open -> 1 closed at centre)
+  function curtains(ctx, k, t = 0) {
+    if (k <= 0.01) return;
+    boilSeed('curtain');
+    const red = '#A3283A', dk = '#6E1726', w = W / 2 + 60, off = (1 - ease(k)) * (w + 30);
+    for (const s of [-1, 1]) {
+      const x0 = s < 0 ? -60 - off : W / 2 + off;
+      const sway = Math.sin(t * 3) * 8 * (1 - k);
+      const P = [[x0, -30], [x0 + w, -30], [x0 + w + (s < 0 ? sway : -sway), H + 30], [x0, H + 30]];
+      paint(ctx, P, { wash: red, fill: dk, fillOp: 90, tex: 0.7, ink: PAL.ink, sw: 1.2 });
+      for (let i = 1; i < 6; i++) {
+        const fx = x0 + (i * w) / 6;
+        inkLine(ctx, [[fx, -30], [fx + 5 * Math.sin(i + t), H / 2], [fx, H + 30]], 1.2, dk, 'ink', 0.5);
+      }
+    }
+    const vy = -120 * (1 - ease(Math.min(1, k * 2)));
+    ctx.save();
+    ctx.translate(0, vy);
+    paint(ctx, [[-60, -30], [W + 60, -30], [W + 60, 80], [W * 0.75, 105], [W / 2, 80], [W * 0.25, 105], [-60, 80]], {
+      wash: dk, fill: red, fillOp: 90, ink: PAL.ink, sw: 1.2, curv: 0.3
+    });
+    inkLine(ctx, [[-60, 72], [W / 2, 92], [W + 60, 72]], 2.0, '#E8AA38', 'ink', 0.5);
+    ctx.restore();
+  }
+
+  // Spotlight darkness everywhere outside a circle of radius r at opacity a (0..1)
+  function spotDark(ctx, cx, cy, r, a, col = '#141628') {
+    if (a <= 0.01) return;
+    ctx.save();
+    ctx.fillStyle = rgba(col, clamp(a, 0, 1));
+    ctx.beginPath();
+    ctx.rect(-60, -60, W + 120, H + 120);
+    ctx.arc(cx, cy, Math.max(2, r), 0, TAU, true);
+    ctx.fill();
+    ctx.restore();
+  }
+
+  // Smoke / cloud billow wipe (p: 0 -> 0.5 covers frame, 0.5 -> 1.0 clears)
+  function smokeWipe(ctx, p, col = '#E4DCD8') {
+    if (p <= 0 || p >= 1) return;
+    const cover = p < 0.5 ? easeOut(p * 2) : 1 - ease((p - 0.5) * 2);
+    for (let i = 0; i < 14; i++) {
+      boilSeed('sw' + i);
+      const x = (i % 5) * 320 - 20 + 40 * hash(i);
+      const y = Math.floor(i / 5) * 280 + 40 * hash(i + 7) + (p > 0.5 ? -(p - 0.5) * 340 : 0);
+      const r = (85 + 260 * cover) * (0.8 + 0.4 * hash(i + 3)) * clamp(cover * 2.5 - i * 0.04 + 0.2);
+      if (r < 8) continue;
+      paint(ctx, ellPts(x, y, r, r * 0.82, 18, 5), {
+        wash: col,
+        washOp: Math.round(255 * clamp(cover * 1.6)),
+        fill: mixCol(col, '#9C8EA8', 0.4),
+        fillOp: 70,
+        ink: cover < 0.85 ? PAL.ink : null,
+        sw: 0.9
+      });
+    }
+  }
+
+  // Old-film memory scratches & dust (ported from opus-video-skills xz_set.js)
+  function filmFX(ctx, t) {
+    boilSeed('film');
+    const f = Math.floor(t * 12);
+    for (let i = 0; i < 2; i++) {
+      if (hash(f * 3 + i) < 0.55) {
+        const x = hash(f * 7 + i) * W;
+        inkLine(ctx, [[x, -10], [x + 6 * (hash(f + i) - 0.5), H / 2], [x + 3, H + 10]], 0.7, '#FFF3D6', 'ink', 0.3);
+      }
+    }
+    for (let i = 0; i < 5; i++) {
+      const x = hash(f * 11 + i) * W, y = hash(f * 13 + i) * H;
+      paint(ctx, ellPts(x, y, 2 + 3 * hash(i + f), 2 + 2 * hash(i), 6), { wash: '#5E4838', washOp: 150, ink: null });
+    }
+    spotDark(ctx, W / 2, H / 2, 740, 0.22, '#6E5034');
+  }
+
   const CORE = {
     W, H, FPS, BOIL, DURATION, BPM, BEAT, OFF, TAU, PAL, STYLES, BAYER4,
     clamp, lerp, frac, seg, ease, easeIn, easeOut, backOut, elasticOut, wob, hash,
     randomSeed, random, reseedBoil, boilSeed, jit,
     bpOf, beatN, energyAt, bassAt, voiceAt, beatPulse, hitPulse, pulse, pulse2,
-    kf, spring, ring, onTwos, arcPt, jump, take, stroll, shakeXY,
+    kf, spring, ring, onTwos, arcPt, jump, take, stroll, runTo, shakeXY,
     hexToRgb, rgba, mixCol,
     rectPts, ellPts, rrPts, starPts, heartPts, through, ribbon, partial,
     setActiveStyle, getActiveStyle, resolveStyle,
     paint, inkLine,
     camBegin, camEnd, toScreen,
-    glow, flash, letter, sfx, irisShape, iris, brushWipe, applyMediumOverlay
+    glow, flash, letter, sfx, irisShape, iris, brushWipe, curtains, spotDark, smokeWipe, filmFX, applyMediumOverlay
   };
 
   root.CORE = CORE;

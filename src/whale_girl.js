@@ -453,13 +453,20 @@
     const isQBack = view === 'qback';
 
     const sq = clamp(o.sq || 0, -0.35, 0.35);
-    const sx = (1 - sq * 0.55) * (o.flip ? -1 : 1);
-    const sy = 1 + sq * 0.65;
+    const sx = (1 + sq * 0.55) * (o.flip ? -1 : 1);
+    const sy = 1 - sq * 0.65;
     const dx = (o.dx || 0) * u;
-    const dy = (o.dy ?? -0.10 * pulse(t)) * u;
+    const jumpDy = o.jump ? -(o.jump / u) : 0;
+    const kneelDy = (o.kneel || 0) * 0.88;
+    const dy = ((o.dy ?? -0.10 * pulse(t)) + jumpDy + kneelDy) * u;
+    const bodyRot = (o.rot || 0) + (o.kneel ? (o.flip ? -1 : 1) * o.kneel * 0.16 : 0);
 
-    const headBob = Math.sin(t * 4.2) * 0.04 * u;
-    const headTilt = (o.headTilt || 0) + Math.sin(t * 2.1) * 0.03;
+    const walkRaw = o.walk || 0;
+    const walkRad = walkRaw * 4.2;
+    const walkBob = walkRaw ? -Math.abs(Math.sin(walkRad)) * 0.22 * u : 0;
+
+    const headBob = Math.sin(t * 4.2) * 0.04 * u + walkBob;
+    const headTilt = (o.headTilt || 0) + Math.sin(t * 2.1) * 0.04 + (walkRaw ? Math.sin(walkRad) * 0.06 : 0);
     const poseKey = resolvePoseKey(o);
 
     // Motion smear ghost (16-bit Pixel-Rig Afterimage Trail!)
@@ -467,20 +474,24 @@
       for (const [lag, al] of [[1.55, 0.20], [0.82, 0.38]]) {
         ctx.save();
         ctx.globalAlpha = al * clamp(o.smear, 0, 1);
-        ctx.translate(x + dx - lag * u * o.smear, y + dy);
+        ctx.translate(x + dx - lag * u * o.smear * (o.flip ? -1 : 1), y + dy);
+        ctx.rotate(bodyRot);
         ctx.scale(sx, sy);
         drawArticulatedPixelRig(ctx, u, t, Object.assign({}, o, { hat: 'none', emote: null }), poseKey, headBob, headTilt, 'neon', view);
         ctx.restore();
       }
     }
 
-    // Ground shadow
+    // Ground shadow (scales with jump height so leaps read clearly!)
     if (!o.noShadow) {
-      paint(ctx, ellPts(x + dx, y + 0.10 * u, 2.45 * u, 0.44 * u, 16), { wash: C.ink, washOp: 68, ink: null });
+      const airLift = Math.max(0, -dy / u);
+      const shScale = clamp(1 - airLift * 0.12, 0.35, 1.15);
+      paint(ctx, ellPts(x + dx, y + 0.10 * u, 2.45 * u * shScale, 0.44 * u * shScale, 16), { wash: C.ink, washOp: Math.round(68 * shScale), ink: null });
     }
 
     ctx.save();
     ctx.translate(x + dx, y + dy);
+    if (bodyRot) ctx.rotate(bodyRot);
     ctx.scale(sx, sy);
 
     // Use Articulated 7-Bone Pixel-Grid Rig across ALL 5 turnaround views (front, q, side, qback, back)!
@@ -518,11 +529,18 @@
       return hex;
     });
 
-    const tailWag = Math.sin(t * 3.5) * 0.065;
-    const hairSway = Math.sin(t * 2.4) * 0.032;
     const walkW = o.walk || 0;
-    const hipL = o.hipL !== undefined ? o.hipL : (walkW ? Math.sin(walkW) * 0.28 : 0);
-    const hipR = o.hipR !== undefined ? o.hipR : (walkW ? -Math.sin(walkW) * 0.28 : 0);
+    const walkRad = walkW * 4.2;
+    const isMoving = Math.abs(walkW) > 0.001;
+    const tailWag = Math.sin(t * (isMoving ? 7.5 : 3.5)) * (isMoving ? 0.16 : 0.075) + (o.tailWag || 0);
+    const hairSway = Math.sin(t * (isMoving ? 6.2 : 2.4)) * (isMoving ? 0.085 : 0.035) - (isMoving ? 0.08 : 0);
+    const kneelK = clamp(o.kneel || 0, 0, 1);
+    const hipL = o.hipL !== undefined ? o.hipL : (isMoving ? Math.sin(walkRad) * 0.62 : 0) - kneelK * 0.65;
+    const hipR = o.hipR !== undefined ? o.hipR : (isMoving ? -Math.sin(walkRad) * 0.62 : 0) + kneelK * 0.45;
+    const strideLx = isMoving ? Math.sin(walkRad) * 0.68 * u : -kneelK * 0.35 * u;
+    const strideRx = isMoving ? -Math.sin(walkRad) * 0.68 * u : kneelK * 0.40 * u;
+    const liftLy = isMoving ? (Math.sin(walkRad) > 0 ? 0.10 * u : -0.26 * u) : -kneelK * 0.32 * u;
+    const liftRy = isMoving ? (-Math.sin(walkRad) > 0 ? 0.10 * u : -0.26 * u) : -kneelK * 0.45 * u;
 
     const isSmoothBrush = (style === 'watercolor' || style === 'ukiyoe' || style === 'risograph') && o.constructMode !== 'pixelRig';
 
@@ -607,50 +625,77 @@
       ctx.restore();
     }
 
-    // 3. Left & Right Leg Bones (articulate with hipL & hipR)
-    if (poseKey !== 'laptop') {
+    // 3. Back-stepping Leg Bone (behind skirt hem)
+    const drawLegBone = (runs, pivotX, strideX, liftY, hipAng) => {
+      if (!runs || !runs.length) return;
       ctx.save();
-      ctx.translate(-0.72 * u, -1.35 * u);
-      ctx.rotate(hipL);
-      ctx.translate(0.72 * u, 1.35 * u);
-      drawBoneRuns(poseBones.legL);
+      ctx.translate(pivotX + strideX, -1.35 * u + liftY);
+      ctx.rotate(hipAng);
+      ctx.translate(-pivotX, 1.35 * u);
+      drawBoneRuns(runs);
       ctx.restore();
+    };
 
-      ctx.save();
-      ctx.translate(0.72 * u, -1.35 * u);
-      ctx.rotate(hipR);
-      ctx.translate(-0.72 * u, 1.35 * u);
-      drawBoneRuns(poseBones.legR);
-      ctx.restore();
+    const leftForward = Math.sin(walkRad) >= 0;
+    if (poseKey !== 'laptop') {
+      if (leftForward) {
+        drawLegBone(poseBones.legR, 0.72 * u, strideRx, liftRy, hipR);
+      } else {
+        drawLegBone(poseBones.legL, -0.72 * u, strideLx, liftLy, hipL);
+      }
     }
 
-    // 4. Torso, Bodice, Apron & Skirt Bone (shares upper-body headBob)
+    // 4. Torso, Bodice, Apron & Skirt Bone (shares upper-body headBob + gait sway)
     ctx.save();
     ctx.translate(0, headBob);
+    if (isMoving) {
+      ctx.translate(0, -3.2 * u);
+      ctx.rotate(Math.sin(walkRad) * 0.055);
+      ctx.translate(0, 3.2 * u);
+    }
     drawBoneRuns(poseBones.torso);
     ctx.restore();
 
-    // 5. Waving Right Arm Bone (in wave pose)
+    // 4b. Forward-stepping Leg Bone (steps visibly in front of skirt hem during gait!)
+    if (poseKey !== 'laptop') {
+      if (leftForward) {
+        drawLegBone(poseBones.legL, -0.72 * u, strideLx, liftLy, hipL);
+      } else {
+        drawLegBone(poseBones.legR, 0.72 * u, strideRx, liftRy, hipR);
+      }
+    }
+
+    // 5. Articulated Right Arm Bone & Left/Right Prop Hooks
+    const armRRot = o.aR !== undefined
+      ? (0.55 - o.aR) * 0.55
+      : (o.waveArm ? Math.sin(t * 9.5) * 0.34 : (isMoving ? Math.sin(walkRad) * 0.65 : Math.sin(t * 4.2) * 0.10));
+    const armLRot = o.aL !== undefined
+      ? (o.aL - 0.35) * 0.55
+      : (isMoving ? -Math.sin(walkRad) * 0.65 : Math.sin(t * 3.8 + 1.2) * 0.08);
+
     if (poseBones.armR && poseBones.armR.length > 0) {
-      const waveRot = o.waveArm ? Math.sin(t * 8.5) * 0.08 : Math.sin(t * 4.0) * 0.03;
       ctx.save();
       ctx.translate(1.55 * u, -4.55 * u + headBob);
-      ctx.rotate(waveRot);
+      ctx.rotate(armRRot);
       ctx.translate(-1.55 * u, 4.55 * u);
       drawBoneRuns(poseBones.armR);
       ctx.restore();
     }
 
-    // Prop attachment hooks (`armL` / `armR` callbacks)
+    // Prop attachment hooks (`armL` / `armR` callbacks follow arm swing!)
     if (typeof o.armL === 'function') {
       ctx.save();
-      ctx.translate(-1.75 * u, -3.15 * u + headBob);
+      ctx.translate(-1.55 * u, -4.45 * u + headBob);
+      ctx.rotate(armLRot);
+      ctx.translate(-0.35 * u, 1.30 * u);
       o.armL(ctx, u, style);
       ctx.restore();
     }
     if (typeof o.armR === 'function') {
       ctx.save();
-      ctx.translate(1.85 * u, (poseKey === 'wave' ? -5.15 : -3.15) * u + headBob);
+      ctx.translate(1.55 * u, -4.55 * u + headBob);
+      ctx.rotate(armRRot);
+      ctx.translate(0.35 * u, (poseKey === 'wave' ? -0.60 : 1.35) * u);
       o.armR(ctx, u, style);
       ctx.restore();
     }

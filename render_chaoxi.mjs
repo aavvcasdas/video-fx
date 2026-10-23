@@ -24,6 +24,7 @@ GlobalFonts.registerFromPath(path.resolve('assets/fonts/Silkscreen-Regular.ttf')
 globalThis.window = globalThis;
 require('./assets/chaoxi_audio.js');
 const CORE = require('./src/core.js');
+require('./src/whale_girl_rig_data.js');
 const WHALE = require('./src/whale_girl.js');
 const CLAWD = require('./src/clawd.js');
 const CAST = require('./src/cast.js');

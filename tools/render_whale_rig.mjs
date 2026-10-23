@@ -76,12 +76,12 @@ function drawActor(ctx, t) {
   if (!index) { drawLayer(ctx, key, t); return; }
   const previous = KEYS[index - 1];
   const age = t - key.at;
-  if (age >= .64) { drawLayer(ctx, key, t); return; }
+  if (age >= .40) { drawLayer(ctx, key, t); return; }
 
   // The JS model changes thought through anticipation → narrow turn → take.
-  // It draws the prior pose and next pose from the same part-based rig, never
-  // crossfades two raster reference images.
-  const p = ease(age / .64);
+  // It draws prior and next *code-painted* pixel models only for a very short
+  // smear window, avoiding a prolonged double-face crossfade.
+  const p = ease(age / .40);
   const arc = Math.sin(Math.PI * p);
   const x = lerp(previous.x, key.x, p);
   const y = lerp(previous.y, key.y, p) - 8 * arc;

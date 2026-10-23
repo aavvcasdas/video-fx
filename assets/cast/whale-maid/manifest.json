@@ -27,8 +27,8 @@
   "runtimePolicy": {
     "activeSong": "潮汐.MP3",
     "modelSheets": "source/*.png and styles/*.png are approved visual references only; they are never directly composited as the moving heroine",
-    "renderer": "src/whale-pixel-rig.js is the shared browser/offline part-based heroine implementation",
-    "poseStates": "stand, hands and laptop reconfigure the same independently animated JS parts; emotion keys control eyes, lids, brows, mouth, blush, hair and tail",
-    "rendering": "transparent 320x180 JS rig layers are composed before nearest-neighbour presentation; runtime image generation and generic-character substitution are prohibited"
+    "renderer": "tools/build_whale_pixel_model.py turns approved transparent model sheets into src/whale-pixel-model.js Canvas pixel runs; src/whale-pixel-rig.js is the shared browser/offline micro-animation layer",
+    "poseStates": "stand, hands and laptop are source-faithful pixel-model poses; emotion keys control lids, pupils/highlights, mouth, blush, hair glints and tail ripples",
+    "rendering": "transparent 320x180 JS pixel-rig layers are composed before nearest-neighbour presentation; runtime PNG-character compositing, image generation and generic-character substitution are prohibited"
   }
 }

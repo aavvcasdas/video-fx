@@ -6,7 +6,7 @@
   "scripts": {
     "start": "node server.mjs",
     "render:rig": "node tools/render_whale_rig.mjs --frames=render/whale-rig",
-    "check": "node --check src/cast.js && node --check src/timeline.js && node --check src/whale-pixel-rig.js && node --check tools/render_whale_rig.mjs && node --check app.js && node --check server.mjs"
+    "check": "node --check src/cast.js && node --check src/timeline.js && node --check src/whale-pixel-model.js && node --check src/whale-pixel-rig.js && node --check tools/render_whale_rig.mjs && node --check app.js && node --check server.mjs"
   },
   "engines": {
     "node": ">=18"

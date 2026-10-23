@@ -51,14 +51,16 @@ npm run check
 | 潮汐水墨 | `assets/cast/whale-maid/styles/ink-tide.png` | `ink` 模式的中性站姿 |
 | 霓虹声呐 | `assets/cast/whale-maid/styles/neon-sonar.png` | `neon` 模式的中性站姿 |
 
-这些图片保留为受控的视觉模型表，用来核对蓝发、白色荷叶边发箍、青蓝耳鳍/蝴蝶结、大蓝眼、围裙鲸标、长鲸尾、笔记本与捧脸读姿。运行时由共享的 JavaScript rig 分别绘制尾巴、四束发锁、发箍、耳鳍、眼睑/虹膜/高光、眉、嘴、腮红、手臂/手、裙身/围裙、鞋和笔记本；眼神、眨眼、眨单眼、嘴形、呼吸、跟随摆动与姿势转场都可独立运动。
+这些图片保留为受控的视觉模型表，用来核对蓝发、白色荷叶边发箍、青蓝耳鳍/蝴蝶结、大蓝眼、围裙鲸标、长鲸尾、笔记本与捧脸读姿。构建时，`tools/build_whale_pixel_model.py` 将三个批准姿势透明像素化、量化为 120px 高的 Canvas 像素 run；运行时 `src/whale-pixel-model.js` 逐格重绘这个一比一的发型、服装、裙褶、尾巴、鞋、手势与笔记本模型。JS micro-rig 再叠加眼睑/瞳孔/高光、嘴形、腮红、发丝高光与尾巴波纹，因此眨眼、眨单眼、视线、嘴形、呼吸、跟随摆动与姿势转场仍可独立运动。
 
 ## PDoomVideo 式项目结构
 
 ```text
 src/cast.js                              角色注册表与模型表路径
-src/whale-pixel-rig.js                   浏览器/离线共用的可动画 JS 鲸鱼娘部件 rig
+src/whale-pixel-model.js                 三个批准姿势的一比一像素 run（不含运行时图片读取）
+src/whale-pixel-rig.js                   浏览器/离线共用的 JS 像素模型 + 微表情 rig
 src/timeline.js                          原曲、歌词草稿、镜头、逐秒事件的时间源
+tools/build_whale_pixel_model.py         从批准模型表可复现地构建像素 run
 tools/render_whale_rig.mjs               将同一 JS rig 烘焙为透明角色层
 assets/cast/whale-maid/source/*.png      三张源片锁定模型表
 assets/cast/whale-maid/styles/*.png      四张已保存风格参照
@@ -84,6 +86,6 @@ app.js                                   Canvas 场景、音频同步、歌词�
 
 成片已在 [`output/tide-lyric-mv.mp4`](output/tide-lyric-mv.mp4)：**1280 × 720、24 fps、31.84 秒、H.264 + AAC**。它只合成 JavaScript 绘制的鲸鱼娘角色层、代码环境/歌词识别卡和仓库内 `潮汐.MP3`。
 
-可复现渲染分两步：先运行 `node tools/render_whale_rig.mjs --frames=render/whale-rig`，它用 `@napi-rs/canvas` 逐帧调用与浏览器相同的 rig，写出 765 张透明 `320 × 180` 角色层；随后 `tools/render_tide.py --rig-frames render/whale-rig` 只合成这些 JS 层。逐句表演键会触发预备压缩、转身、落点回弹、停顿读姿势与独立微表情。成帧统一先落到 **320 × 180** 的像素舞台，再以最近邻放大到 1280 × 720，并进行克制的 8 阶色彩归并，因此人物、歌词卡、特效和环境处在同一像素语言中。
+可复现渲染分三步：先以 `PYTHONPATH=/tmp/tide-render-libs python3 tools/build_whale_pixel_model.py` 从批准模型表构建一比一 JS 像素 run；再运行 `node tools/render_whale_rig.mjs --frames=render/whale-rig`，它用 `@napi-rs/canvas` 逐帧调用与浏览器相同的 rig，写出 765 张透明 `320 × 180` 角色层；最后 `tools/render_tide.py --rig-frames render/whale-rig` 只合成这些 JS 层。逐句表演键会触发预备压缩、转身、落点回弹、停顿读姿势与独立微表情。成帧统一先落到 **320 × 180** 的像素舞台，再以最近邻放大到 1280 × 720，并进行克制的 8 阶色彩归并，因此人物、歌词卡、特效和环境处在同一像素语言中。
 
 分镜仍按歌词给予明确的视觉目标：海面揭示、地图/远山、不可跨越的裂隙、声呐寻找、潮汐回灌、墨色山景、记忆月亮和霓虹终场。歌词卡出现时，歌词语义图形也持续推进。帧序列写入被忽略的 `render/tide-frames/`，以避免把中间 PNG 提交进仓库；最终 MP4 则保留并推送。

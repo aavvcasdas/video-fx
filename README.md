@@ -79,6 +79,6 @@ app.js                                   Canvas 场景、音频同步、歌词�
 
 ## 已输出 MP4
 
-成片已在 [`output/tide-lyric-mv.mp4`](output/tide-lyric-mv.mp4)：**1280 × 720、24 fps、31.84 秒、H.264 + AAC**。它只合成已保存的七张鲸鱼娘参照图、代码背景/歌词卡和仓库内 `潮汐.MP3`。
+成片已在 [`output/tide-lyric-mv.mp4`](output/tide-lyric-mv.mp4)：**1280 × 720、24 fps、31.84 秒、H.264 + AAC**。它只合成已保存的七张鲸鱼娘参照图、代码环境/歌词识别卡和仓库内 `潮汐.MP3`。
 
-可复现渲染器在 [`tools/render_tide.py`](tools/render_tide.py)。帧序列写入被忽略的 `render/tide-frames/`，以避免把中间 PNG 提交进仓库；最终 MP4 则保留并推送。
+可复现渲染器在 [`tools/render_tide.py`](tools/render_tide.py)。这版将每四秒拆成一个有明确行为目标的镜头：海面揭示、地图/远山、不可跨越的裂隙、声呐寻找、潮汐回灌、墨色山景、记忆月亮和霓虹终场。角色使用保存姿势间的预备—变形—落点转换，并以延迟尾迹、压缩/拉伸、旋转和拍点响应来保持表演可读；歌词卡出现时，歌词语义图形也持续推进。帧序列写入被忽略的 `render/tide-frames/`，以避免把中间 PNG 提交进仓库；最终 MP4 则保留并推送。

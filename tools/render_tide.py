@@ -101,10 +101,22 @@ def load_sprite(path: str):
     return image
 
 
-def composite(frame, sprite, center, height, opacity=1.0, scale=1.0):
-    h = max(1, int(height * scale))
-    w = max(1, int(sprite.shape[1] * h / sprite.shape[0]))
+def composite(frame, sprite, center, height, opacity=1.0, scale=1.0, angle=0.0, squash=0.0):
+    """Put a saved actor pose into the frame with cartoon squash/turn motion.
+
+    The pose image never changes identity: this only applies reversible 2D
+    staging transforms, analogous to Clawd's dy/sq/rot acting controls.
+    """
+    h = max(1, int(height * scale * (1 - squash)))
+    w = max(1, int(sprite.shape[1] * h / sprite.shape[0] * (1 + squash * .72)))
     layer = cv2.resize(sprite, (w, h), interpolation=cv2.INTER_LANCZOS4)
+    if abs(angle) > .01:
+        pad = max(w, h) // 4 + 4
+        layer = cv2.copyMakeBorder(layer, pad, pad, pad, pad, cv2.BORDER_CONSTANT, value=(0, 0, 0, 0))
+        cy, cx = layer.shape[0] / 2, layer.shape[1] / 2
+        matrix = cv2.getRotationMatrix2D((cx, cy), angle, 1.0)
+        layer = cv2.warpAffine(layer, matrix, (layer.shape[1], layer.shape[0]), flags=cv2.INTER_LANCZOS4, borderMode=cv2.BORDER_CONSTANT, borderValue=(0, 0, 0, 0))
+        h, w = layer.shape[:2]
     x0 = int(center[0] - w / 2)
     y0 = int(center[1] - h * .56)
     x1, y1 = x0 + w, y0 + h
@@ -216,15 +228,13 @@ def lyric_card(frame, fonts, t, lyric, palette):
     code, start, _, text, _ = lyric
     _, _, light, accent = palette
     p = min(1, max(0, (t - start) / .16))
-    x, y, w, h = 42, 42, int(405 * (0.6 + .4 * p)), 116
+    x, y, w, h = 42, 42, int(405 * (0.6 + .4 * p)), 102
     overlay = frame.copy()
     cv2.rectangle(overlay, (x, y), (x + w, y + h), (12, 24, 57), -1)
-    cv2.addWeighted(overlay, .89, frame, .11, 0, frame)
+    cv2.addWeighted(overlay, .80, frame, .20, 0, frame)
     cv2.rectangle(frame, (x, y), (x + max(6, int(13 + pulse(t) * 18)), y + h), light, -1)
-    draw_text(frame, fonts, f'LYRIC {code}  ·  {t - start:04.1f}s', (x + 28, y + 29), 'small', tuple(light[::-1]))
-    draw_text(frame, fonts, text, (x + 28, y + 76), 'lyric', (255, 250, 240))
-    cue = CUES[min(len(CUES) - 1, int(t))]
-    draw_text(frame, fonts, cue, (42, 675), 'body', (224, 239, 255))
+    draw_text(frame, fonts, f'歌词识别  ·  {code}', (x + 28, y + 27), 'small', tuple(light[::-1]))
+    draw_text(frame, fonts, text, (x + 28, y + 70), 'lyric', (255, 250, 240))
 
 
 def title_end(frame, fonts, t, palette):
@@ -239,40 +249,252 @@ def title_end(frame, fonts, t, palette):
     cv2.line(frame, (W // 2 - 150, 95), (W // 2 + 150, 95), light, 3, cv2.LINE_AA)
 
 
+def ease(p):
+    p = min(1.0, max(0.0, p))
+    return p * p * (3 - 2 * p)
+
+
+def scene_gradient(top, bottom):
+    y = np.linspace(0, 1, H, dtype=np.float32)[:, None, None]
+    frame = np.broadcast_to(np.array(top, dtype=np.float32)[None, None, :] * (1 - y) + np.array(bottom, dtype=np.float32)[None, None, :] * y, (H, W, 3))
+    return frame.copy().astype(np.uint8)
+
+
+def translucent_poly(frame, points, color, alpha):
+    layer = frame.copy()
+    cv2.fillPoly(layer, [np.array(points, np.int32)], color)
+    cv2.addWeighted(layer, alpha, frame, 1 - alpha, 0, frame)
+
+
+def scene_environment(frame, t, scene, palette):
+    """Eight lyric-led worlds with a visible objective in every four-bar shot.
+
+    The environment is deliberately keyed to the *active lyric*, including the
+    two-lyric shots, so the repeating chorus receives a new dramatic response
+    instead of a recycled background.
+    """
+    deep, upper, light, accent = palette
+
+    if scene == 0:  # L01 sea → L02 mountain: the first view gains a destination.
+        for i in range(7):
+            x = int(i * 210 + math.sin(t * .55 + i) * 35)
+            translucent_poly(frame, [(x - 50, 0), (x + 40, 0), (x + 170, 490), (x + 58, 490)], light, .055)
+        for y in (92, 118, 147):
+            pts = np.array([[0, y], [180, y - 12], [360, y + 8], [560, y - 10], [770, y + 5], [1010, y - 12], [1280, y + 6]], np.int32)
+            cv2.polylines(frame, [pts], False, light, 2, cv2.LINE_AA)
+        for i in range(10):
+            x = 35 + i * 133
+            cv2.ellipse(frame, (x, 665), (13, 36 + (i % 3) * 12), -10 + i * 9, 190, 355, (99, 133, 65), 4, cv2.LINE_AA)
+        # On “distant mountain scenery,” a destination rises from the sea.
+        if t >= 2.25:
+            p = ease((t - 2.25) / .55)
+            for j in range(-1, 7):
+                x = j * 238 - int((t - 2.25) * 25)
+                peak = int(530 - 165 * p + (j % 2) * 34)
+                translucent_poly(frame, [(x, 620), (x + 118, peak), (x + 252, 620)], mix(deep, upper, .35), .54)
+                cv2.line(frame, (x + 118, peak), (x + 252, 620), light, 1, cv2.LINE_AA)
+
+    elif scene == 1:  # L03 distance: two mountain shores and two departing markers.
+        left_shore = [(0, 720), (0, 402), (270, 432), (455, 625), (455, 720)]
+        right_shore = [(W, 720), (W, 395), (W - 255, 430), (W - 472, 627), (W - 472, 720)]
+        translucent_poly(frame, left_shore, deep, .92)
+        translucent_poly(frame, right_shore, deep, .92)
+        p = ease((t - 4.0) / 3.45)
+        gap = int(42 + 210 * p)
+        left, right = (W // 2 - gap, 405), (W // 2 + gap, 405)
+        cv2.circle(frame, left, 16 + int(pulse(t) * 8), accent, -1, cv2.LINE_AA)
+        cv2.circle(frame, right, 16 + int(pulse(t) * 8), light, -1, cv2.LINE_AA)
+        for x in range(left[0] + 28, right[0] - 18, 31):
+            cv2.line(frame, (x, 405), (x + 14, 405), (224, 240, 255), 2, cv2.LINE_AA)
+        # A tiny coordinate panel motivates the saved laptop pose without
+        # replacing the distance event with generic scenery.
+        panel = frame.copy(); cv2.rectangle(panel, (70, 250), (320, 415), (25, 43, 75), -1)
+        cv2.addWeighted(panel, .70, frame, .30, 0, frame)
+        cv2.rectangle(frame, (70, 250), (320, 415), light, 2)
+        cv2.line(frame, (105, 370), (285, 288), light, 2, cv2.LINE_AA)
+        cv2.circle(frame, (138, 355), 5, accent, -1, cv2.LINE_AA)
+        cv2.circle(frame, (266, 297), 5, light, -1, cv2.LINE_AA)
+
+    elif scene == 2:  # L04 retreat → L05 memory: things withdraw, then become a keepsake.
+        horizon = [(0, 510), (180, 486), (420, 526), (690, 492), (965, 532), (W, 500), (W, H), (0, H)]
+        translucent_poly(frame, horizon, deep, .62)
+        if t < 10.43:
+            # Coral paper slips backwards on each beat: an explicit retreat.
+            for n in range(15):
+                x = int(W - ((t - 8.25) * (110 + n * 8) + n * 137) % (W + 190))
+                y = 220 + (n % 6) * 59
+                cv2.rectangle(frame, (x, y), (x + 34, y + 18), accent if n % 2 else (110, 136, 255), -1)
+                if n % 3 == 0:
+                    cv2.line(frame, (x + 34, y + 18), (x + 57, y + 31), light, 1, cv2.LINE_AA)
+        else:
+            p = ease((t - 10.43) / .5)
+            cv2.circle(frame, (420, 338), int(62 + 62 * p), (236, 238, 226), -1, cv2.LINE_AA)
+            for n in range(9):
+                a = t * .9 + n * math.pi * 2 / 9
+                x = int(420 + math.cos(a) * (118 + n % 3 * 20))
+                y = int(340 + math.sin(a * 1.2) * (65 + n % 2 * 25))
+                cv2.circle(frame, (x, y), 10 + n % 3, light, 2, cv2.LINE_AA)
+
+    elif scene == 3:  # L06 search: sonar shrine is the action and the answer is absent.
+        cv2.ellipse(frame, (W // 2, 350), (360, 245), 0, 180, 360, (42, 88, 106), -1, cv2.LINE_AA)
+        for r in [105, 185, 270]:
+            cv2.ellipse(frame, (W // 2, 390), (r, int(r * .55)), 0, 196, 344, light, 2, cv2.LINE_AA)
+        for i in range(6):
+            x = 110 + i * 215
+            cv2.rectangle(frame, (x, 245 + (i % 2) * 25), (x + 25, 570), (58, 62, 75), -1)
+            cv2.circle(frame, (x + 12, 280 + (i % 2) * 25), 7, accent, -1)
+        # The scan target keeps moving just beyond the last ring.
+        tx = int(720 + math.sin(t * 2.4) * 190)
+        cv2.circle(frame, (tx, 307), 9, accent, 2, cv2.LINE_AA)
+
+    elif scene == 4:  # L07 sea → L08 mountain: tide rises before pixel ridges resolve.
+        for i in range(5):
+            y = 630 - i * 78 - int((t - 16) * 46)
+            cv2.ellipse(frame, (W // 2, y), (600 + i * 80, 120), 0, 180, 360, light, 3, cv2.LINE_AA)
+        for i in range(7):
+            x = int(i * 195 + math.sin(t + i) * 25)
+            translucent_poly(frame, [(x, H), (x + 170, H), (x + 105, 105), (x - 60, 105)], light, .07)
+        if t >= 18.0:
+            p = ease((t - 18.0) / .55)
+            for j in range(-1, 7):
+                x = j * 250 - int((t - 18) * 48)
+                base, peak = 570, int(570 - 185 * p - (j % 2) * 34)
+                pts = [(x, base), (x + 124, peak), (x + 250, base)]
+                translucent_poly(frame, pts, (128, 105, 158), .46)
+                cv2.polylines(frame, [np.array(pts, np.int32)], False, light, 2, cv2.LINE_AA)
+
+    elif scene == 5:  # L09 distance reprise: ink shores cannot meet across the white gap.
+        paper = frame.copy(); paper[:] = (196, 184, 147)
+        cv2.addWeighted(paper, .28, frame, .72, 0, frame)
+        left = [(0, 720), (0, 358), (205, 290), (472, 620), (472, 720)]
+        right = [(W, 720), (W, 352), (W - 228, 275), (W - 470, 620), (W - 470, 720)]
+        translucent_poly(frame, left, (98, 82, 48), .56)
+        translucent_poly(frame, right, (98, 82, 48), .56)
+        cv2.polylines(frame, [np.array(left[:4], np.int32)], False, (65, 52, 35), 4, cv2.LINE_AA)
+        cv2.polylines(frame, [np.array(right[:4], np.int32)], False, (65, 52, 35), 4, cv2.LINE_AA)
+        p = ease((t - 20) / 3.6)
+        for y in range(318, 565, 32):
+            cv2.line(frame, (486, y), (int(794 + p * 85), y + 12), (243, 237, 198), 1, cv2.LINE_AA)
+        for i in range(46):
+            x = int((i * 97) % W); y = int(138 + (i * 47) % 450)
+            cv2.circle(frame, (x, y), 1 + i % 3, (74, 67, 43), -1)
+
+    elif scene == 6:  # L10 retreat → L11 memory: rejected colour becomes a moon archive.
+        if t < 26.13:
+            for n in range(13):
+                x = int(W - ((t - 24) * (100 + n * 7) + n * 154) % (W + 190))
+                y = 190 + (n % 6) * 67
+                cv2.rectangle(frame, (x, y), (x + 37, y + 22), accent if n % 2 else (117, 92, 211), -1)
+            cv2.circle(frame, (W // 2, 332), 90, (105, 72, 126), -1, cv2.LINE_AA)
+        else:
+            cv2.circle(frame, (W // 2, 332), 176, (226, 232, 240), -1, cv2.LINE_AA)
+            cv2.circle(frame, (W // 2 + 66, 285), 160, deep, -1, cv2.LINE_AA)
+            for i in range(13):
+                a = t * .72 + i * math.pi * 2 / 13
+                x = int(W // 2 + math.cos(a) * (275 + i % 3 * 27))
+                y = int(414 + math.sin(a * 1.13) * (110 + i % 2 * 34))
+                cv2.circle(frame, (x, y), 18, (250, 246, 235), 2, cv2.LINE_AA)
+                cv2.circle(frame, (x - 5, y - 6), 4, light, -1, cv2.LINE_AA)
+
+    else:  # L12 search: neon current closes the loop through a graphic climax.
+        for i in range(8):
+            a = t * .85 + i * .7
+            r = 82 + i * 43
+            cv2.ellipse(frame, (W // 2, 382), (r, int(r * .48)), int(math.sin(a) * 22), 35, 330, light, 2, cv2.LINE_AA)
+        for x in range(-100, W + 160, 95):
+            cv2.line(frame, (W // 2, 255), (x + int(math.sin(t * 2) * 20), H), (154, 88, 217), 1, cv2.LINE_AA)
+
+def transition_actor(frame, t, begin, previous, following, center, height, palette):
+    """Cause → reaction: a saved pose breaks into water/pixels before the next pose arrives."""
+    u = ease((t - begin) / .46)
+    if u <= 0:
+        composite(frame, previous, center, height)
+        return
+    if u >= 1:
+        composite(frame, following, center, height)
+        return
+    p = pulse(t)
+    composite(frame, previous, (center[0] - 28 * u, center[1] + 14 * u), height, opacity=1 - u, scale=1 + .09 * u, angle=-7 * u, squash=.09 * math.sin(u * math.pi))
+    composite(frame, following, (center[0] + 22 * (1 - u), center[1] - 14 * (1 - u)), height, opacity=u, scale=.91 + .09 * u, angle=7 * (1 - u), squash=-.07 * math.sin(u * math.pi))
+    _, _, light, accent = palette
+    # Breakup fragments travel around the silhouette, rather than obscuring the
+    # face; the viewer can read both poses while the water carries one into the
+    # next. This is the visible action beat between two held acting poses.
+    for i in range(26):
+        a = i * 2.41 + t * 5
+        r = 88 + 112 * u + (i % 5) * 17
+        x = int(center[0] + math.cos(a) * r)
+        y = int(center[1] - 48 + math.sin(a) * r * .62)
+        sz = 3 + i % 4
+        cv2.rectangle(frame, (x - sz, y - sz), (x + sz, y + sz), light if i % 2 else accent, -1)
+    if p > .25:
+        cv2.circle(frame, center, int(170 * u), light, 2, cv2.LINE_AA)
+
+
+def acted_actor(frame, t, scene, sprites, palette):
+    local = t - scene * 4
+    beat = pulse(t)
+    # Each scene gives the same saved heroine a distinct, readable intention.
+    sequence = [
+        ('standing', 'laptop', (918, 505), 550),
+        ('laptop', 'hands', (755, 505), 535),
+        ('hands', 'pixel', (890, 505), 545),
+        ('pixel', 'cel', (640, 510), 560),
+        ('cel', 'ink', (640, 520), 560),
+        ('ink', 'hands', (650, 520), 555),
+        ('hands', 'neon', (645, 525), 575),
+        ('neon', 'standing', (645, 510), 570),
+    ]
+    current, next_pose, center, height = sequence[scene]
+    # The previous shot's last 0.46 seconds already resolves into `current`.
+    # This shot therefore has a clean read before it prepares the next phrase.
+    if local > 3.48 and scene < 7:
+        transition_actor(frame, t, scene * 4 + 3.48, sprites[current], sprites[next_pose], center, height, palette)
+        return
+    bob = math.sin(t * 3.1 + scene) * 8 - beat * 12
+    squat = .055 * math.sin(t * BPM / 60 * math.pi * 2) + beat * .045
+    angle = math.sin(t * 1.65 + scene) * 1.7
+    if scene == 1:  # laptop: settle, look down, then notice the map.
+        angle = -3 + math.sin(t * 2.3) * 1.2
+    elif scene == 2:  # hands: a surprised take after the distance line snaps.
+        center = (center[0] + beat * 18, center[1] - beat * 24)
+        squat = -beat * .08
+    elif scene == 3:  # search: an assertive discovery pose on each sonar hit.
+        center = (center[0], center[1] - beat * 18)
+        angle = math.sin(t * 8) * 2.3
+    elif scene == 6:  # memory: the pose softens and hangs under the moon.
+        bob += math.sin(t * 1.1) * 14
+        angle = -2 + math.sin(t * .9) * 2
+    elif scene == 7:
+        center = (center[0], center[1] - beat * 24)
+        squat = -beat * .06
+    # Tail/hair follow-through: a translucent delayed ghost trails the actor.
+    composite(frame, sprites[current], (center[0] - 18, center[1] + bob + 9), height, opacity=.12, scale=.99, angle=angle - 3.5, squash=squat)
+    composite(frame, sprites[current], (center[0], center[1] + bob), height, scale=1 + beat * .028, angle=angle, squash=squat)
+
+
 def render_frame(t, sprites, fonts):
     scene = scene_at(t)
-    # Saved pixel → cel → ink → neon treatments cycle across neutral standing shots.
     style_index = 0 if scene <= 3 else 1 if scene == 4 else 2 if scene == 5 else 3
     palette = PALETTES[style_index]
-    frame = background(t, palette)
-    bubbles(frame, t, palette)
-    lyric = lyric_at(t)
-    lyric_motif(frame, t, lyric, palette)
-
-    bob = math.sin(t * 3.5) * 7 - pulse(t) * 8
-    if scene == 0:
-        composite(frame, sprites['standing'], (918, 500 + bob), 515, scale=1 + pulse(t) * .025)
-        fish(frame, 180 + int((t * 55) % 230), 510, .9, palette[3])
-    elif scene == 1:
-        composite(frame, sprites['laptop'], (760, 500 + bob), 485, scale=1 + pulse(t) * .02)
-        fish(frame, 180 + int((t * 45) % 760), 260, .65, palette[2])
-    elif scene == 2:
-        composite(frame, sprites['hands'], (920, 510 + bob), 505, scale=1 + pulse(t) * .03)
-    elif scene == 3:
-        composite(frame, sprites['pixel'], (675, 515 + bob), 500, scale=1 + pulse(t) * .03)
+    # Each shot replaces the entire world, not merely a new prop on the same stage.
+    if scene == 5:
+        frame = scene_gradient((208, 202, 178), (83, 89, 77))
+    elif scene == 7:
+        frame = scene_gradient((84, 25, 100), (27, 10, 52))
     elif scene == 4:
-        composite(frame, sprites['cel'], (670, 525 + bob), 505, scale=1 + pulse(t) * .03)
-    elif scene == 5:
-        composite(frame, sprites['ink'], (670, 520 + bob), 505, scale=1 + pulse(t) * .03)
-    elif scene == 6:
-        composite(frame, sprites['hands'], (650, 525 + bob), 520, scale=1 + pulse(t) * .03)
+        frame = scene_gradient((198, 126, 113), (86, 49, 77))
     else:
-        composite(frame, sprites['neon'], (660, 510 + bob), 530, scale=1 + pulse(t) * .04)
-
-    lyric_card(frame, fonts, t, lyric, palette)
+        frame = scene_gradient(palette[1], palette[0])
+    scene_environment(frame, t, scene, palette)
+    # A lyric is a visual objective, not just a title: its motif advances while
+    # the recognition card is on screen.
+    lyric_motif(frame, t, lyric_at(t), palette)
+    bubbles(frame, t, palette)
+    acted_actor(frame, t, scene, sprites, palette)
+    lyric_card(frame, fonts, t, lyric_at(t), palette)
     title_end(frame, fonts, t, palette)
     return frame
-
 
 def main():
     parser = argparse.ArgumentParser()

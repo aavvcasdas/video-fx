@@ -1,42 +1,59 @@
-# Animation guide — read before editing `app.js`
+# 《潮汐》动画指南
 
-This is a small browser-based adaptation of a code-rendered MV workflow. It follows three rules:
+在修改场景前先读 [`STORYBOARD.md`](STORYBOARD.md)、[`CAST_BIBLE.md`](CAST_BIBLE.md) 与 [`src/timeline.js`](src/timeline.js)。本项目采用和代码渲染 MV 相同的拆分方式：角色、时间表、分镜和帧绘制相互独立。
 
-1. **Time is input.** A frame is a pure rendering of `t`, timeline data, a palette and cast assets. Do not rely on prior-frame state or unconstrained `Math.random()`.
-2. **Timeline first.** Add or change timing in [`src/timeline.js`](src/timeline.js), then change the shot behavior in `app.js`. The blueprint exporter reads the same data.
-3. **Cast first.** REF-01 is source-locked by [`src/cast.js`](src/cast.js) and [`CAST_BIBLE.md`](CAST_BIBLE.md). Scene code may select poses, never redraw its identity.
+## 不可变约束
 
-## Project anatomy
+- 原曲：根目录 `潮汐.MP3`，浏览器使用它的 `currentTime` 作为播放时钟。
+- 时长：`31.843 s`；节拍草稿：`117 BPM`。
+- 舞台：原生 `320 × 180`，展示时最近邻放大。
+- 主角：只能从 `src/cast.js` 的 `whaleMaid` 素材读取，不使用运行时生图、外部 URL 或未保存图片。
+- 每一秒：`secondCues` 至少有一个可见变化；每一行：`lyrics` 至少有识别卡与一种画面隐喻。
+
+## 项目职责
 
 ```text
-src/cast.js                              cast metadata, source-pose and style-sheet paths
-src/timeline.js                          48-second timing source of truth
-assets/cast/whale-maid/source/*.png      source-locked heroine poses
-assets/cast/whale-maid/styles/*.png      saved alternate standing-pose treatments
-assets/cast/whale-maid/manifest.json     provenance and variant policy
-CAST_BIBLE.md                            character lock / visual facts
-STORYBOARD.md                            shot list and pose assignment
-app.js                                   canvas paint functions, controls and JSON export
+src/timeline.js   修改歌词起止时间、镜头、每秒提示；不要在 app.js 写散乱秒数
+src/cast.js       修改已经存在的素材路径与角色规则；不创建临时形象
+app.js            绘制背景、保存姿势、歌词卡、歌词隐喻及播放器控件
+STORYBOARD.md     复核每段应该调用的姿势和特效
 ```
 
-## Stage constraints
+## 保存姿势调用
 
-- Paint into the native **320 × 180** `CanvasRenderingContext2D`; CSS does the nearest-neighbour presentation.
-- `BPM = 124`, `BEAT = 60 / BPM`, and four beats make the visual bar. `beatPulse(t)` should animate only a small, deliberate hit.
-- `drawMV(t)` owns full-frame shot composition. Any new shot must paint its own background before its characters.
-- The source heroine assets are alpha PNGs. Call `drawWhale(...)`; do not call `drawWhaleVector(...)` except as an asset-loading fallback.
+调用 `drawWhale(context, x, y, scale, t, palette, options)`：
 
-## Reference-lock rules
+```js
+// 开场：强制完整源片站姿
+drawWhale(ctx, 235, 120, .9, t, palette, { sourceLocked: true, mood: 'wink' });
 
-- Select only `hands`, `laptop` or `standing` for an exact-source character pose.
-- Preserve the complete silhouette: do not crop away the tail, headband, ears, apron or feet in a hero shot.
-- Use `state.selectedStyle` only to select one of the saved treatments for a **neutral standing** shot. A laptop/reaction shot must use its matching source pose because no invented restyle is approved for it.
-- New alternate treatments must be derived from `source/standing.png`, saved under `assets/cast/whale-maid/styles/`, and added to `manifest.json` and `src/cast.js` before use.
+// 日记 / 距离：直接调用笔记本源片姿势
+drawWhale(ctx, 176, 119, .92, t, palette, { laptop: true });
 
-## Render / review checklist
+// 回忆 / 退守：直接调用捧脸源片姿势
+drawWhale(ctx, 220, 123, .88, t, palette, { mood: 'surprise' });
 
-1. Scrub 00, 04, 08 … 44 seconds: each cut must start on its defined beat.
-2. Scrub every integer second: a cue must be visibly observable.
-3. Review all four style cards and all four cast model cards.
-4. Check that `REF-01` loads `source/standing.png` in pixel mode and does not silently fall back to vector art.
-5. Run `npm run check`; then use the JSON export as the render manifest for a future MP4 sequence.
+// 中性段：按当前 pixel / cel / ink / neon 读取保存的对应 PNG
+drawWhale(ctx, 151, 115, 1.0, t, palette, { mood: 'focus', dance: 1 });
+```
+
+对角色只允许：整数位移、极小的节拍缩放、环境遮挡和最近邻缩放。不可重绘脸、改变服装、裁去鲸尾或用任何生成接口替换角色。
+
+## 歌词卡规则
+
+`activeLyric(t)` 从 `timeline.lyrics` 找到当前行。`drawOverlayEffects()` 必须同时绘制：
+
+1. `LYRIC Lxx` 时间标识；
+2. 当前歌词文本；
+3. 对应 `motif`（海浪、远山、距离、退守、回忆或搜索）；
+4. 强拍白闪或卡片边条。
+
+歌词时间的修正仅发生在 `src/timeline.js`。完成试听后，检查每一个 `start` 是否和人声首字对齐。
+
+## 验收
+
+```bash
+npm run check
+```
+
+然后播放整首歌并逐一检查：00、04、08、12、16、20、24、28 秒镜头边界；L01–L12 卡片；四个保存风格；以及末尾 31.843 秒是否正常停止。

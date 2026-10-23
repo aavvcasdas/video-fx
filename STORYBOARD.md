@@ -1,28 +1,28 @@
-# Abyssal Beat — 48-second storyboard
+# 《潮汐》— 31.843 秒歌词分镜
 
-The timing table is the source of truth in [`src/timeline.js`](src/timeline.js). This document is the creative brief for the functions that paint each shot. Cuts must land on the first beat of a four-second section at **124 BPM**.
+音频、歌词草稿与时间均以 [`src/timeline.js`](src/timeline.js) 为唯一来源。该表按 PDoomVideo 的方式先锁定 shot，再让场景函数以纯时间 `t` 绘制。
 
-| Time | Shot | REF-01 pose | Primary motion / cut rule |
+| 时间 | 歌词卡 | 主角素材 | 每帧持续细节 / 卡点 |
 | --- | --- | --- | --- |
-| 00–04 | 信号下潜 | none → `standing` | light shaft and bubbles establish depth; orb appears on beat 1 |
-| 04–08 | 鲸尾入镜 | `standing` | exact source heroine floats in from right; tail crosses on the fourth beat |
-| 08–12 | 深海投票 | `laptop` | source laptop pose anchors the choice-board UI; cards pop one per beat |
-| 12–16 | 规则浮现 | `laptop` | board items activate as keyboard particles answer the beat |
-| 16–20 | 珊瑚步伐 | `standing` | stage translation / beat pulse only; no silhouette distortion |
-| 20–24 | 水母接管 | `standing` | water-jelly DJ takes right composition; heroine remains source-locked counterpoint |
-| 24–28 | 气泡弹幕 | `hands` | surprise pose meets a rising comment-bubble shower |
-| 28–32 | 存档之门 | `laptop` | code-work pose and save door match cut through rectangular UI |
-| 32–36 | 深潜独白 | `hands` / `standing` | close reaction alternates with light shafts; retain full headwear + tail in frame |
-| 36–40 | 群像合拍 | `standing` | all four cast members pulse on one bar, heroine remains visual center |
-| 40–44 | 潮汐建造 | `hands` | source reaction pose hits the build-up white flash |
-| 44–48 | 蓝色回声 | `standing` | exact standing pose rises through title and returns to first beat |
+| 00–04 | L01 蓝色的海底 / L02 远山的风景 | `standing.png` 源片锁定 | 顶光缓慢摆动、气泡按深度分层上浮、波线在每拍改一格；第 1 拍弹出 L01。 |
+| 04–08 | L03 我们的距离遥不可及 | `laptop.png` | 日记式笔记本姿势置于山影前，两枚光标从中心分离，虚线在强拍断开。 |
+| 08–12 | L04 退守的爱情 / L05 还剩下回忆 | `hands.png` | 珊瑚色纸片向后退、记忆泡泡逐个显影；捧脸姿势保持源片轮廓。 |
+| 12–16 | L06 疯狂地寻觅你的身影 | 当前风格的已保存站姿图 | 三个声呐环每拍扩大，鱼群绕开扫描线，最后留下空拍呼吸光。 |
+| 16–20 | L07 蓝色的海底 / L08 远山的风景 | 当前风格的已保存站姿图 | 第二遍人声重入时，亮蓝由底部回灌；山影切换为横移的像素层。 |
+| 20–24 | L09 我们的距离遥不可及 | `laptop.png` | 信标沿两条轨迹远离中央，潮线放大成下一镜的转场。 |
+| 24–28 | L10 退守的爱情 / L11 还剩下回忆 | `hands.png` | 倒放尾迹把颜色拉回角色；泡泡卡片聚为月牙，每个弱拍旋转一格。 |
+| 28–31.843 | L12 疯狂地寻觅你的身影 | 当前风格的已保存站姿图 | 声呐扫描标题碎片，最后一拍将全部元素回收成蓝色海底。 |
 
-## Every-second contract
+## 姿势与风格规则
 
-The 48 cues in `secondCues` are not decoration. A second must visibly introduce one or more of: a character action, an environmental particle behavior, a UI change, a camera shift, a palette step, or a transition preparation. If a new cut is added, extend the data table first, then implement the visual function.
+- `standing.png` 是开场的**源片锁定**镜头。
+- 中性站姿在风格卡切换后只可使用 `pixel-rpg.png`、`cel-pop.png`、`ink-tide.png` 或 `neon-sonar.png`。
+- `hands.png` 与 `laptop.png` 不做临时风格生成；始终直接使用保存的源片姿势。
+- 主角不得替换成未存档的新形象；水母 DJ、信使鱼和光团只作为环境节拍辅助。
 
-## Style-cut contract
+## 审片顺序
 
-- **Default pixel look**: use source PNG poses, composed at native stage resolution. This is the fidelity cut.
-- **Cel pop / ink tide / neon sonar**: invoke the matching saved standing-style reference when a neutral standing pose is used; for `hands` or `laptop`, preserve the corresponding source pose rather than inventing an unmatched substitute.
-- **Pixel RPG alternate**: use `pixel-rpg.png` only for model cards, interstitials or a deliberately full pixel restyle; label it as an alternate cut, not the source-lock default.
+1. 听原曲并停在每个 `lyrics[].start`：歌词卡应落在当前人声起点。
+2. 检查每一整秒：必须能在 `secondCues` 找到一个画面行为。
+3. 在四个风格卡间切换：站姿变体应改变，笔记本/捧脸姿势应保持同一人设。
+4. 检查 31.843 秒末尾：音频结束、画面停留在结尾帧，不回跳到旧 MV。

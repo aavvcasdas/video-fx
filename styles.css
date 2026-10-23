@@ -60,7 +60,7 @@ h1 em, h2 em { font-style: normal; color: var(--blue); }
 .hero-stats span { color: var(--muted); font-size: 10px; font-weight: 700; }
 
 .stage-card { width: 100%; max-width: 690px; justify-self: end; background: var(--navy); border-radius: 21px; padding: 13px; color: #fff; box-shadow: 0 25px 35px rgba(7, 26, 60, .2), 13px 13px 0 #d6ecf7; transform: rotate(1.5deg); position: relative; }
-.stage-card::after { content: "124 BPM"; position: absolute; color: var(--blue); font: 500 9px var(--mono); letter-spacing: .13em; right: -28px; top: 50%; transform: rotate(90deg); }
+.stage-card::after { content: "117 BPM · 潮汐"; position: absolute; color: var(--blue); font: 500 9px var(--mono); letter-spacing: .13em; right: -28px; top: 50%; transform: rotate(90deg); }
 .stage-topline { height: 33px; padding: 0 6px; display: flex; align-items: center; gap: 7px; color: #90b9e8; font: 10px var(--mono); letter-spacing: .08em; }
 .stage-topline .live-dot { height: 6px; width: 6px; box-shadow: 0 0 0 3px rgba(255,116,109,.2); }
 .stage-topline b { color: #fff; }

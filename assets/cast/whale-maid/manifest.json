@@ -25,8 +25,9 @@
     "neon-sonar": { "file": "styles/neon-sonar.png", "method": "violet/cyan sonar treatment with alpha bloom" }
   },
   "runtimePolicy": {
-    "defaultLook": "source pose directly from source/*.png",
-    "otherLooks": "saved style references may replace standing pose only; expression/prop shots retain the matching source pose",
-    "rendering": "all sprites are composed in the 320x180 stage before nearest-neighbour presentation"
+    "activeSong": "潮汐.MP3",
+    "sourceLockedShots": "opening standing, hands reaction and laptop prop shots directly use source/*.png",
+    "neutralStanding": "pixel-rpg.png, cel-pop.png, ink-tide.png or neon-sonar.png is selected by the active style card",
+    "rendering": "all sprites are composed in the 320x180 stage before nearest-neighbour presentation; runtime image generation is prohibited"
   }
 }

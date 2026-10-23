@@ -1,8 +1,8 @@
 {
-  "name": "abyssal-beat-mv",
+  "name": "tide-lyric-mv",
   "version": "1.0.0",
   "private": true,
-  "description": "A beat-synced, code-drawn pixel whale-girl music-video studio.",
+  "description": "A lyric-synced, code-drawn Tide music-video studio using saved whale-maid references.",
   "scripts": {
     "start": "node server.mjs",
     "check": "node --check src/cast.js && node --check src/timeline.js && node --check app.js && node --check server.mjs"

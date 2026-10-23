@@ -10,6 +10,7 @@ const types = {
   '.js': 'text/javascript; charset=utf-8',
   '.css': 'text/css; charset=utf-8',
   '.json': 'application/json; charset=utf-8',
+  '.mp3': 'audio/mpeg',
   '.mp4': 'video/mp4',
   '.png': 'image/png',
   '.svg': 'image/svg+xml',
@@ -33,5 +34,5 @@ createServer((req, res) => {
   });
   createReadStream(filePath).pipe(res);
 }).listen(port, '0.0.0.0', () => {
-  console.log(`Abyssal Beat MV is ready at http://0.0.0.0:${port}`);
+  console.log(`Tide lyric MV is ready at http://0.0.0.0:${port}`);
 });

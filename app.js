@@ -1,7 +1,7 @@
 /*
- * Abyssal Beat MV
- * An original, deterministic canvas music-video study. The 320 × 180 stage is
- * intentionally rendered small and nearest-neighbour scaled by CSS.
+ * 潮汐 / TIDE lyric MV
+ * A deterministic canvas music-video study using only saved local cast assets.
+ * The 320 × 180 stage is intentionally small and nearest-neighbour scaled.
  */
 
 const STAGE_W = 320;
@@ -69,7 +69,7 @@ const state = {
   lastFrame: performance.now(),
   selectedStyle: 'pixel',
   selectedCast: 'lan',
-  sound: false,
+  sound: true,
   audio: null,
   lastAudioBeat: -1,
   lastTimelineSecond: -1,
@@ -81,6 +81,7 @@ const styleGrid = $('#styleGrid');
 const castList = $('#castList');
 const playhead = $('#playhead');
 const toast = $('#toast');
+const tideTrack = $('#tideTrack');
 
 function clamp(value, min = 0, max = 1) { return Math.max(min, Math.min(max, value)); }
 function lerp(a, b, amount) { return a + (b - a) * amount; }
@@ -274,10 +275,12 @@ function sourcePose(options) {
 
 function drawWhale(context, x, y, scale, t, palette, options = {}) {
   const pose = sourcePose(options);
-  // Exact source poses always win for reactions/props. A neutral standing shot
-  // can opt into one of the saved cel, ink or neon character treatments.
-  const neutralStanding = pose === 'standing' && state.selectedStyle !== 'pixel';
-  const source = neutralStanding ? whaleStyleSprites[state.selectedStyle] : whaleReferenceSprites[pose];
+  // Every MV appearance comes from the saved cast library. Laptop and hands
+  // keep their exact source poses; standing shots select one stored treatment
+  // (pixel RPG, cel, ink or neon) unless a source-locked standing shot is set.
+  const source = options.sourceLocked || pose !== 'standing'
+    ? whaleReferenceSprites[pose]
+    : (whaleStyleSprites[state.selectedStyle] || whaleReferenceSprites.standing);
 
   // The reference sprite remains the first-class character rendering. It is
   // drawn into the native 320 × 180 stage and then nearest-neighbour scaled
@@ -298,95 +301,117 @@ function drawWhale(context, x, y, scale, t, palette, options = {}) {
   drawWhaleVector(context, x, y, scale, t, palette, options);
 }
 
+function activeLyric(t) {
+  return timeline.lyrics.find((line) => t >= line.start && t < line.end) || null;
+}
+
 function drawOverlayEffects(context, t, palette, scene) {
-  const p = beatPulse(t, 1);
-  if (scene === 0) {
-    context.save(); context.globalAlpha = .5 * p; fillRect(context, 0, 0, STAGE_W, STAGE_H, palette.light); context.restore();
+  const lyric = activeLyric(t);
+  if (!lyric) return;
+  const age = clamp((t - lyric.start) / .22);
+  const pulse = beatPulse(t, 1);
+
+  // Recognition card: the text, timing ID and a live beat marker always
+  // travel together, making lyric review possible directly in the preview.
+  context.save();
+  context.globalAlpha = easeOut(age);
+  fillRect(context, 12, 13, 130, 26, 'rgba(4, 19, 50, .82)');
+  fillRect(context, 12, 13, 3 + pulse * 6, 26, palette.light);
+  context.fillStyle = palette.light; context.font = '6px monospace';
+  context.fillText(`LYRIC ${lyric.id}  •  ${Math.floor((t - lyric.start) * 10) / 10}s`, 21, 22);
+  context.fillStyle = palette.white; context.font = 'bold 10px sans-serif';
+  context.fillText(lyric.text, 21, 34);
+  context.restore();
+
+  if (lyric.motif === 'sea') {
+    for (let i = 0; i < 5; i += 1) {
+      const y = 112 + i * 9 + Math.sin(t * 3 + i) * 2;
+      line(context, [[0, y], [60, y - 3], [120, y + 2], [190, y - 2], [320, y + 2]], palette.light, i === 0 ? 2 : 1);
+    }
   }
-  if (scene === 2) {
-    const choices = [['A', 35, palette.coral], ['B', 105, palette.dress2], ['C', 175, palette.purple], ['D', 245, palette.green]];
-    choices.forEach(([letter, x, color], i) => {
-      const inTime = clamp((mod(t, 4) - i * .23) / .42);
-      const y = 24 + (1 - easeOut(inTime)) * -18;
-      context.save(); context.globalAlpha = easeOut(inTime); fillRect(context, x, y, 45, 30, color); fillRect(context, x + 2, y + 2, 41, 26, palette.white); fillRect(context, x + 5, y + 5, 35, 20, color); context.fillStyle = palette.white; context.font = 'bold 10px monospace'; context.fillText(letter, x + 18, y + 19); context.restore();
-    });
+  if (lyric.motif === 'mountain') {
+    for (let i = 0; i < 4; i += 1) {
+      const xx = -20 + i * 100 - mod(t * (5 + i), 22);
+      context.save(); context.globalAlpha = .18 + i * .07;
+      polygon(context, [[xx, 126], [xx + 48, 76 - i * 6], [xx + 98, 126]], i % 2 ? palette.dress2 : palette.light);
+      context.restore();
+    }
   }
-  if (scene === 3) {
-    fillRect(context, 17, 21, 121, 61, palette.white); strokePolygon(context, [[17, 21], [138, 21], [138, 82], [17, 82]], palette.light, 2);
-    context.fillStyle = palette.ink; context.font = 'bold 7px monospace'; context.fillText('DEEP SEA RULES', 27, 35);
-    for (let i = 0; i < 3; i += 1) { const active = mod(Math.floor(t * 2), 3) === i; fillRect(context, 28, 43 + i * 11, 92, 6, active ? palette.dress2 : palette.skinShade); fillRect(context, 29, 44 + i * 11, active ? 65 : 47, 1, palette.white); }
+  if (lyric.motif === 'distance') {
+    const spread = 18 + clamp((t - lyric.start) / (lyric.end - lyric.start)) * 112;
+    context.save(); context.globalAlpha = .85;
+    ellipse(context, 160 - spread, 101, 4 + pulse * 2, 4 + pulse * 2, palette.coral);
+    ellipse(context, 160 + spread, 101, 4 + pulse * 2, 4 + pulse * 2, palette.light);
+    for (let x = 160 - spread + 10; x < 160 + spread - 8; x += 9) fillRect(context, x, 101, 4, 1, palette.white);
+    context.restore();
   }
-  if (scene === 5) {
-    for (let i = 0; i < 3; i += 1) { context.save(); context.globalAlpha = .24 - i * .05; context.strokeStyle = palette.light; context.lineWidth = 1; context.beginPath(); context.arc(239, 88, 20 + i * 18 + p * 20, 0, Math.PI * 2); context.stroke(); context.restore(); }
+  if (lyric.motif === 'retreat') {
+    for (let i = 0; i < 7; i += 1) {
+      const x = 282 - mod((t - lyric.start) * (34 + i * 3) + i * 39, 340);
+      const y = 71 + (i % 4) * 16;
+      context.save(); context.globalAlpha = .38 + pulse * .28; fillRect(context, x, y, 11, 7, i % 2 ? palette.coral : palette.pink); context.restore();
+    }
   }
-  if (scene === 6) {
-    for (let i = 0; i < 16; i += 1) { const bx = hash(i * 3.7) * 290 + 15; const by = mod(180 - (t * (12 + hash(i) * 15) + i * 21), 180); context.save(); context.globalAlpha = .82; ellipse(context, bx, by, 4 + hash(i) * 3, 3, palette.white); fillRect(context, bx - 2, by - 1, 7, 1, i % 2 ? palette.coral : palette.dress2); context.restore(); }
+  if (lyric.motif === 'memory') {
+    for (let i = 0; i < 8; i += 1) {
+      const orbit = t * .8 + i * .78;
+      const x = 161 + Math.cos(orbit) * (28 + (i % 3) * 10);
+      const y = 112 + Math.sin(orbit * 1.4) * (15 + (i % 2) * 7);
+      context.save(); context.globalAlpha = .45 + pulse * .25; ellipse(context, x, y, 4, 3, palette.white); fillRect(context, x - 2, y - 1, 7, 1, palette.light); context.restore();
+    }
   }
-  if (scene === 7) {
-    fillRect(context, 112, 21, 95, 116, palette.line); fillRect(context, 116, 25, 87, 108, palette.dress2); fillRect(context, 121, 29, 77, 100, palette.deep);
-    for (let i = 0; i < 4; i += 1) ellipse(context, 160, 78, 9 + i * 11 + p * 3, 9 + i * 11 + p * 3, i % 2 ? palette.purple : palette.dress2);
-    fillRect(context, 149, 68, 22, 20, palette.light); context.fillStyle = palette.ink; context.font = 'bold 7px monospace'; context.fillText('SAVE', 151, 80);
+  if (lyric.motif === 'search') {
+    for (let i = 0; i < 3; i += 1) {
+      const radius = 12 + mod((t - lyric.start) * 28 + i * 17, 48);
+      context.save(); context.globalAlpha = .44 - i * .1; context.strokeStyle = palette.light; context.lineWidth = 1; context.beginPath(); context.arc(164, 98, radius, 0, Math.PI * 2); context.stroke(); context.restore();
+    }
   }
-  if (scene === 10) {
-    const rows = 4; for (let r = 0; r < rows; r += 1) { const width = 42 + r * 23 + p * 9; fillRect(context, 160 - width / 2, 142 - r * 12, width, 8, r % 2 ? palette.dress2 : palette.light); }
-    context.save(); context.globalAlpha = .24 * p; fillRect(context, 0, 0, STAGE_W, STAGE_H, palette.white); context.restore();
-  }
-  if (scene === 11) {
-    context.save(); context.globalAlpha = .88; fillRect(context, 0, 9, STAGE_W, 22, palette.deep); context.fillStyle = palette.light2; context.font = 'bold 13px monospace'; context.fillText('BLUE ECHO', 99, 24); context.restore();
-  }
+
+  // A one-frame high-light on each strong beat gives the lyric card a visible
+  // hit even between larger scene changes.
+  if (barPhase(t) === 0) { context.save(); context.globalAlpha = pulse * .14; fillRect(context, 0, 0, STAGE_W, STAGE_H, palette.light2); context.restore(); }
 }
 
 function drawMV(t) {
   const palette = currentPalette();
   const scene = sceneAt(t);
-  const local = mod(t, 4);
   ctx.clearRect(0, 0, STAGE_W, STAGE_H);
-  drawBackground(ctx, t, palette, Math.sin(t) * 2);
+  drawBackground(ctx, t, palette, Math.sin(t * .65) * 2);
   drawCoral(ctx, t, palette, 2);
 
-  // Direction and casts intentionally vary by 4-second shot rather than looping one central sprite.
   if (scene === 0) {
-    drawOrb(ctx, 160 + Math.sin(t * 2) * 18, 89, 1.1, t, palette, true);
-    for (let i = 0; i < 6; i += 1) drawFish(ctx, 30 + i * 55, 47 + (i % 3) * 18, .23, t + i, palette, i % 2 ? -1 : 1);
+    // The exact source standing pose opens the song before any style treatment.
+    drawWhale(ctx, 235, 120, .9, t, palette, { sourceLocked: true, mood: 'wink' });
+    drawOrb(ctx, 84, 95, .68, t, palette, true);
+    drawFish(ctx, 38 + mod(t * 16, 105), 122, .38, t, palette, 1, true);
   } else if (scene === 1) {
-    drawFish(ctx, 66 + local * 14, 103, .42, t, palette, 1, true);
-    drawWhale(ctx, 204, 112, .9, t, palette, { mood: 'smile', mic: true });
+    // The saved laptop reference turns the distant-view lyric into a diary shot.
+    drawWhale(ctx, 176, 119, .92, t, palette, { laptop: true });
+    drawFish(ctx, 40 + mod(t * 12, 250), 76, .31, t, palette, 1, true);
+    drawOrb(ctx, 270, 82, .52, t, palette);
   } else if (scene === 2) {
-    drawWhale(ctx, 255, 121, .79, t, palette, { laptop: true, mood: local > 2 ? 'wink' : 'smile', mic: false });
-    drawOrb(ctx, 220, 92, .5, t, palette);
+    drawWhale(ctx, 220, 123, .88, t, palette, { mood: 'surprise' });
+    drawOrb(ctx, 82, 92, .66, t, palette, true);
+    drawFish(ctx, 120, 136, .34, t, palette, -1, false);
   } else if (scene === 3) {
-    drawWhale(ctx, 236, 115, .83, t, palette, { laptop: true, mood: 'focus', mic: false });
+    drawWhale(ctx, 151, 115, 1.0, t, palette, { mood: 'focus', dance: 1 });
+    drawOrb(ctx, 64, 64, .44, t, palette, true); drawOrb(ctx, 265, 128, .55, t + 1, palette, true);
   } else if (scene === 4) {
-    drawCoral(ctx, t + 1, palette, 1);
-    drawWhale(ctx, 155 + Math.sin(t * 2) * 12, 120, .88, t, palette, { mood: 'smile', dance: 1, mic: true });
-    drawFish(ctx, 55 + local * 30, 106, .44, t, palette, 1);
+    drawWhale(ctx, 155, 123, .94, t, palette, { mood: 'smile', dance: 1 });
+    drawFish(ctx, 33 + mod(t * 22, 255), 136, .45, t, palette, 1, true);
   } else if (scene === 5) {
-    drawJelly(ctx, 239, 101, 1.05, t, palette);
-    drawWhale(ctx, 83, 122, .64, t, palette, { mood: 'focus', dance: 1 });
-    drawOrb(ctx, 163, 64, .55, t, palette);
+    drawWhale(ctx, 165, 115, .88, t, palette, { laptop: true, mood: 'focus' });
+    drawOrb(ctx, 83, 87, .64, t, palette, true); drawOrb(ctx, 244, 70, .43, t + 1, palette);
   } else if (scene === 6) {
-    drawWhale(ctx, 150, 121, .92, t, palette, { mood: 'wink', dance: 1, mic: true });
-  } else if (scene === 7) {
-    drawWhale(ctx, 68, 125, .58, t, palette, { mood: 'surprise' });
-    drawOrb(ctx, 72, 73, .7, t, palette, true);
-  } else if (scene === 8) {
-    drawWhale(ctx, 160, 117, 1.22, t, palette, { mood: local < 2 ? 'smile' : 'focus', mic: false, close: true });
-  } else if (scene === 9) {
-    drawWhale(ctx, 126, 121, .62, t, palette, { mood: 'smile', dance: 1 });
-    drawJelly(ctx, 210, 115, .56, t, palette, 'mix');
-    drawFish(ctx, 272, 75 + Math.sin(t * 4) * 12, .5, t, palette, -1, true);
-    drawOrb(ctx, 54, 66, .62, t, palette, true);
-  } else if (scene === 10) {
-    drawWhale(ctx, 160, 138 - local * 13, .72 + local * .05, t, palette, { heart: true, mood: 'focus', dance: 1, mic: true });
-    drawOrb(ctx, 93, 82, .6, t, palette, true); drawOrb(ctx, 230, 96, .45, t + 1, palette, true);
+    drawWhale(ctx, 160, 126, .98, t, palette, { heart: true, mood: 'surprise' });
+    for (let i = 0; i < 4; i += 1) drawOrb(ctx, 60 + i * 66, 128 + Math.sin(t * 2 + i) * 8, .28, t + i, palette, true);
   } else {
-    drawWhale(ctx, 157, 107, 1.04, t, palette, { mood: 'wink', dance: 1, mic: true });
-    drawFish(ctx, 65 + local * 12, 110, .55, t, palette, 1, true); drawJelly(ctx, 257, 126, .42, t, palette); drawOrb(ctx, 77, 55, .56, t, palette, true);
+    drawWhale(ctx, 160, 119, 1.08, t, palette, { mood: 'wink', dance: 1 });
+    drawFish(ctx, 48 + mod(t * 14, 230), 83, .37, t, palette, 1, true);
   }
 
   drawOverlayEffects(ctx, t, palette, scene);
-  // A dark foreground bed stabilizes the small stage's depth.
-  ctx.save(); ctx.globalAlpha = .28; fillRect(ctx, 0, 174, STAGE_W, 6, palette.ink); ctx.restore();
+  ctx.save(); ctx.globalAlpha = .25; fillRect(ctx, 0, 174, STAGE_W, 6, palette.ink); ctx.restore();
 }
 
 function drawCharacterSheet(t) {
@@ -411,12 +436,13 @@ function render(t) {
   drawMV(t);
   drawCharacterSheet(t);
   const shot = shotData[sceneAt(t)];
-  const second = Math.min(47, Math.floor(t));
+  const second = Math.min(secondCues.length - 1, Math.floor(t));
+  const lyric = activeLyric(t);
   $('#frameLabel').textContent = timeLabel(t);
   $('#sceneLabel').textContent = `${String(sceneAt(t) + 1).padStart(2, '0')} · ${shot.title}`;
-  $('#captionKicker').textContent = shot.kicker;
-  $('#captionTitle').textContent = shot.title;
-  $('#captionDetail').textContent = secondCues[second][1];
+  $('#captionKicker').textContent = lyric ? `LYRIC RECOG / ${lyric.id}` : shot.kicker;
+  $('#captionTitle').textContent = lyric ? lyric.text : shot.title;
+  $('#captionDetail').textContent = lyric ? lyric.cue : secondCues[second][1];
   playhead.value = t.toFixed(2);
   updateBeatPips(t);
   if (second !== state.lastTimelineSecond) { state.lastTimelineSecond = second; updateActiveTimeline(second); }
@@ -481,6 +507,7 @@ function selectStyle(style) {
 function setTime(value) {
   state.t = clamp(Number(value), 0, DURATION - .001);
   state.lastAudioBeat = beatNumber(state.t) - 1;
+  if (tideTrack && Number.isFinite(tideTrack.duration)) tideTrack.currentTime = state.t;
   render(state.t);
 }
 
@@ -489,8 +516,18 @@ function setPlaying(playing) {
   const icon = playing ? 'Ⅱ' : '▶';
   $('#stagePlayButton').textContent = icon;
   $('#stagePlayButton').setAttribute('aria-label', playing ? '暂停' : '播放');
-  $('#playButtonText').textContent = playing ? '暂停预览' : `播放第 ${String(sceneAt(state.t) + 1).padStart(2, '0')} 幕`;
-  if (playing) { ensureAudio(); }
+  $('#playButtonText').textContent = playing ? '暂停《潮汐》' : `播放第 ${String(sceneAt(state.t) + 1).padStart(2, '0')} 幕`;
+  if (!tideTrack) return;
+  if (playing) {
+    tideTrack.muted = !state.sound;
+    tideTrack.currentTime = state.t;
+    tideTrack.play().catch(() => {
+      // The visual composer stays usable even if a browser blocks media.
+      showToast('浏览器暂未允许播放原曲，画面仍会按时间表预览');
+    });
+  } else {
+    tideTrack.pause();
+  }
 }
 
 function togglePlay() {
@@ -498,37 +535,13 @@ function togglePlay() {
   setPlaying(!state.playing);
 }
 
-function ensureAudio() {
-  if (!state.audio) {
-    const Audio = window.AudioContext || window.webkitAudioContext;
-    if (!Audio) return;
-    state.audio = new Audio();
-  }
-  if (state.audio.state === 'suspended') state.audio.resume();
-}
-
-function playTone(frequency, length, gain, shape = 'sine') {
-  if (!state.audio || !state.sound) return;
-  const now = state.audio.currentTime;
-  const oscillator = state.audio.createOscillator();
-  const volume = state.audio.createGain();
-  oscillator.type = shape; oscillator.frequency.setValueAtTime(frequency, now);
-  volume.gain.setValueAtTime(.0001, now); volume.gain.exponentialRampToValueAtTime(gain, now + .008); volume.gain.exponentialRampToValueAtTime(.0001, now + length);
-  oscillator.connect(volume); volume.connect(state.audio.destination); oscillator.start(now); oscillator.stop(now + length + .02);
-}
-
-function audioBeat(beat) {
-  if (!state.sound) return;
-  if (mod(beat, 4) === 0) { playTone(72, .12, .1, 'triangle'); playTone(216, .045, .025, 'sine'); }
-  else { playTone(mod(beat, 2) ? 430 : 320, .035, .024, 'square'); }
-  if (mod(beat, 8) === 6) playTone(620, .08, .028, 'sine');
-}
-
 function setSound(enabled) {
   state.sound = enabled;
-  const button = $('#soundToggle'); button.setAttribute('aria-pressed', String(enabled)); button.textContent = enabled ? '♪ 节拍已开' : '♪ 引导节拍';
-  if (enabled) { ensureAudio(); state.lastAudioBeat = beatNumber(state.t) - 1; }
-  showToast(enabled ? '引导节拍已开启（124 BPM）' : '引导节拍已静音');
+  if (tideTrack) tideTrack.muted = !enabled;
+  const button = $('#soundToggle');
+  button.setAttribute('aria-pressed', String(enabled));
+  button.textContent = enabled ? '♪ 原曲音轨' : '♪ 原曲静音';
+  showToast(enabled ? '《潮汐》原曲音轨已开启' : '《潮汐》原曲已静音');
 }
 
 function showToast(message) {
@@ -539,25 +552,25 @@ function showToast(message) {
 
 function buildBlueprint() {
   return {
-    title: '鲸歌深潜计划 / Abyssal Beat', duration_seconds: DURATION, bpm: BPM,
-    character_reference: {
+    title: '潮汐 / TIDE', audio: timeline.recognition.source, duration_seconds: DURATION, bpm: BPM,
+    lyric_recognition: { ...timeline.recognition, lines: timeline.lyrics },
+    lead_character: {
       code: castBible.whaleMaid.code,
-      source_video: castBible.whaleMaid.reference.sourceVideo,
-      source_frames: castBible.whaleMaid.reference.sourceFrame,
+      concept: '已保存鲸鱼娘参照库',
       source_poses: castBible.whaleMaid.poses,
       saved_style_references: castBible.whaleMaid.styleSheets,
       lock: castBible.whaleMaid.reference.lock,
     },
-    production_rules: ['每秒至少一个可见事件', '每拍一次动作强调', '强拍执行切镜或转场', '所有画面由确定性代码绘制'],
+    production_rules: ['每秒至少一个可见事件', '每句歌词必须有对应画面隐喻', '强拍执行卡片或镜头强调', '所有画面由确定性代码绘制'],
     styles: Object.values(palettes).map((palette) => palette.name),
     cast: cast.map(({ code, name, role, specs }) => ({ code, name, role, specs: Object.fromEntries(specs) })),
-    shots: shotData.map((shot, index) => ({ number: index + 1, at: `${String(shot.start).padStart(2, '0')}s`, title: shot.title, beat_note: shot.detail })),
+    shots: shotData.map((shot, index) => ({ number: index + 1, at: `${String(shot.start).padStart(2, '0')}s`, title: shot.title, beat_note: shot.detail, pose: shot.pose })),
     second_cues: secondCues.map(([event, detail], second) => ({ second, event, detail })),
   };
 }
 function downloadBlueprint() {
   const blob = new Blob([JSON.stringify(buildBlueprint(), null, 2)], { type: 'application/json;charset=utf-8' });
-  const url = URL.createObjectURL(blob); const anchor = document.createElement('a'); anchor.href = url; anchor.download = 'abyssal-beat-shot-blueprint.json'; document.body.append(anchor); anchor.click(); anchor.remove(); URL.revokeObjectURL(url); showToast('镜头制作蓝图已下载');
+  const url = URL.createObjectURL(blob); const anchor = document.createElement('a'); anchor.href = url; anchor.download = 'tide-lyric-mv-blueprint.json'; document.body.append(anchor); anchor.click(); anchor.remove(); URL.revokeObjectURL(url); showToast('《潮汐》歌词 MV 蓝图已下载');
 }
 
 function bindEvents() {
@@ -565,6 +578,15 @@ function bindEvents() {
   $('#stagePlayButton').addEventListener('click', togglePlay);
   $('#rewindButton').addEventListener('click', () => { setPlaying(false); setTime(0); showToast('已回到第 01 幕'); });
   $('#soundToggle').addEventListener('click', () => setSound(!state.sound));
+  tideTrack.addEventListener('ended', () => {
+    state.t = DURATION - .001;
+    setPlaying(false);
+    render(state.t);
+  });
+  tideTrack.addEventListener('loadedmetadata', () => {
+    tideTrack.muted = !state.sound;
+    $('#durationLabel').textContent = `00:${DURATION.toFixed(1).padStart(4, '0')}`;
+  });
   $('#exportButton').addEventListener('click', downloadBlueprint);
   $('#downloadPlan').addEventListener('click', downloadBlueprint);
   $('#jumpButton').addEventListener('click', () => $('#timeline').scrollIntoView({ behavior: 'smooth', block: 'start' }));
@@ -584,15 +606,22 @@ function frame(now) {
   const delta = Math.min(.05, (now - state.lastFrame) / 1000);
   state.lastFrame = now;
   if (state.playing) {
-    state.t += delta;
-    if (state.t >= DURATION) { state.t = 0; state.lastAudioBeat = -1; }
-    const beat = beatNumber(state.t);
-    if (beat !== state.lastAudioBeat) { state.lastAudioBeat = beat; audioBeat(beat); }
+    // The supplied MP3 is the playback clock whenever it is available; the
+    // small fallback keeps visual scrubbing functional before media is ready.
+    if (tideTrack && !tideTrack.paused && Number.isFinite(tideTrack.currentTime)) state.t = tideTrack.currentTime;
+    else state.t += delta;
+    if (state.t >= DURATION) {
+      state.t = DURATION - .001;
+      setPlaying(false);
+    }
   }
   render(state.t);
   requestAnimationFrame(frame);
 }
 
+playhead.max = String(DURATION);
+$('#durationLabel').textContent = `00:${DURATION.toFixed(1).padStart(4, '0')}`;
+tideTrack.muted = !state.sound;
 createTimeline();
 createBeatPips();
 createCast();

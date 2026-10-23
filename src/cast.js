@@ -27,9 +27,9 @@
       standing: `${ROOT}/source/standing.png`,
     }),
     // Each file is a saved visual treatment of the approved standing pose.
-    // The original pose remains the default for `pixel` to retain exactness.
+    // Hands/laptop keep their exact source pose; neutral shots use this library.
     styleSheets: Object.freeze({
-      pixel: `${ROOT}/source/standing.png`,
+      pixel: `${ROOT}/styles/pixel-rpg.png`,
       cel: `${ROOT}/styles/cel-pop.png`,
       ink: `${ROOT}/styles/ink-tide.png`,
       neon: `${ROOT}/styles/neon-sonar.png`,

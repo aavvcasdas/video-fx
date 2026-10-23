@@ -1,6 +1,6 @@
 # Cast bible — read before painting a shot
 
-This is the equivalent of a character module in a code-rendered MV: scenes **call a cast identity and pose** rather than inventing a new character per scene. Runtime metadata lives in [`src/cast.js`](src/cast.js); image provenance and variants live in [`assets/cast/whale-maid/manifest.json`](assets/cast/whale-maid/manifest.json).
+This is the equivalent of a character module in a code-rendered MV: scenes **call a cast identity and pose** rather than inventing a new character per scene. Runtime metadata lives in [`src/cast.js`](src/cast.js); image provenance and variants live in [`assets/cast/whale-maid/manifest.json`](assets/cast/whale-maid/manifest.json). The active 《潮汐》 MV uses this saved library only—no runtime generation or replacement character.
 
 ## REF-01 · 鲸鱼娘 / locked heroine
 
@@ -37,7 +37,7 @@ The standing pose is also preserved as four optional art-direction references. T
 | `ink-tide` | `styles/ink-tide.png` | cyan/navy ink wash + paper-dark contour |
 | `neon-sonar` | `styles/neon-sonar.png` | violet/cyan electric treatment + alpha glow |
 
-Every variant was made from the approved standing source pose, so the headwear, dress, apron mark and whale tail remain traceable.
+Every variant was made from the approved standing source pose, so the headwear, dress, apron mark and whale tail remain traceable. In the active 《潮汐》 MV, pose-specific shots use the direct `hands` / `laptop` / source-locked `standing` assets; neutral standing shots select one of these four saved treatments. No runtime image generation is allowed.
 
 ## Supporting cast
 

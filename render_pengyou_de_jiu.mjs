@@ -1,6 +1,7 @@
-// render_douyin_2.mjs — Deterministic 30fps Renderer for #02 《我不难过》(孙燕姿 · 深海鲸鱼娘篇)
-// Replicates `每天每天的抖音 - 抖音_2.mp4` (295.43s, 30fps, 1280x720) with `whale_girl`
-// (`src/whale_girl.js`) as protagonist, synced to `assets/douyin_2.mp3` & `assets/douyin_2_audio.js`.
+// render_pengyou_de_jiu.mjs — Deterministic 30fps Renderer for 《朋友的酒》(深海鲸鱼娘 · 挚友欢聚篇)
+// Replicates `朋友的酒.mp3` (188.25s, 30fps, 1280x720) with `whale_girl` (`src/whale_girl.js`)
+// and all `CAST` friends (`src/cast.js`), synced to `assets/pengyou_de_jiu.mp3` &
+// `assets/pengyou_de_jiu_audio.js`.
 
 import fs from 'node:fs';
 import path from 'node:path';
@@ -22,16 +23,16 @@ GlobalFonts.registerFromPath(path.resolve('assets/fonts/NotoSansSC-Bold.woff2'),
 GlobalFonts.registerFromPath(path.resolve('assets/fonts/Silkscreen-Regular.ttf'), 'Silkscreen');
 
 globalThis.window = globalThis;
-require('./assets/douyin_2_audio.js');
+require('./assets/pengyou_de_jiu_audio.js');
 const CORE = require('./src/core.js');
 const WHALE = require('./src/whale_girl.js');
 const CLAWD = require('./src/clawd.js');
 const CAST = require('./src/cast.js');
-const MV2 = require('./src/mv_douyin_2.js');
+const MV = require('./src/mv_pengyou_de_jiu.js');
 
 const FPS = 30;
-const DURATION = MV2.DURATION; // 295.43s
-const TOTAL_FRAMES = Math.round(DURATION * FPS); // 8863 frames
+const DURATION = MV.DURATION; // 188.25s
+const TOTAL_FRAMES = Math.round(DURATION * FPS); // 5648 frames
 
 function resolveFfmpegPath() {
   const venvDir = '/tmp/venv/lib/python3.11/site-packages/imageio_ffmpeg/binaries';
@@ -42,13 +43,13 @@ function resolveFfmpegPath() {
   return 'ffmpeg';
 }
 
-function renderStoryboardSheet(outFile = 'docs/mv_douyin_2_storyboard.png') {
+function renderStoryboardSheet(outFile = 'docs/mv_pengyou_de_jiu_storyboard.png') {
   fs.mkdirSync(path.dirname(outFile), { recursive: true });
   const keyTimes = [
-    6.5,   22.0,  29.0,  42.0,
-    48.0,  56.0,  77.5,  94.0,
-    114.0, 138.0, 150.0, 194.0,
-    203.0, 246.0, 252.0, 290.0
+    6.0,   18.0,  26.0,  35.0,
+    46.0,  57.0,  69.0,  76.0,
+    86.0,  97.0,  107.0, 118.0,
+    130.0, 142.0, 155.0, 184.0
   ];
   const cellW = 320, cellH = 180;
   const sheet = createCanvas(cellW * 4, cellH * 4);
@@ -60,24 +61,24 @@ function renderStoryboardSheet(outFile = 'docs/mv_douyin_2_storyboard.png') {
   for (let i = 0; i < keyTimes.length; i++) {
     const t = keyTimes[i];
     fctx.clearRect(0, 0, 1280, 720);
-    MV2.renderDouyin2Frame(fctx, t);
+    MV.renderPengyouDeJiuFrame(fctx, t);
     const gx = (i % 4) * cellW;
     const gy = Math.floor(i / 4) * cellH;
     sctx.drawImage(frameCanvas, 0, 0, 1280, 720, gx, gy, cellW, cellH);
     sctx.fillStyle = 'rgba(0,0,0,0.68)';
-    sctx.fillRect(gx + 6, gy + 6, 82, 22);
+    sctx.fillRect(gx + 6, gy + 6, 86, 22);
     sctx.font = 'bold 13px "Silkscreen", monospace';
     sctx.fillStyle = '#FACC15';
-    sctx.fillText(`t=${t.toFixed(0)}s`, gx + 12, gy + 21);
+    sctx.fillText(`t=${t.toFixed(0)}s`, gx + 10, gy + 21);
   }
 
   fs.writeFileSync(outFile, sheet.toBuffer('image/png'));
   console.log(`Saved 4x4 storyboard sheet -> ${outFile}`);
 }
 
-async function renderVideo(outFile = 'mv_douyin_2_whale_girl.mp4') {
+async function renderVideo(outFile = 'mv_pengyou_de_jiu_whale_girl.mp4') {
   const ffmpegBin = resolveFfmpegPath();
-  const audioFile = path.resolve('assets/douyin_2.mp3');
+  const audioFile = path.resolve('assets/pengyou_de_jiu.mp3');
 
   console.log(`Rendering ${TOTAL_FRAMES} frames (${DURATION}s @ ${FPS}fps) -> ${outFile}`);
 
@@ -116,13 +117,13 @@ async function renderVideo(outFile = 'mv_douyin_2_whale_girl.mp4') {
   for (let f = 0; f < TOTAL_FRAMES; f++) {
     const t = f / FPS;
     ctx.clearRect(0, 0, 1280, 720);
-    MV2.renderDouyin2Frame(ctx, t);
+    MV.renderPengyouDeJiuFrame(ctx, t);
     const raw = c.data();
     const ok = ff.stdin.write(raw);
     if (!ok) {
       await new Promise(res => ff.stdin.once('drain', res));
     }
-    if ((f + 1) % 1200 === 0 || f === TOTAL_FRAMES - 1) {
+    if ((f + 1) % 1000 === 0 || f === TOTAL_FRAMES - 1) {
       const elapsed = ((Date.now() - t0) / 1000).toFixed(1);
       console.log(`  Frame ${f + 1}/${TOTAL_FRAMES} (${((f + 1) / TOTAL_FRAMES * 100).toFixed(0)}%) — ${elapsed}s`);
     }
@@ -143,5 +144,5 @@ if (args.includes('--sheet-only')) {
   renderStoryboardSheet();
 } else {
   renderStoryboardSheet();
-  await renderVideo('mv_douyin_2_whale_girl.mp4');
+  await renderVideo('mv_pengyou_de_jiu_whale_girl.mp4');
 }

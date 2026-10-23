@@ -1,6 +1,6 @@
-// render_douyin_3.mjs — Deterministic 30fps Renderer for #03 《天黑黑》(孙燕姿 · 深海鲸鱼娘篇)
-// Replicates `每天每天的抖音 - 抖音_3.mp4` (230.40s, 30fps, 1280x720) with `whale_girl`
-// (`src/whale_girl.js`) as protagonist, synced to `assets/douyin_3.mp3` & `assets/douyin_3_audio.js`.
+// render_qunian_xiatian.mjs — Deterministic 30fps Renderer for 《去年夏天》(王大毛 · 浮世绘鲸鱼娘篇)
+// Replicates `去年夏天.mp4` (78.20s, 30fps, 1280x720) with `whale_girl` (`src/whale_girl.js`)
+// as protagonist, synced to extracted `assets/qunian_xiatian.mp3` & `assets/qunian_xiatian_audio.js`.
 
 import fs from 'node:fs';
 import path from 'node:path';
@@ -22,16 +22,16 @@ GlobalFonts.registerFromPath(path.resolve('assets/fonts/NotoSansSC-Bold.woff2'),
 GlobalFonts.registerFromPath(path.resolve('assets/fonts/Silkscreen-Regular.ttf'), 'Silkscreen');
 
 globalThis.window = globalThis;
-require('./assets/douyin_3_audio.js');
+require('./assets/qunian_xiatian_audio.js');
 const CORE = require('./src/core.js');
 const WHALE = require('./src/whale_girl.js');
 const CLAWD = require('./src/clawd.js');
 const CAST = require('./src/cast.js');
-const MV3 = require('./src/mv_douyin_3.js');
+const MV = require('./src/mv_qunian_xiatian.js');
 
 const FPS = 30;
-const DURATION = MV3.DURATION; // 230.40s
-const TOTAL_FRAMES = Math.round(DURATION * FPS); // 6912 frames
+const DURATION = MV.DURATION; // 78.20s
+const TOTAL_FRAMES = Math.round(DURATION * FPS); // 2346 frames
 
 function resolveFfmpegPath() {
   const venvDir = '/tmp/venv/lib/python3.11/site-packages/imageio_ffmpeg/binaries';
@@ -42,13 +42,13 @@ function resolveFfmpegPath() {
   return 'ffmpeg';
 }
 
-function renderStoryboardSheet(outFile = 'docs/mv_douyin_3_storyboard.png') {
+function renderStoryboardSheet(outFile = 'docs/mv_qunian_xiatian_storyboard.png') {
   fs.mkdirSync(path.dirname(outFile), { recursive: true });
   const keyTimes = [
-    2.0,   19.0,  24.5,  36.0,
-    46.5,  54.0,  59.0,  77.0,
-    94.0,  113.0, 120.0, 145.0,
-    150.0, 185.0, 200.0, 227.0
+    1.5,   4.5,   7.5,   14.2,
+    17.0,  22.0,  25.5,  30.0,
+    37.0,  40.8,  44.5,  48.5,
+    52.0,  56.0,  61.0,  75.5
   ];
   const cellW = 320, cellH = 180;
   const sheet = createCanvas(cellW * 4, cellH * 4);
@@ -60,24 +60,24 @@ function renderStoryboardSheet(outFile = 'docs/mv_douyin_3_storyboard.png') {
   for (let i = 0; i < keyTimes.length; i++) {
     const t = keyTimes[i];
     fctx.clearRect(0, 0, 1280, 720);
-    MV3.renderDouyin3Frame(fctx, t);
+    MV.renderQunianXiatianFrame(fctx, t);
     const gx = (i % 4) * cellW;
     const gy = Math.floor(i / 4) * cellH;
     sctx.drawImage(frameCanvas, 0, 0, 1280, 720, gx, gy, cellW, cellH);
     sctx.fillStyle = 'rgba(0,0,0,0.68)';
-    sctx.fillRect(gx + 6, gy + 6, 82, 22);
+    sctx.fillRect(gx + 6, gy + 6, 86, 22);
     sctx.font = 'bold 13px "Silkscreen", monospace';
     sctx.fillStyle = '#FACC15';
-    sctx.fillText(`t=${t.toFixed(0)}s`, gx + 12, gy + 21);
+    sctx.fillText(`t=${t.toFixed(1)}s`, gx + 10, gy + 21);
   }
 
   fs.writeFileSync(outFile, sheet.toBuffer('image/png'));
   console.log(`Saved 4x4 storyboard sheet -> ${outFile}`);
 }
 
-async function renderVideo(outFile = 'mv_douyin_3_whale_girl.mp4') {
+async function renderVideo(outFile = 'mv_qunian_xiatian_whale_girl.mp4') {
   const ffmpegBin = resolveFfmpegPath();
-  const audioFile = path.resolve('assets/douyin_3.mp3');
+  const audioFile = path.resolve('assets/qunian_xiatian.mp3');
 
   console.log(`Rendering ${TOTAL_FRAMES} frames (${DURATION}s @ ${FPS}fps) -> ${outFile}`);
 
@@ -94,12 +94,10 @@ async function renderVideo(outFile = 'mv_douyin_3_whale_girl.mp4') {
     '-map', '1:a:0',
     '-c:v', 'libx264',
     '-preset', 'veryfast',
-    '-crf', '26',
-    '-maxrate', '480k',
-    '-bufsize', '960k',
+    '-crf', '24',
     '-pix_fmt', 'yuv420p',
     '-c:a', 'aac',
-    '-b:a', '128k',
+    '-b:a', '192k',
     '-shortest',
     '-movflags', '+faststart',
     outFile
@@ -116,13 +114,13 @@ async function renderVideo(outFile = 'mv_douyin_3_whale_girl.mp4') {
   for (let f = 0; f < TOTAL_FRAMES; f++) {
     const t = f / FPS;
     ctx.clearRect(0, 0, 1280, 720);
-    MV3.renderDouyin3Frame(ctx, t);
+    MV.renderQunianXiatianFrame(ctx, t);
     const raw = c.data();
     const ok = ff.stdin.write(raw);
     if (!ok) {
       await new Promise(res => ff.stdin.once('drain', res));
     }
-    if ((f + 1) % 1200 === 0 || f === TOTAL_FRAMES - 1) {
+    if ((f + 1) % 600 === 0 || f === TOTAL_FRAMES - 1) {
       const elapsed = ((Date.now() - t0) / 1000).toFixed(1);
       console.log(`  Frame ${f + 1}/${TOTAL_FRAMES} (${((f + 1) / TOTAL_FRAMES * 100).toFixed(0)}%) — ${elapsed}s`);
     }
@@ -143,5 +141,5 @@ if (args.includes('--sheet-only')) {
   renderStoryboardSheet();
 } else {
   renderStoryboardSheet();
-  await renderVideo('mv_douyin_3_whale_girl.mp4');
+  await renderVideo('mv_qunian_xiatian_whale_girl.mp4');
 }

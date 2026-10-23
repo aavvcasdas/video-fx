@@ -1,6 +1,6 @@
-// render_douyin_1.mjs — Deterministic 30fps Renderer for #01 《我怀念的》(孙燕姿 · 深海鲸鱼娘篇)
-// Replicates `每天每天的抖音 - 抖音.mp4` (288.40s, 30fps, 1280x720) with `whale_girl`
-// (`src/whale_girl.js`) as protagonist, synced to `assets/douyin_1.mp3` & `assets/douyin_1_audio.js`.
+// render_chaoxi.mjs — Deterministic 30fps Renderer for 《潮汐》(深海鲸鱼娘 · 荧光深海篇)
+// Replicates `潮汐.MP3` (31.84s, 30fps, 1280x720) with `whale_girl` (`src/whale_girl.js`)
+// as protagonist, synced to `assets/chaoxi.mp3` & `assets/chaoxi_audio.js`.
 
 import fs from 'node:fs';
 import path from 'node:path';
@@ -22,16 +22,16 @@ GlobalFonts.registerFromPath(path.resolve('assets/fonts/NotoSansSC-Bold.woff2'),
 GlobalFonts.registerFromPath(path.resolve('assets/fonts/Silkscreen-Regular.ttf'), 'Silkscreen');
 
 globalThis.window = globalThis;
-require('./assets/douyin_1_audio.js');
+require('./assets/chaoxi_audio.js');
 const CORE = require('./src/core.js');
 const WHALE = require('./src/whale_girl.js');
 const CLAWD = require('./src/clawd.js');
 const CAST = require('./src/cast.js');
-const MV1 = require('./src/mv_douyin_1.js');
+const MV = require('./src/mv_chaoxi.js');
 
 const FPS = 30;
-const DURATION = MV1.DURATION; // 288.40s
-const TOTAL_FRAMES = Math.round(DURATION * FPS); // 8652 frames
+const DURATION = MV.DURATION; // 31.84s
+const TOTAL_FRAMES = Math.round(DURATION * FPS); // 955 frames
 
 function resolveFfmpegPath() {
   const venvDir = '/tmp/venv/lib/python3.11/site-packages/imageio_ffmpeg/binaries';
@@ -42,13 +42,13 @@ function resolveFfmpegPath() {
   return 'ffmpeg';
 }
 
-function renderStoryboardSheet(outFile = 'docs/mv_douyin_1_storyboard.png') {
+function renderStoryboardSheet(outFile = 'docs/mv_chaoxi_storyboard.png') {
   fs.mkdirSync(path.dirname(outFile), { recursive: true });
   const keyTimes = [
-    6.0,   13.0,  19.0,  34.0,
-    58.0,  65.0,  78.0,  85.0,
-    95.0,  134.0, 150.0, 180.0,
-    197.0, 221.0, 248.0, 280.0
+    1.2,  3.2,  5.0,  7.2,
+    9.0,  11.0, 13.0, 15.2,
+    17.0, 19.2, 21.2, 23.2,
+    25.0, 27.0, 29.0, 31.0
   ];
   const cellW = 320, cellH = 180;
   const sheet = createCanvas(cellW * 4, cellH * 4);
@@ -60,24 +60,24 @@ function renderStoryboardSheet(outFile = 'docs/mv_douyin_1_storyboard.png') {
   for (let i = 0; i < keyTimes.length; i++) {
     const t = keyTimes[i];
     fctx.clearRect(0, 0, 1280, 720);
-    MV1.renderDouyin1Frame(fctx, t);
+    MV.renderChaoxiFrame(fctx, t);
     const gx = (i % 4) * cellW;
     const gy = Math.floor(i / 4) * cellH;
     sctx.drawImage(frameCanvas, 0, 0, 1280, 720, gx, gy, cellW, cellH);
     sctx.fillStyle = 'rgba(0,0,0,0.68)';
-    sctx.fillRect(gx + 6, gy + 6, 82, 22);
+    sctx.fillRect(gx + 6, gy + 6, 86, 22);
     sctx.font = 'bold 13px "Silkscreen", monospace';
-    sctx.fillStyle = '#FACC15';
-    sctx.fillText(`t=${t.toFixed(0)}s`, gx + 12, gy + 21);
+    sctx.fillStyle = '#22D3EE';
+    sctx.fillText(`t=${t.toFixed(1)}s`, gx + 10, gy + 21);
   }
 
   fs.writeFileSync(outFile, sheet.toBuffer('image/png'));
   console.log(`Saved 4x4 storyboard sheet -> ${outFile}`);
 }
 
-async function renderVideo(outFile = 'mv_douyin_1_whale_girl.mp4') {
+async function renderVideo(outFile = 'mv_chaoxi_whale_girl.mp4') {
   const ffmpegBin = resolveFfmpegPath();
-  const audioFile = path.resolve('assets/douyin_1.mp3');
+  const audioFile = path.resolve('assets/chaoxi.mp3');
 
   console.log(`Rendering ${TOTAL_FRAMES} frames (${DURATION}s @ ${FPS}fps) -> ${outFile}`);
 
@@ -94,12 +94,10 @@ async function renderVideo(outFile = 'mv_douyin_1_whale_girl.mp4') {
     '-map', '1:a:0',
     '-c:v', 'libx264',
     '-preset', 'veryfast',
-    '-crf', '26',
-    '-maxrate', '480k',
-    '-bufsize', '960k',
+    '-crf', '23',
     '-pix_fmt', 'yuv420p',
     '-c:a', 'aac',
-    '-b:a', '128k',
+    '-b:a', '192k',
     '-shortest',
     '-movflags', '+faststart',
     outFile
@@ -116,13 +114,13 @@ async function renderVideo(outFile = 'mv_douyin_1_whale_girl.mp4') {
   for (let f = 0; f < TOTAL_FRAMES; f++) {
     const t = f / FPS;
     ctx.clearRect(0, 0, 1280, 720);
-    MV1.renderDouyin1Frame(ctx, t);
+    MV.renderChaoxiFrame(ctx, t);
     const raw = c.data();
     const ok = ff.stdin.write(raw);
     if (!ok) {
       await new Promise(res => ff.stdin.once('drain', res));
     }
-    if ((f + 1) % 1200 === 0 || f === TOTAL_FRAMES - 1) {
+    if ((f + 1) % 300 === 0 || f === TOTAL_FRAMES - 1) {
       const elapsed = ((Date.now() - t0) / 1000).toFixed(1);
       console.log(`  Frame ${f + 1}/${TOTAL_FRAMES} (${((f + 1) / TOTAL_FRAMES * 100).toFixed(0)}%) — ${elapsed}s`);
     }
@@ -143,5 +141,5 @@ if (args.includes('--sheet-only')) {
   renderStoryboardSheet();
 } else {
   renderStoryboardSheet();
-  await renderVideo('mv_douyin_1_whale_girl.mp4');
+  await renderVideo('mv_chaoxi_whale_girl.mp4');
 }

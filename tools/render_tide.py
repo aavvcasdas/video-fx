@@ -226,12 +226,22 @@ def lyric_motif(frame, t, lyric, palette):
 
 
 def lyric_card(frame, fonts, t, lyric, palette):
+    """A recognition card enters on the vocal, then leaves the shot to breathe.
+
+    It remains a synchronised lyric-recognition card, but it is not a permanent
+    HUD covering the focal action for the entire line.
+    """
     if not lyric:
         return
     code, start, _, text, _ = lyric
     _, _, light, accent = palette
-    p = min(1, max(0, (t - start) / .16))
-    x, y, w, h = 42, 42, int(405 * (0.6 + .4 * p)), 102
+    age = t - start
+    enter = ease(age / .14)
+    leave = ease((age - 1.05) / .22) if age > 1.05 else 0
+    if leave >= .995:
+        return
+    x = int(42 - leave * 470)
+    y, w, h = 42, int(405 * (0.58 + .42 * enter)), 102
     overlay = frame.copy()
     cv2.rectangle(overlay, (x, y), (x + w, y + h), (12, 24, 57), -1)
     cv2.addWeighted(overlay, .80, frame, .20, 0, frame)
@@ -269,143 +279,259 @@ def translucent_poly(frame, points, color, alpha):
     cv2.addWeighted(layer, alpha, frame, 1 - alpha, 0, frame)
 
 
-def scene_environment(frame, t, scene, palette):
-    """Eight lyric-led worlds with a visible objective in every four-bar shot.
+def pixel_star(frame, x, y, r, colour):
+    """A four-point point of focus, deliberately sized for the final pixel grid."""
+    pts = np.array([(x, y - r), (x + r // 3, y - r // 3), (x + r, y),
+                    (x + r // 3, y + r // 3), (x, y + r),
+                    (x - r // 3, y + r // 3), (x - r, y),
+                    (x - r // 3, y - r // 3)], np.int32)
+    cv2.fillPoly(frame, [pts], colour)
 
-    The environment is deliberately keyed to the *active lyric*, including the
-    two-lyric shots, so the repeating chorus receives a new dramatic response
-    instead of a recycled background.
+
+def draw_mountain_chain(frame, t, base, palette, rise=1.0, offset=0, ink=None):
+    """Layered islands with waterfalls and roof-lights, not anonymous triangles."""
+    deep, upper, light, accent = palette
+    dark = ink or mix(deep, (23, 22, 39), .42)
+    cols = [mix(deep, upper, .22), mix(deep, upper, .46), mix(upper, light, .18)]
+    for layer, col in enumerate(cols):
+        shift = int((t * (15 + layer * 8) + offset + layer * 93) % 260)
+        for j in range(-2, 7):
+            x = j * 255 - shift
+            height = int((118 + (j * 31 + layer * 29) % 96) * rise)
+            peak_x = x + 92 + (j % 3) * 16
+            pts = [(x, base), (peak_x, base - height), (x + 250, base)]
+            translucent_poly(frame, pts, col, .72 - layer * .12)
+            # A stepped ridge, waterfall and one roof-light create a readable place.
+            cv2.line(frame, (peak_x, base - height), (x + 250, base), light, 2, cv2.LINE_8)
+            if (j + layer) % 2 == 0:
+                cv2.rectangle(frame, (peak_x - 8, base - height + 20), (peak_x + 8, base - height + 42), dark, -1)
+                cv2.rectangle(frame, (peak_x - 3, base - height + 24), (peak_x + 3, base - height + 31), accent, -1)
+            if (j + layer) % 3 == 0:
+                cv2.line(frame, (x + 165, base - height // 2), (x + 175, base - 12), light, 2, cv2.LINE_8)
+
+
+def draw_lighthouse(frame, x, floor, s, palette, on, flip=1):
+    """A small lighthouse prop: its beam gives the eye a clear story target."""
+    deep, upper, light, accent = palette
+    w, h = int(28 * s), int(132 * s)
+    body = np.array([(x - w, floor), (x + w, floor), (x + int(w * .58), floor - h), (x - int(w * .58), floor - h)], np.int32)
+    cv2.fillPoly(frame, [body], mix(deep, upper, .42))
+    cv2.rectangle(frame, (x - int(w * .78), floor - h - int(17 * s)), (x + int(w * .78), floor - h), deep, -1)
+    cv2.rectangle(frame, (x - int(w * .4), floor - h - int(13 * s)), (x + int(w * .4), floor - h - int(4 * s)), accent if on else upper, -1)
+    for y in range(floor - int(h * .7), floor - 8, int(31 * s)):
+        cv2.line(frame, (x - int(w * .58), y), (x + int(w * .58), y), light, 2, cv2.LINE_8)
+    if on:
+        beam = [(x + flip * int(7 * s), floor - h - int(9 * s)),
+                (x + flip * int(430 * s), floor - h - int(155 * s)),
+                (x + flip * int(430 * s), floor - h + int(125 * s))]
+        translucent_poly(frame, beam, light, .14 + .08 * pulse(on))
+
+
+def draw_boat(frame, x, y, s, palette, tilt=0.0):
+    """A paper boat is the physical stand-in for the love that retreats."""
+    deep, upper, light, accent = palette
+    pts = np.array([(x - 45 * s, y), (x + 48 * s, y), (x + 25 * s, y + 21 * s), (x - 24 * s, y + 21 * s)], np.int32)
+    cv2.fillPoly(frame, [pts], (234, 239, 232))
+    sail = np.array([(x - 8 * s, y - 68 * s), (x - 8 * s, y), (x + 37 * s, y)], np.int32)
+    cv2.fillPoly(frame, [sail], accent)
+    cv2.line(frame, (int(x - 8 * s), int(y - 75 * s)), (int(x - 8 * s), int(y + 12 * s)), deep, 3, cv2.LINE_8)
+    cv2.line(frame, (int(x - 43 * s), int(y + 4 * s)), (int(x + 47 * s), int(y + 4 * s)), light, 2, cv2.LINE_8)
+
+
+def draw_arch(frame, cx, floor, s, palette, phase):
+    """The sonar shrine has a gate, steps and a moving scan: a stage for seeking."""
+    deep, upper, light, accent = palette
+    col = mix(deep, upper, .4)
+    leg_w, top = int(34 * s), int(230 * s)
+    for dx in (-int(220 * s), int(220 * s)):
+        cv2.rectangle(frame, (cx + dx - leg_w // 2, floor - top), (cx + dx + leg_w // 2, floor), col, -1)
+        cv2.rectangle(frame, (cx + dx - leg_w // 2, floor - top), (cx + dx + leg_w // 2, floor - top + int(20 * s)), accent, -1)
+    cv2.ellipse(frame, (cx, floor - top + int(55 * s)), (int(220 * s), int(160 * s)), 0, 180, 360, col, int(30 * s), cv2.LINE_8)
+    for step in range(4):
+        yy = floor - step * int(18 * s)
+        cv2.rectangle(frame, (cx - int((170 - step * 18) * s), yy), (cx + int((170 - step * 18) * s), yy + int(10 * s)), mix(deep, upper, .58), -1)
+    for r in (72, 140, 210):
+        rr = int((r + ((phase * 100) % 42)) * s)
+        cv2.ellipse(frame, (cx, floor - int(100 * s)), (rr, int(rr * .43)), 0, 190, 350, light, 2, cv2.LINE_8)
+
+
+def draw_memory_frame(frame, x, y, s, kind, palette):
+    """Three tiny tangible memories—pearl, mountain and beacon—rather than random dots."""
+    deep, upper, light, accent = palette
+    cv2.rectangle(frame, (int(x - 23 * s), int(y - 20 * s)), (int(x + 23 * s), int(y + 20 * s)), (235, 229, 207), -1)
+    cv2.rectangle(frame, (int(x - 19 * s), int(y - 16 * s)), (int(x + 19 * s), int(y + 16 * s)), mix(deep, upper, .48), -1)
+    if kind == 0:
+        cv2.circle(frame, (int(x), int(y)), max(3, int(7 * s)), light, -1, cv2.LINE_8)
+    elif kind == 1:
+        pts = np.array([(x - 15 * s, y + 12 * s), (x, y - 13 * s), (x + 15 * s, y + 12 * s)], np.int32)
+        cv2.fillPoly(frame, [pts], accent)
+    else:
+        cv2.rectangle(frame, (int(x - 3 * s), int(y - 13 * s)), (int(x + 3 * s), int(y + 14 * s)), light, -1)
+        cv2.circle(frame, (int(x), int(y - 9 * s)), max(3, int(5 * s)), accent, -1, cv2.LINE_8)
+
+
+def scene_environment(frame, t, scene, palette):
+    """A connected eight-shot pixel story, built as actions and props.
+
+    Each scene has one thing to read, a cause, and an on-screen reaction. Motifs
+    carry over: pearl → route → boat → sonar → tide → beacon → memory → signal.
     """
     deep, upper, light, accent = palette
 
-    if scene == 0:  # L01 sea → L02 mountain: the first view gains a destination.
+    if scene == 0:  # 00–04: a pearl signal wakes, then points to a mountain.
+        draw_mountain_chain(frame, t, 600, palette, rise=ease((t - 2.18) / .62), offset=30)
         for i in range(7):
-            x = int(i * 210 + math.sin(t * .55 + i) * 35)
-            translucent_poly(frame, [(x - 50, 0), (x + 40, 0), (x + 170, 490), (x + 58, 490)], light, .055)
-        for y in (92, 118, 147):
-            pts = np.array([[0, y], [180, y - 12], [360, y + 8], [560, y - 10], [770, y + 5], [1010, y - 12], [1280, y + 6]], np.int32)
-            cv2.polylines(frame, [pts], False, light, 2, cv2.LINE_AA)
-        for i in range(10):
-            x = 35 + i * 133
-            cv2.ellipse(frame, (x, 665), (13, 36 + (i % 3) * 12), -10 + i * 9, 190, 355, (99, 133, 65), 4, cv2.LINE_AA)
-        # On “distant mountain scenery,” a destination rises from the sea.
-        if t >= 2.25:
-            p = ease((t - 2.25) / .55)
-            for j in range(-1, 7):
-                x = j * 238 - int((t - 2.25) * 25)
-                peak = int(530 - 165 * p + (j % 2) * 34)
-                translucent_poly(frame, [(x, 620), (x + 118, peak), (x + 252, 620)], mix(deep, upper, .35), .54)
-                cv2.line(frame, (x + 118, peak), (x + 252, 620), light, 1, cv2.LINE_AA)
+            x = 40 + i * 198 + int(math.sin(t + i) * 8)
+            cv2.line(frame, (x, 690), (x + 9, 615 - (i % 3) * 36), (86, 125, 62), 5, cv2.LINE_8)
+            cv2.line(frame, (x + 9, 645), (x - 8, 626), (86, 125, 62), 3, cv2.LINE_8)
+        # Ruined stone arch makes the pearl an object in a place, not decoration.
+        cv2.rectangle(frame, (130, 430), (190, 665), mix(deep, upper, .35), -1)
+        cv2.rectangle(frame, (370, 430), (430, 665), mix(deep, upper, .35), -1)
+        cv2.ellipse(frame, (280, 445), (150, 90), 0, 180, 360, mix(deep, upper, .35), 44, cv2.LINE_8)
+        age = max(0, t - .72)
+        glow = int(38 + 28 * (1 + math.sin(t * 7)) + age * 22)
+        for r, op in ((glow + 70, .10), (glow + 35, .18)):
+            layer = frame.copy(); cv2.circle(layer, (280, 520), r, light, -1, cv2.LINE_8); cv2.addWeighted(layer, op, frame, 1 - op, 0, frame)
+        cv2.circle(frame, (280, 520), 25 + int(pulse(t) * 12), (235, 241, 232), -1, cv2.LINE_8)
+        pixel_star(frame, 280, 520, 18 + int(pulse(t) * 9), accent)
+        # The wake-up beam becomes the mountain route at the lyric change.
+        if t > 2.35:
+            cv2.line(frame, (305, 505), (715, 382), light, 5, cv2.LINE_8)
+            for k in range(6):
+                x = 350 + k * 61
+                cv2.rectangle(frame, (x, 482 - k * 18), (x + 16, 490 - k * 18), accent, -1)
 
-    elif scene == 1:  # L03 distance: two mountain shores and two departing markers.
-        left_shore = [(0, 720), (0, 402), (270, 432), (455, 625), (455, 720)]
-        right_shore = [(W, 720), (W, 395), (W - 255, 430), (W - 472, 627), (W - 472, 720)]
-        translucent_poly(frame, left_shore, deep, .92)
-        translucent_poly(frame, right_shore, deep, .92)
-        p = ease((t - 4.0) / 3.45)
-        gap = int(42 + 210 * p)
-        left, right = (W // 2 - gap, 405), (W // 2 + gap, 405)
-        cv2.circle(frame, left, 16 + int(pulse(t) * 8), accent, -1, cv2.LINE_AA)
-        cv2.circle(frame, right, 16 + int(pulse(t) * 8), light, -1, cv2.LINE_AA)
-        for x in range(left[0] + 28, right[0] - 18, 31):
-            cv2.line(frame, (x, 405), (x + 14, 405), (224, 240, 255), 2, cv2.LINE_AA)
-        # A tiny coordinate panel motivates the saved laptop pose without
-        # replacing the distance event with generic scenery.
-        panel = frame.copy(); cv2.rectangle(panel, (70, 250), (320, 415), (25, 43, 75), -1)
-        cv2.addWeighted(panel, .70, frame, .30, 0, frame)
-        cv2.rectangle(frame, (70, 250), (320, 415), light, 2)
-        cv2.line(frame, (105, 370), (285, 288), light, 2, cv2.LINE_AA)
-        cv2.circle(frame, (138, 355), 5, accent, -1, cv2.LINE_AA)
-        cv2.circle(frame, (266, 297), 5, light, -1, cv2.LINE_AA)
+    elif scene == 1:  # 04–08: map route stretches across two actual shores, then breaks.
+        draw_mountain_chain(frame, t, 603, palette, rise=1, offset=140)
+        left = [(0, 720), (0, 450), (240, 405), (458, 636), (458, 720)]
+        right = [(W, 720), (W, 424), (W - 230, 385), (W - 456, 635), (W - 456, 720)]
+        cv2.fillPoly(frame, [np.array(left, np.int32)], deep)
+        cv2.fillPoly(frame, [np.array(right, np.int32)], deep)
+        draw_lighthouse(frame, 235, 514, 1.1, palette, t, 1)
+        draw_lighthouse(frame, 1048, 500, 1.1, palette, t + .5, -1)
+        # Map desk with a pin, then its line creates the impossible route.
+        cv2.rectangle(frame, (65, 473), (420, 504), (66, 64, 76), -1)
+        cv2.rectangle(frame, (92, 310), (357, 472), (213, 222, 205), -1)
+        cv2.rectangle(frame, (101, 319), (348, 463), mix(deep, upper, .42), -1)
+        route = [(122, 425), (168, 390), (208, 414), (252, 355), (302, 370)]
+        cv2.polylines(frame, [np.array(route, np.int32)], False, light, 3, cv2.LINE_8)
+        cv2.circle(frame, (122, 425), 8, accent, -1, cv2.LINE_8)
+        cv2.circle(frame, (302, 370), 8, light, -1, cv2.LINE_8)
+        spread = int(42 + 190 * ease((t - 4.38) / 3.25))
+        a, b = (640 - spread, 406), (640 + spread, 406)
+        cv2.circle(frame, a, 17, accent, -1, cv2.LINE_8)
+        cv2.circle(frame, b, 17, light, -1, cv2.LINE_8)
+        for x in range(a[0] + 28, b[0] - 15, 31): cv2.line(frame, (x, 406), (x + 14, 406), (225, 239, 244), 2, cv2.LINE_8)
+        if t > 6.55:
+            cv2.rectangle(frame, (625, 394), (655, 418), deep, -1)  # decisive broken-route beat
+            for i in range(8):
+                xx = 635 + int(math.cos(i * .8) * (20 + i * 8)); yy = 405 + int(math.sin(i * .8) * (13 + i * 5))
+                cv2.rectangle(frame, (xx, yy), (xx + 6, yy + 6), accent, -1)
 
-    elif scene == 2:  # L04 retreat → L05 memory: things withdraw, then become a keepsake.
-        horizon = [(0, 510), (180, 486), (420, 526), (690, 492), (965, 532), (W, 500), (W, H), (0, H)]
-        translucent_poly(frame, horizon, deep, .62)
-        if t < 10.43:
-            # Coral paper slips backwards on each beat: an explicit retreat.
-            for n in range(15):
-                x = int(W - ((t - 8.25) * (110 + n * 8) + n * 137) % (W + 190))
-                y = 220 + (n % 6) * 59
-                cv2.rectangle(frame, (x, y), (x + 34, y + 18), accent if n % 2 else (110, 136, 255), -1)
-                if n % 3 == 0:
-                    cv2.line(frame, (x + 34, y + 18), (x + 57, y + 31), light, 1, cv2.LINE_AA)
-        else:
-            p = ease((t - 10.43) / .5)
-            cv2.circle(frame, (420, 338), int(62 + 62 * p), (236, 238, 226), -1, cv2.LINE_AA)
-            for n in range(9):
-                a = t * .9 + n * math.pi * 2 / 9
-                x = int(420 + math.cos(a) * (118 + n % 3 * 20))
-                y = int(340 + math.sin(a * 1.2) * (65 + n % 2 * 25))
-                cv2.circle(frame, (x, y), 10 + n % 3, light, 2, cv2.LINE_AA)
-
-    elif scene == 3:  # L06 search: sonar shrine is the action and the answer is absent.
-        cv2.ellipse(frame, (W // 2, 350), (360, 245), 0, 180, 360, (42, 88, 106), -1, cv2.LINE_AA)
-        for r in [105, 185, 270]:
-            cv2.ellipse(frame, (W // 2, 390), (r, int(r * .55)), 0, 196, 344, light, 2, cv2.LINE_AA)
-        for i in range(6):
-            x = 110 + i * 215
-            cv2.rectangle(frame, (x, 245 + (i % 2) * 25), (x + 25, 570), (58, 62, 75), -1)
-            cv2.circle(frame, (x + 12, 280 + (i % 2) * 25), 7, accent, -1)
-        # The scan target keeps moving just beyond the last ring.
-        tx = int(720 + math.sin(t * 2.4) * 190)
-        cv2.circle(frame, (tx, 307), 9, accent, 2, cv2.LINE_AA)
-
-    elif scene == 4:  # L07 sea → L08 mountain: tide rises before pixel ridges resolve.
-        for i in range(5):
-            y = 630 - i * 78 - int((t - 16) * 46)
-            cv2.ellipse(frame, (W // 2, y), (600 + i * 80, 120), 0, 180, 360, light, 3, cv2.LINE_AA)
+    elif scene == 2:  # 08–12: the boat retreats, folds and becomes one memory.
+        # A low tide wall holds the boat back; its retreat has a spatial cause.
         for i in range(7):
-            x = int(i * 195 + math.sin(t + i) * 25)
-            translucent_poly(frame, [(x, H), (x + 170, H), (x + 105, 105), (x - 60, 105)], light, .07)
-        if t >= 18.0:
-            p = ease((t - 18.0) / .55)
-            for j in range(-1, 7):
-                x = j * 250 - int((t - 18) * 48)
-                base, peak = 570, int(570 - 185 * p - (j % 2) * 34)
-                pts = [(x, base), (x + 124, peak), (x + 250, base)]
-                translucent_poly(frame, pts, (128, 105, 158), .46)
-                cv2.polylines(frame, [np.array(pts, np.int32)], False, light, 2, cv2.LINE_AA)
-
-    elif scene == 5:  # L09 distance reprise: ink shores cannot meet across the white gap.
-        paper = frame.copy(); paper[:] = (196, 184, 147)
-        cv2.addWeighted(paper, .28, frame, .72, 0, frame)
-        left = [(0, 720), (0, 358), (205, 290), (472, 620), (472, 720)]
-        right = [(W, 720), (W, 352), (W - 228, 275), (W - 470, 620), (W - 470, 720)]
-        translucent_poly(frame, left, (98, 82, 48), .56)
-        translucent_poly(frame, right, (98, 82, 48), .56)
-        cv2.polylines(frame, [np.array(left[:4], np.int32)], False, (65, 52, 35), 4, cv2.LINE_AA)
-        cv2.polylines(frame, [np.array(right[:4], np.int32)], False, (65, 52, 35), 4, cv2.LINE_AA)
-        p = ease((t - 20) / 3.6)
-        for y in range(318, 565, 32):
-            cv2.line(frame, (486, y), (int(794 + p * 85), y + 12), (243, 237, 198), 1, cv2.LINE_AA)
-        for i in range(46):
-            x = int((i * 97) % W); y = int(138 + (i * 47) % 450)
-            cv2.circle(frame, (x, y), 1 + i % 3, (74, 67, 43), -1)
-
-    elif scene == 6:  # L10 retreat → L11 memory: rejected colour becomes a moon archive.
-        if t < 26.13:
-            for n in range(13):
-                x = int(W - ((t - 24) * (100 + n * 7) + n * 154) % (W + 190))
-                y = 190 + (n % 6) * 67
-                cv2.rectangle(frame, (x, y), (x + 37, y + 22), accent if n % 2 else (117, 92, 211), -1)
-            cv2.circle(frame, (W // 2, 332), 90, (105, 72, 126), -1, cv2.LINE_AA)
+            x = 0 + i * 210
+            cv2.line(frame, (x, 589 + (i % 2) * 12), (x + 190, 582 - (i % 2) * 8), upper, 3, cv2.LINE_8)
+        wall_x = 470
+        for y in range(250, 645, 38):
+            cv2.rectangle(frame, (wall_x, y), (wall_x + 26, y + 18), light, -1)
+        if t < 10.42:
+            u = ease((t - 8.35) / 1.82)
+            bx = lerp(850, 555, u)
+            draw_boat(frame, bx, 535 + math.sin(t * 5) * 8, 1.25, palette)
+            # Boat hits the wall, then visibly turns back instead of vanishing.
+            if t > 9.5:
+                for i in range(7):
+                    cv2.rectangle(frame, (int(bx - 14 - i * 13), int(500 + math.sin(i) * 20)), (int(bx - 7 - i * 13), int(507 + math.sin(i) * 20)), accent, -1)
         else:
-            cv2.circle(frame, (W // 2, 332), 176, (226, 232, 240), -1, cv2.LINE_AA)
-            cv2.circle(frame, (W // 2 + 66, 285), 160, deep, -1, cv2.LINE_AA)
-            for i in range(13):
-                a = t * .72 + i * math.pi * 2 / 13
-                x = int(W // 2 + math.cos(a) * (275 + i % 3 * 27))
-                y = int(414 + math.sin(a * 1.13) * (110 + i % 2 * 34))
-                cv2.circle(frame, (x, y), 18, (250, 246, 235), 2, cv2.LINE_AA)
-                cv2.circle(frame, (x - 5, y - 6), 4, light, -1, cv2.LINE_AA)
+            u = ease((t - 10.42) / .55)
+            cv2.circle(frame, (555, 470), int(28 + 62 * u), (237, 240, 226), -1, cv2.LINE_8)
+            pixel_star(frame, 555, 470, 12 + int(20 * u), light)
+            for i in range(8):
+                a = t * 1.7 + i * math.pi / 4
+                cv2.circle(frame, (int(555 + math.cos(a) * 120), int(470 + math.sin(a) * 76)), 8, light, 2, cv2.LINE_8)
 
-    else:  # L12 search: neon current closes the loop through a graphic climax.
+    elif scene == 3:  # 12–16: the memory becomes an active sonar gate.
+        draw_arch(frame, 640, 630, 1.0, palette, t - 12.4)
+        # A school leaves the scan before a small target deliberately slips through the gate.
+        target_x = int(820 + math.sin(t * 2.2) * 135)
+        for i in range(9):
+            x = int(120 + ((i * 115 + (t - 12.4) * (48 + i * 2)) % 560))
+            y = 280 + (i % 4) * 45
+            fish(frame, x, y, .45 + (i % 3) * .08, mix(upper, light, .35), 1)
+        cv2.circle(frame, (target_x, 285), 17, accent, 2, cv2.LINE_8)
+        cv2.line(frame, (target_x - 25, 285), (target_x + 25, 285), light, 2, cv2.LINE_8)
+        cv2.line(frame, (target_x, 260), (target_x, 310), light, 2, cv2.LINE_8)
+
+    elif scene == 4:  # 16–20: sonar turns into a tide that carries the route upward.
+        draw_mountain_chain(frame, t, 610, palette, rise=ease((t - 17.92) / .58), offset=20)
+        u = ease((t - 16.0) / 3.65)
+        crest_x = int(-250 + u * 980)
+        wave = [(crest_x - 280, 720), (crest_x - 250, 465), (crest_x - 145, 390), (crest_x - 60, 446),
+                (crest_x + 35, 318), (crest_x + 125, 420), (crest_x + 185, 555), (crest_x + 330, 720)]
+        cv2.fillPoly(frame, [np.array(wave, np.int32)], mix(upper, light, .38))
+        cv2.polylines(frame, [np.array(wave[:7], np.int32)], False, light, 5, cv2.LINE_8)
+        for i in range(7):
+            x = crest_x - 160 + i * 55
+            y = 410 + abs(math.sin(t * 3 + i)) * 36
+            cv2.rectangle(frame, (int(x), int(y)), (int(x + 15), int(y + 8)), (238, 243, 237), -1)
+        # The pearl now travels as a carried light, connecting opening to chorus return.
+        px = int(300 + u * 575); py = int(470 - 145 * math.sin(u * math.pi))
+        cv2.circle(frame, (px, py), 16 + int(pulse(t) * 8), (239, 244, 232), -1, cv2.LINE_8)
+        pixel_star(frame, px, py, 10, accent)
+
+    elif scene == 5:  # 20–24: mountain beacons try to close the ink distance.
+        paper = frame.copy(); paper[:] = (190, 194, 179)
+        cv2.addWeighted(paper, .26, frame, .74, 0, frame)
+        left = [(0, 720), (0, 442), (216, 255), (485, 622), (485, 720)]
+        right = [(W, 720), (W, 432), (W - 220, 258), (W - 490, 622), (W - 490, 720)]
+        cv2.fillPoly(frame, [np.array(left, np.int32)], (84, 82, 71))
+        cv2.fillPoly(frame, [np.array(right, np.int32)], (84, 82, 71))
+        cv2.polylines(frame, [np.array(left[:4], np.int32)], False, (52, 48, 38), 5, cv2.LINE_8)
+        cv2.polylines(frame, [np.array(right[:4], np.int32)], False, (52, 48, 38), 5, cv2.LINE_8)
+        draw_lighthouse(frame, 215, 462, .78, palette, t, 1)
+        draw_lighthouse(frame, 1060, 460, .78, palette, t + .35, -1)
+        p = ease((t - 20.1) / 3.55)
         for i in range(8):
-            a = t * .85 + i * .7
-            r = 82 + i * 43
-            cv2.ellipse(frame, (W // 2, 382), (r, int(r * .48)), int(math.sin(a) * 22), 35, 330, light, 2, cv2.LINE_AA)
-        for x in range(-100, W + 160, 95):
-            cv2.line(frame, (W // 2, 255), (x + int(math.sin(t * 2) * 20), H), (154, 88, 217), 1, cv2.LINE_AA)
+            xx = int(285 + i * 89)
+            if i < int(p * 10): cv2.rectangle(frame, (xx, 365 + (i % 2) * 8), (xx + 29, 370 + (i % 2) * 8), (242, 238, 202), -1)
+        # The final dash never bridges it; it rises toward the next memory shot.
+        if t > 22.7:
+            a = ease((t - 22.7) / .9)
+            cv2.circle(frame, (int(640 + 90 * a), int(378 - 170 * a)), 9, light, -1, cv2.LINE_8)
+
+    elif scene == 6:  # 24–28: the lost route reappears as three curated memories.
+        moon_x, moon_y = 410, 315
+        if t > 26.05:
+            cv2.circle(frame, (moon_x, moon_y), 145, (233, 235, 224), -1, cv2.LINE_8)
+            cv2.circle(frame, (moon_x + 58, moon_y - 35), 132, deep, -1, cv2.LINE_8)
+        else:
+            cv2.circle(frame, (moon_x, moon_y), 72, mix(upper, accent, .35), -1, cv2.LINE_8)
+        for i in range(3):
+            a = (t - 24) * .82 + i * math.pi * 2 / 3
+            radius = 150 if t > 26.05 else 220
+            draw_memory_frame(frame, moon_x + math.cos(a) * radius, moon_y + math.sin(a) * radius * .58, .92, i, palette)
+        # Retreat fragments leave first; the framed memories stay to be read.
+        if t < 26.13:
+            for i in range(9):
+                x = int(1040 - (t - 24) * (90 + i * 6) - i * 88)
+                y = 205 + (i % 5) * 70
+                cv2.rectangle(frame, (x, y), (x + 22, y + 13), accent if i % 2 else light, -1)
+
+    else:  # 28–31.843: every earlier object resolves into the same searching signal.
+        # No extra title-card background: final objects are staged as a coherent payoff.
+        for i, (x, y) in enumerate(((285, 460), (430, 330), (850, 330), (1000, 460))):
+            cv2.circle(frame, (x, y), 18, accent if i % 2 else light, -1, cv2.LINE_8)
+            cv2.line(frame, (x, y), (640, 402), light, 2, cv2.LINE_8)
+        for r in range(95, 430, 58):
+            a = t * .95 + r * .02
+            cv2.ellipse(frame, (640, 400), (r, int(r * .45)), int(math.sin(a) * 12), 25, 332, light, 3, cv2.LINE_8)
+        for x in range(-80, W + 100, 84):
+            cv2.line(frame, (640, 410), (x + int(math.sin(t * 2 + x) * 16), 720), (147, 60, 189), 2, cv2.LINE_8)
+        beat = pulse(t)
+        cv2.circle(frame, (640, 402), 28 + int(22 * beat), (235, 244, 232), -1, cv2.LINE_8)
+        pixel_star(frame, 640, 402, 20 + int(12 * beat), accent)
 
 # The saved references are staged as a small 2D character rig. This follows
 # the useful *structure* of ClaudeAnimationBase (key views, emotion keys,
@@ -418,13 +544,13 @@ ACTING_KEYS = [
     (4.42, 'laptop',   (780, 520), 540, 'determined'),
     (6.58, 'hands',    (892, 518), 557, 'shocked'),
     (8.33, 'hands',    (892, 518), 557, 'retreat'),
-    (10.43, 'pixel',   (760, 520), 556, 'wistful'),
-    (12.43, 'pixel',   (648, 520), 570, 'seeking'),
-    (15.82, 'cel',     (646, 520), 570, 'relieved'),
-    (18.12, 'cel',     (646, 520), 570, 'hopeful'),
-    (20.12, 'ink',     (642, 522), 565, 'distant'),
-    (24.03, 'hands',   (645, 521), 565, 'retreat'),
-    (26.13, 'hands',   (645, 521), 565, 'wistful'),
+    (10.43, 'pixel',   (835, 528), 500, 'wistful'),
+    (12.43, 'pixel',   (882, 532), 490, 'seeking'),
+    (15.82, 'cel',     (866, 532), 505, 'relieved'),
+    (18.12, 'cel',     (860, 530), 510, 'hopeful'),
+    (20.12, 'ink',     (852, 535), 505, 'distant'),
+    (24.03, 'hands',   (864, 535), 510, 'retreat'),
+    (26.13, 'hands',   (866, 535), 510, 'wistful'),
     (28.13, 'neon',    (644, 520), 575, 'seeking'),
 ]
 
@@ -627,9 +753,8 @@ def render_frame(t, sprites, fonts):
     else:
         frame = scene_gradient(palette[1], palette[0])
     scene_environment(frame, t, scene, palette)
-    # A lyric is a visual objective, not just a title: its motif advances while
-    # the recognition card is on screen.
-    lyric_motif(frame, t, lyric_at(t), palette)
+    # The scene itself carries the lyric objective; keep the ambient layer quiet
+    # enough that its single focal action can be read.
     bubbles(frame, t, palette)
     acted_actor(frame, t, scene, sprites, palette)
     lyric_card(frame, fonts, t, lyric_at(t), palette)

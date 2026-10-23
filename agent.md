@@ -1,26 +1,96 @@
-# agent.md — DeepSeek Whale Maid Girl (`深海鲸鱼娘`) Animation & MV Engine
-
-> See also [`AGENT.md`](./AGENT.md) for the full specification. Both files are kept in sync for tool and agent compatibility.
+# AGENT.md — DeepSeek Whale Maid Girl (`深海鲸鱼娘`) Animation & MV Engine
 
 This repository implements a deterministic 30fps HTML5 Canvas + Node (`@napi-rs/canvas` + `ffmpeg`) character animation and music-video production studio, modeled directly after **[JohnHeibel/PDoomVideo](https://github.com/JohnHeibel/PDoomVideo)**, **[JohnHeibel/ClaudeAnimationBase](https://github.com/JohnHeibel/ClaudeAnimationBase)**, and **[tuzhechen2005/opus-video-skills](https://github.com/tuzhechen2005/opus-video-skills)**.
 
 ---
 
-## 1. Core Architecture & Files
+## 1. Project Architecture & Core Modules
 
-- **`src/core.js`**: Deterministic animation curves (`clamp`, `lerp`, `seg`, `ease`, `easeIn`, `easeOut`, `backOut`, `kf`, `arcPt`), hand-drawn boil (`setBoil`, `boilFrame`), camera rig (`camBegin`, `camEnd`, `toScreen`, `shakeXY`), and transitions (`iris`, `curtains`, `brushWipe`, `smokeWipe`, `spotDark`).
-- **`src/whale_girl_rig_data.js`**: **7-Bone Articulated `104×102` Pixel-Grid Rig** (`WHALE_GIRL_PIXEL_RIG`) with 5 canonical poses (`wave`, `wink`, `panic`, `laptop`, `heart`), 5 dense perspective-warped turnaround views (`front`, `q`, `side`, `qback`, `back`), unified non-split legs (`legL: gx = -10..-4`, `legR: gx = 7..15` extended to `gy = -21`), and 16-bit cast sprites (`ladyClaude`, `ladyGemini`, `researcher`).
-- **`src/whale_girl.js`**: Protagonist renderer `whaleGirl(ctx, x, y, u, opts)`, 31 acted emotions (`EMO` + `feel()`), smooth multi-stage emotion transition engine (`emotions(t, keys, opts)`), locomotion helpers (`move`, `turn`, `spinView`), 13 hats (`HATS`), and 16-bit overhead emotes (`EMOTES`).
-- **`src/cast.js`**: Full 8-character cast (`whaleGirl`, `ladyClaude`, `ladyGemini` (`双子星 Gemini 大小姐`), `clawd`, `researcher`, `agentReachBot`, `miniWhale`, `bionicPuppy`, `biliTvMascot`) and model sheet generators (`renderEmotionsSheet`, `renderViewsSheet`, `renderCharacterSheet`).
-- **`src/mv_ba_huiyi_pinhao_gei_ni.js`**: **56-Shot Storyboard Director** for 《椰子水很甜 - 把回忆拼好给你（纯享Beat）》 (`142.11s`, `94.85 BPM`, 1 shot per bar = `2.5304s`), with 12 painted sets, authentic song lyrics (作词：童子-T/Shingo.S/一只然), all 31 emotions with 3-stage mid-lyric transitions, and co-acting with `ladyGemini`.
-- **`src/mv_douyin_6.js`, `src/mv_qunian_xiatian.js`, `src/mv_chaoxi.js`, `src/mv_pengyou_de_jiu.js`**: Full beat-synced Whale-Girl MVs (`mv_douyin_6_whale_girl.mp4`, `mv_qunian_xiatian_whale_girl.mp4`, `mv_chaoxi_whale_girl.mp4`, `mv_pengyou_de_jiu_whale_girl.mp4`).
+| File / Directory | Purpose |
+|---|---|
+| `src/core.js` | Deterministic math (`clamp`, `lerp`, `seg`, `ease`, `easeIn`, `easeOut`, `backOut`, `kf`, `arcPt`), hand-drawn line boil (`setBoil`, `boilFrame`), camera rig (`camBegin`, `camEnd`, `toScreen`, `shakeXY`), and theatrical transitions (`iris`, `curtains`, `brushWipe`, `smokeWipe`, `spotDark`). |
+| `src/whale_girl_rig_data.js` | **7-Bone Articulated `104×102` Pixel-Grid Rig** (`WHALE_GIRL_PIXEL_RIG`) extracted from `42868804351-1-192.mp4`, with 5 canonical poses (`wave`, `wink`, `panic`, `laptop`, `heart`), 5 dense perspective-warped turnaround views (`front`, `q`, `side`, `qback`, `back`), unified non-split legs (`legL: gx = -10..-4`, `legR: gx = 7..15` extended to `gy = -21`), and 16-bit cast sprites (`ladyClaude`, `ladyGemini`, `researcher`). |
+| `src/whale_girl.js` | Protagonist renderer `whaleGirl(ctx, x, y, u, opts)`, 31 acted emotions (`EMO` + `feel()`), smooth multi-stage emotion transition engine (`emotions(t, keys, opts)`), locomotion helpers (`move`, `turn`, `spinView`), 13 hats (`HATS`), and 16-bit overhead emotes (`EMOTES`). |
+| `src/cast.js` | Full 8-character cast (`whaleGirl`, `ladyClaude`, `ladyGemini` (`双子星 Gemini 大小姐`), `clawd`, `researcher`, `agentReachBot`, `miniWhale`, `bionicPuppy`, `biliTvMascot`) and model sheet generators (`renderEmotionsSheet`, `renderViewsSheet`, `renderCharacterSheet`). |
+| `src/clawd.js` | Orange pixel-octopod mascot (`clawd`) with hats, expressions, and dance/roof cycles. |
+| `src/props.js` | Theatrical stage props, rooms, desks, server racks, and background painters. |
+| `src/ch/c01_debut.js` – `c04_rivalry_finale.js` | 4-chapter storyboard director for the 82.50s debut MV (`whale_mv_pixel.mp4`, `whale_mv_watercolor.mp4`, `whale_mv_multistyle.mp4`). |
+| `src/mv_ba_huiyi_pinhao_gei_ni.js` | **56-Shot Storyboard Director** for 《椰子水很甜 - 把回忆拼好给你（纯享Beat）》 (`142.11s`, `94.85 BPM`, 1 shot per bar = `2.5304s`), with 12 painted sets, authentic song lyrics (作词：童子-T/Shingo.S/一只然), all 31 emotions with 3-stage mid-lyric transitions, and co-acting with `ladyGemini`. |
+| `src/mv_douyin_6.js` | 《仿生小狗》(深海鲸鱼娘·年糕篇) `46.70s` MV director (`mv_douyin_6_whale_girl.mp4`). |
+| `src/mv_qunian_xiatian.js` | 《去年夏天》 `78.20s` MV director (`mv_qunian_xiatian_whale_girl.mp4`). |
+| `src/mv_chaoxi.js` | 《潮汐》 `31.84s` MV director (`mv_chaoxi_whale_girl.mp4`). |
+| `src/mv_pengyou_de_jiu.js` | 《朋友的酒》 `188.25s` MV director (`mv_pengyou_de_jiu_whale_girl.mp4`). |
+| `src/mv_pack_short.js` | **5 Short MVs Replicated from `mv/`** with 100% frame-verified subtitle tables: `ba_huiyi_56` (《把回忆拼好给你》 `56.03s`), `lianai_ing` (五月天《恋爱ing》 `54.73s`), `jimo_yanhuo` (《寂寞烟火》 `55.24s`), `xinqiang` (《心墙》 `34.02s`), and `ribuluo` (《日不落》 `45.81s`). |
+| `src/mv_pack_long.js` | **4 Full-Length MVs Replicated from `mv/`** with 100% frame-verified subtitle tables & `[他]/[她]/[合]` karaoke sweeps: `huainvhai` (徐良 & 小凌《坏女孩》 `245.55s`), `feng` (周杰伦《枫》 `274.58s`), `meiguihua` (许嵩《玫瑰花的葬礼》 `236.77s`), and `suyan` (许嵩 & 何曼婷《素颜》 `238.05s`). |
+| `render_mv_folder.mjs` | Batch renderer for the 9 replicated MVs in `mv/` (`node render_mv_folder.mjs all` / `sheet`). |
+| `characters/*.png` & `docs/*.png` | Generated character model sheets (`whale_girl_emotions_31.png`, `whale_girl_views_hats.png`, `whale_girl_poses_pixel.png`, `whale_girl_poses_hd.png`, `whale_girl_styles.png`, `all_cast_sheet.png`) and MV storyboard contact sheets (`docs/mv_folder_9_storyboards.png`). |
 
 ---
 
-## 2. Standing Engineering Rules
+## 2. Character Construction & Turnaround Rules (`PDoomVideo` Standard)
 
-1. **Require Order in Node Renderers**: Always `require('./src/whale_girl_rig_data.js')` **before** `require('./src/whale_girl.js')`.
-2. **Non-Split Walking Legs**: Keep `legL` (`gx = -10..-4`, pivot `-0.70 * u`) and `legR` (`gx = 7..15`, pivot `+1.10 * u`) 100% unified with upper thighs extended to `gy = -21` and drawn underneath `torso`. Never leave leg columns in `torso` or `tail`.
-3. **Dense Grid Perspective Warping for Turnarounds**: Build `q`, `side`, `qback`, and `back` views by warping a dense 2D pixel grid before RLE encoding — never scale RLE endpoints directly.
-4. **Seamless 31-Emotion Transitions**: Use `WHALE.emotions(lt, [[t0, emo1, emote1], [t1, emo2, emote2], ...])` so every expression change is bridged by an anticipatory blink (`squint`), a squash-stretch `take`, and interpolated posture.
-5. **High Shot Density & Physical Acting**: Design MVs at ~1 shot per bar (`~2.5s`), pairing full-screen painted environments with active locomotion (`stroll`, `runTo` + `smear`, `jumpArc`, `kneel`, `spinView`, `tailSit`) and hand-held props (`armL`/`armR`).
+1. **Always Load Rig Data Before `whale_girl.js`**:
+   In Node scripts, always `require('./src/whale_girl_rig_data.js')` **before** `require('./src/whale_girl.js')` so `root.WHALE_GIRL_PIXEL_RIG` is populated and `whaleGirl()` renders the articulated 7-bone pixel rig rather than the vector fallback.
+2. **Unified Non-Split Legs (`legL` & `legR`)**:
+   - `legL` spans `gx = -10..-4` (hip pivot `-0.70 * u`) and `legR` spans `gx = 7..15` (hip pivot `+1.10 * u`), with upper thighs extended up to `gy = -21` and drawn **before** `torso` (`step 3` in `drawArticulatedPixelRig`).
+   - Never leave leg columns (`gx <= -9` or `gx >= 12` at `gy >= -13`) inside `torso` or `tail`, and never leave inner-skirt drop-shadow pixels (`gx = -3..+6, gy >= -13`) in `legL`/`legR`/`tail`, so walking (`walk`) and running (`smear`) legs never split or detach from the skirt hem.
+3. **Dense Perspective-Warped Turnaround Views (`front`, `q`, `side`, `qback`, `back`)**:
+   - Turnaround views in `WHALE_GIRL_PIXEL_RIG.views` are generated by rasterizing each bone to a dense 2D pixel grid and applying `perspective_warp` before re-encoding to inclusive RLE `[gy, gx1, gx2, cIdx]`. Never scale RLE endpoints directly (`Math.round(gx1 * sx)`), which creates 1px vertical rounding slits.
+   - `SIDE` ("停") and `RUN SMEAR` ("跑") preserve full chibi head/skirt volume (`scale_x = 0.98`, `foreshorten_right = 0.14`) so the character never looks squished.
+4. **Cast Roster (`src/cast.js`)**:
+   - The 8-character cast sheet (`characters/all_cast_sheet.png`) and the bottom-right slot of `characters/whale_girl_views_hats.png` (`docs/views.png`) feature **`GEMINI 大小姐` (`CAST.ladyGemini`)** alongside `whaleGirl`, `ladyClaude`, and `clawd`.
+
+---
+
+## 3. 31-Emotion Transition & Micro-Action System (`opus-video-skills` Standard)
+
+1. **All 31 Canonical Emotions (`characters/whale_girl_emotions_31.png`)**:
+   `neutral`, `idle`, `calm`, `happy`, `excited`, `joy`, `love`, `starstruck`, `wink`, `smug`, `proud`, `laugh`, `singing`, `surprised`, `shocked`, `panic`, `nervous`, `confused`, `question`, `idea`, `thinking`, `typing`, `focused`, `sad`, `cry`, `sob`, `pout`, `angry`, `rage`, `deadpan`, `sleepy` (plus semantic aliases in `EMO_ALIASES`).
+2. **Never Snap Faces — Always Use `WHALE.emotions(lt, keys, { take: true })`**:
+   - Pass a multi-stage emotion schedule per shot/lyric line:
+     ```js
+     const emoState = WHALE.emotions(lt, [
+       [0.00, 'shy', 'heart'],
+       [0.85, 'love', 'heart'],
+       [1.70, 'sparkle', 'sparkle']
+     ]);
+     ```
+   - Around every keyframe transition `t0`, `emotions()` automatically generates:
+     - An anticipatory eyelid squint/blink (`squint`) over `[t0 - 0.08s .. t0 + 0.15s]` so eyes close across the seam and open into the new expression,
+     - A squash-and-stretch reaction `take` (`sy = 1 - 0.11 * sin(...)` followed by damped settle),
+     - Smoothly interpolated `dy`, `sq`, and `headTilt` over `0.28s`,
+     - An overhead pixel-art `emote` pop-in (`emoteK`).
+3. **Continuous Micro-Actions (`细节动作`)**:
+   - Every shot combines primary locomotion (`stroll`, `runTo` + `smear`, `jumpArc`, `kneel`, `spinView`, `tailSit`) with secondary micro-actions: natural double-blinks, living pupil saccade highlights, emotion-driven arm gestures (`armL`/`armR` prop hooks), ear-fin/ribbon sway, and tail wagging.
+
+---
+
+## 4. Storyboard Shot Density & Scene Design ("Sets, Not Cards")
+
+- **High Shot Density**: Target **1 shot per bar / lyric line (`~2.0–3.0s` per shot)**, plus intra-shot camera focus pulls (`camBegin(cx, cy, zoom, rot)`). For example, `src/mv_ba_huiyi_pinhao_gei_ni.js` has **56 shots across 56 bars (`142.11s`)**.
+- **Full-Screen Painted Environments**: Every shot takes place inside a complete theatrical environment (starlit bioluminescent beach, candlelit observatory, rain-streaked neon bus stop, twilight clocktower, autumn ginkgo avenue, sunlit bonsai greenhouse, sunset train station, stamp study, firefly forest, cosmic galaxy vortex, dawn blossom hill) — never a floating card on a blank background.
+- **Visual Inspection Loop**: Always render a contact sheet (`--sheets` or `--sheet-only`) and inspect the PNG outputs visually via `read_file` before encoding the full MP4.
+
+---
+
+## 5. CLI Rendering Commands
+
+```bash
+# 1. Regenerate all character model sheets (docs/*.png & characters/*.png)
+node render.mjs --sheets
+
+# 2. Render 《把回忆拼好给你》 56-shot storyboard sheet, locomotion strip & 142.11s MP4
+node render_ba_huiyi_pinhao_gei_ni.mjs --sheet-only
+node render_ba_huiyi_pinhao_gei_ni.mjs
+
+# 3. Render the 82.50s Debut MV (pixel / watercolor / multistyle)
+node render.mjs --style pixel --out whale_mv_pixel.mp4
+node render.mjs --style watercolor --out whale_mv_watercolor.mp4
+node render.mjs --style director --out whale_mv_multistyle.mp4
+
+# 4. Render the 4 Replicated Whale-Girl MVs
+node render_douyin_6.mjs
+node render_qunian_xiatian.mjs
+node render_chaoxi.mjs
+node render_pengyou_de_jiu.mjs
+```

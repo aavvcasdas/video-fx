@@ -20,7 +20,10 @@ This repository implements a deterministic 30fps HTML5 Canvas + Node (`@napi-rs/
 | `src/mv_qunian_xiatian.js` | 《去年夏天》 `78.20s` MV director (`mv_qunian_xiatian_whale_girl.mp4`). |
 | `src/mv_chaoxi.js` | 《潮汐》 `31.84s` MV director (`mv_chaoxi_whale_girl.mp4`). |
 | `src/mv_pengyou_de_jiu.js` | 《朋友的酒》 `188.25s` MV director (`mv_pengyou_de_jiu_whale_girl.mp4`). |
-| `characters/*.png` & `docs/*.png` | Generated character model sheets (`whale_girl_emotions_31.png`, `whale_girl_views_hats.png`, `whale_girl_poses_pixel.png`, `whale_girl_poses_hd.png`, `whale_girl_styles.png`, `all_cast_sheet.png`) and MV storyboard contact sheets. |
+| `src/mv_pack_short.js` | **5 Short MVs Replicated from `mv/`** with 100% frame-verified subtitle tables: `ba_huiyi_56` (《把回忆拼好给你》 `56.03s`), `lianai_ing` (五月天《恋爱ing》 `54.73s`), `jimo_yanhuo` (《寂寞烟火》 `55.24s`), `xinqiang` (《心墙》 `34.02s`), and `ribuluo` (《日不落》 `45.81s`). |
+| `src/mv_pack_long.js` | **4 Full-Length MVs Replicated from `mv/`** with 100% frame-verified subtitle tables & `[他]/[她]/[合]` karaoke sweeps: `huainvhai` (徐良 & 小凌《坏女孩》 `245.55s`), `feng` (周杰伦《枫》 `274.58s`), `meiguihua` (许嵩《玫瑰花的葬礼》 `236.77s`), and `suyan` (许嵩 & 何曼婷《素颜》 `238.05s`). |
+| `render_mv_folder.mjs` | Batch renderer for the 9 replicated MVs in `mv/` (`node render_mv_folder.mjs all` / `sheet`). |
+| `characters/*.png` & `docs/*.png` | Generated character model sheets (`whale_girl_emotions_31.png`, `whale_girl_views_hats.png`, `whale_girl_poses_pixel.png`, `whale_girl_poses_hd.png`, `whale_girl_styles.png`, `all_cast_sheet.png`) and MV storyboard contact sheets (`docs/mv_folder_9_storyboards.png`). |
 
 ---
 

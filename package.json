@@ -5,9 +5,13 @@
   "description": "A lyric-synced, code-drawn Tide music-video studio using saved whale-maid references.",
   "scripts": {
     "start": "node server.mjs",
-    "check": "node --check src/cast.js && node --check src/timeline.js && node --check app.js && node --check server.mjs"
+    "render:rig": "node tools/render_whale_rig.mjs --frames=render/whale-rig",
+    "check": "node --check src/cast.js && node --check src/timeline.js && node --check src/whale-pixel-rig.js && node --check tools/render_whale_rig.mjs && node --check app.js && node --check server.mjs"
   },
   "engines": {
     "node": ">=18"
+  },
+  "devDependencies": {
+    "@napi-rs/canvas": "^1.0.13"
   }
 }

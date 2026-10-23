@@ -1,6 +1,7 @@
 /*
  * 潮汐 / TIDE lyric MV
- * A deterministic canvas music-video study using only saved local cast assets.
+ * A deterministic canvas music-video study using the approved local model sheet
+ * and a shared part-based JavaScript whale-maid rig.
  * The 320 × 180 stage is intentionally small and nearest-neighbour scaled.
  */
 
@@ -19,20 +20,9 @@ const characterCtx = characterCanvas.getContext('2d');
 ctx.imageSmoothingEnabled = false;
 characterCtx.imageSmoothingEnabled = false;
 
-// Reference-locked cast assets are declared in src/cast.js. Every source
-// pose and alternate treatment is loaded once, outside individual shots.
-const whaleReferenceSprites = {};
-const whaleStyleSprites = {};
-Object.entries(castBible.whaleMaid.poses).forEach(([name, source]) => {
-  const image = new Image();
-  image.src = source;
-  whaleReferenceSprites[name] = image;
-});
-Object.entries(castBible.whaleMaid.styleSheets).forEach(([name, source]) => {
-  const image = new Image();
-  image.src = source;
-  whaleStyleSprites[name] = image;
-});
+// The saved source poses remain the model sheet. Runtime drawing is now the
+// part-based JS rig in src/whale-pixel-rig.js, so the heroine has independent
+// hair/tail/eye/mouth/arm motion instead of being a translated PNG.
 
 const palettes = {
   pixel: {
@@ -268,37 +258,20 @@ function drawWhaleVector(context, x, y, scale, t, palette, options = {}) {
 
 function sourcePose(options) {
   if (options.laptop) return 'laptop';
-  if (options.heart) return 'hands';
-  if (options.mood === 'surprise') return 'hands';
-  return 'standing';
+  if (options.heart || options.mood === 'surprise') return 'hands';
+  return 'stand';
 }
 
 function drawWhale(context, x, y, scale, t, palette, options = {}) {
-  const pose = sourcePose(options);
-  // Every MV appearance comes from the saved cast library. Laptop and hands
-  // keep their exact source poses; standing shots select one stored treatment
-  // (pixel RPG, cel, ink or neon) unless a source-locked standing shot is set.
-  const source = options.sourceLocked || pose !== 'standing'
-    ? whaleReferenceSprites[pose]
-    : (whaleStyleSprites[state.selectedStyle] || whaleReferenceSprites.standing);
-
-  // The reference sprite remains the first-class character rendering. It is
-  // drawn into the native 320 × 180 stage and then nearest-neighbour scaled
-  // by CSS, so the supplied character is exact while still sitting inside a
-  // pixel-MV language. Vector drawing is only a no-network/loading fallback.
-  if (source && source.complete && source.naturalWidth) {
-    const pulse = 1 + beatPulse(t, .025);
-    const bob = Math.sin(t * 3.6 + (options.dance ? .7 : 0)) * (1.1 + options.dance * .9) - beatPulse(t, 1.4);
-    const height = 106 * scale;
-    const width = height * (source.naturalWidth / source.naturalHeight);
-    context.save();
-    context.translate(x, y + bob);
-    context.scale(pulse, pulse);
-    context.drawImage(source, Math.round(-width / 2), Math.round(-height * .56), Math.round(width), Math.round(height));
-    context.restore();
+  const rig = window.WHALE_PIXEL_RIG;
+  const rigOptions = { ...options, pose: options.pose || sourcePose(options) };
+  if (rig && typeof rig.draw === 'function') {
+    rig.draw(context, x, y, scale, t, palette, rigOptions);
     return;
   }
-  drawWhaleVector(context, x, y, scale, t, palette, options);
+  // This remains a JS-only emergency fallback for a partially loaded page;
+  // normal preview and export always use the complete Whale Pixel Rig.
+  drawWhaleVector(context, x, y, scale, t, palette, rigOptions);
 }
 
 function activeLyric(t) {
@@ -380,33 +353,33 @@ function drawMV(t) {
   drawCoral(ctx, t, palette, 2);
 
   if (scene === 0) {
-    // The exact source standing pose opens the song before any style treatment.
-    drawWhale(ctx, 235, 120, .9, t, palette, { sourceLocked: true, mood: 'wink' });
+    // The JS stand rig opens on the source-locked model-sheet silhouette.
+    drawWhale(ctx, 235, 120, .9, t, palette, { pose: 'stand', mood: 'wink' });
     drawOrb(ctx, 84, 95, .68, t, palette, true);
     drawFish(ctx, 38 + mod(t * 16, 105), 122, .38, t, palette, 1, true);
   } else if (scene === 1) {
-    // The saved laptop reference turns the distant-view lyric into a diary shot.
-    drawWhale(ctx, 176, 119, .92, t, palette, { laptop: true });
+    // The JS laptop parts turn the distant-view lyric into a diary shot.
+    drawWhale(ctx, 176, 119, .92, t, palette, { pose: 'laptop', mood: 'hopeful' });
     drawFish(ctx, 40 + mod(t * 12, 250), 76, .31, t, palette, 1, true);
     drawOrb(ctx, 270, 82, .52, t, palette);
   } else if (scene === 2) {
-    drawWhale(ctx, 220, 123, .88, t, palette, { mood: 'surprise' });
+    drawWhale(ctx, 220, 123, .88, t, palette, { pose: 'hands', mood: 'surprise' });
     drawOrb(ctx, 82, 92, .66, t, palette, true);
     drawFish(ctx, 120, 136, .34, t, palette, -1, false);
   } else if (scene === 3) {
-    drawWhale(ctx, 151, 115, 1.0, t, palette, { mood: 'focus', dance: 1 });
+    drawWhale(ctx, 151, 115, 1.0, t, palette, { pose: 'stand', mood: 'focus', dance: 1 });
     drawOrb(ctx, 64, 64, .44, t, palette, true); drawOrb(ctx, 265, 128, .55, t + 1, palette, true);
   } else if (scene === 4) {
-    drawWhale(ctx, 155, 123, .94, t, palette, { mood: 'smile', dance: 1 });
+    drawWhale(ctx, 155, 123, .94, t, palette, { pose: 'stand', mood: 'smile', dance: 1 });
     drawFish(ctx, 33 + mod(t * 22, 255), 136, .45, t, palette, 1, true);
   } else if (scene === 5) {
-    drawWhale(ctx, 165, 115, .88, t, palette, { laptop: true, mood: 'focus' });
+    drawWhale(ctx, 165, 115, .88, t, palette, { pose: 'laptop', mood: 'focus' });
     drawOrb(ctx, 83, 87, .64, t, palette, true); drawOrb(ctx, 244, 70, .43, t + 1, palette);
   } else if (scene === 6) {
-    drawWhale(ctx, 160, 126, .98, t, palette, { heart: true, mood: 'surprise' });
+    drawWhale(ctx, 160, 126, .98, t, palette, { pose: 'hands', mood: 'surprise' });
     for (let i = 0; i < 4; i += 1) drawOrb(ctx, 60 + i * 66, 128 + Math.sin(t * 2 + i) * 8, .28, t + i, palette, true);
   } else {
-    drawWhale(ctx, 160, 119, 1.08, t, palette, { mood: 'wink', dance: 1 });
+    drawWhale(ctx, 160, 119, 1.08, t, palette, { pose: 'stand', mood: 'wink', dance: 1 });
     drawFish(ctx, 48 + mod(t * 14, 230), 83, .37, t, palette, 1, true);
   }
 

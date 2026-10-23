@@ -7,38 +7,40 @@
 - 原曲：根目录 `潮汐.MP3`，浏览器使用它的 `currentTime` 作为播放时钟。
 - 时长：`31.843 s`；节拍草稿：`117 BPM`。
 - 舞台：原生 `320 × 180`，展示时最近邻放大。
-- 主角：只能从 `src/cast.js` 的 `whaleMaid` 素材读取，不使用运行时生图、外部 URL 或未保存图片。
+- 主角：只能依照 `src/cast.js` 的 `whaleMaid` 模型表与 `src/whale-pixel-rig.js` 绘制；不使用运行时生图、外部 URL、另一位角色或移动的 PNG 精灵。
 - 每一秒：`secondCues` 至少有一个可见变化；每一行：`lyrics` 至少有识别卡与一种画面隐喻。
-- 离线 MP4 统一通过 `tools/render_tide.py` 的 `pixel_finish()` 先落至 `320 × 180`，再用最近邻放大；不得在最后输出使用平滑放大、模糊或另一张未保存角色图。
+- 离线 MP4 先由 `tools/render_whale_rig.mjs` 写出共享 JS rig 的透明角色层，再由 `tools/render_tide.py` 的 `pixel_finish()` 统一落至 `320 × 180` 并最近邻放大；不得在最后输出使用平滑放大、模糊或一张保存角色图。
 
 ## 项目职责
 
 ```text
-src/timeline.js   修改歌词起止时间、镜头、每秒提示；不要在 app.js 写散乱秒数
-src/cast.js       修改已经存在的素材路径与角色规则；不创建临时形象
-app.js            绘制背景、保存姿势、歌词卡、歌词隐喻及播放器控件
-STORYBOARD.md     复核每段应该调用的姿势和特效
+src/timeline.js           修改歌词起止时间、镜头、每秒提示；不要在 app.js 写散乱秒数
+src/cast.js               保存模型表路径与身份规则；不创建临时形象
+src/whale-pixel-rig.js    绘制独立的头发、五官、尾巴、手臂、服装与笔记本，供浏览器和离线共用
+app.js                    绘制背景、JS rig、歌词卡、歌词隐喻及播放器控件
+tools/render_whale_rig.mjs 逐帧调用同一 JS rig，写出透明角色层
+STORYBOARD.md             复核每段应该调用的姿势和特效
 ```
 
-## 保存姿势调用
+## JS 鲸鱼娘 rig 调用
 
-调用 `drawWhale(context, x, y, scale, t, palette, options)`：
+`drawWhale(context, x, y, scale, t, palette, options)` 委派给共享的 `WHALE_PIXEL_RIG.draw()`。所有姿势都是由相同的代码部件重新排演，而非选取图片：
 
 ```js
-// 开场：强制完整源片站姿
-drawWhale(ctx, 235, 120, .9, t, palette, { sourceLocked: true, mood: 'wink' });
+// 开场：站姿 + 温和的眨眼/视线
+ drawWhale(ctx, 235, 120, .9, t, palette, { pose: 'stand', mood: 'wink' });
 
-// 日记 / 距离：直接调用笔记本源片姿势
-drawWhale(ctx, 176, 119, .92, t, palette, { laptop: true });
+// 日记 / 距离：独立绘制笔记本和键盘
+ drawWhale(ctx, 176, 119, .92, t, palette, { pose: 'laptop', mood: 'focus' });
 
-// 回忆 / 退守：直接调用捧脸源片姿势
-drawWhale(ctx, 220, 123, .88, t, palette, { mood: 'surprise' });
+// 回忆 / 退守：手臂与手移动到脸颊，嘴和眉独立改变
+ drawWhale(ctx, 220, 123, .88, t, palette, { pose: 'hands', mood: 'surprise' });
 
-// 中性段：按当前 pixel / cel / ink / neon 读取保存的对应 PNG
-drawWhale(ctx, 151, 115, 1.0, t, palette, { mood: 'focus', dance: 1 });
+// 搜索：发锁/尾巴跟随，眼神扫动，角色随节拍呼吸
+ drawWhale(ctx, 151, 115, 1.0, t, palette, { pose: 'stand', mood: 'search', dance: true });
 ```
 
-对角色只允许保存姿势的可逆舞台变换：位移、节拍缩放、轻微旋转、压缩/拉伸、透明尾迹、环境遮挡和最近邻缩放。离线渲染器的 `ACTING_KEYS` / `actor_motion()` 采用模型表、情绪键、预备、take、过冲和停顿的结构；切换必须遵循“预备 → 水流/像素碎片变形 → 下一个清晰姿势”的因果顺序，并留出读姿势的停顿。不可重绘脸、改变服装、裁去鲸尾或用任何生成接口替换角色。
+`src/whale-pixel-rig.js` 必须持续保留可分离的尾巴、四束发锁、发箍、耳鳍/蝴蝶结、左右眼的眼白/虹膜/眼睑/高光、眉、嘴、腮红、手臂/手、裙装/围裙、鞋和笔记本。情绪键至少改变两项可读部件；切换遵循“预备 → 窄幅转身/起跳 → 落点回弹 → 清晰读姿势”的因果顺序。离线生成器以相同参数调用该 rig，禁止退回至任何静态参考图路径。
 
 ## 歌词卡规则
 
@@ -55,6 +57,8 @@ drawWhale(ctx, 151, 115, 1.0, t, palette, { mood: 'focus', dance: 1 });
 
 ```bash
 npm run check
+npm run render:rig
+PYTHONPATH=/tmp/tide-render-libs python3 tools/render_tide.py --rig-frames render/whale-rig
 ```
 
-然后播放整首歌并逐一检查：00、04、08、12、16、20、24、28 秒镜头边界；L01–L12 卡片；四个保存风格；以及末尾 31.843 秒是否正常停止。
+然后播放整首歌并逐一检查：00、04、08、12、16、20、24、28 秒镜头边界；L01–L12 卡片；眨眼、单眨眼、视线、嘴形、手势、发锁和鲸尾的独立运动；以及末尾 31.843 秒是否正常停止。

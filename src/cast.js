@@ -12,7 +12,7 @@
     reference: Object.freeze({
       sourceVideo: '42868804351-1-192.mp4',
       sourceFrame: Object.freeze({ hands: '00:16', laptop: '00:32', standing: '01:04' }),
-      lock: 'User-approved source-locked heroine. Do not redraw, replace, or alter silhouette details in the default pixel look.',
+      lock: 'User-approved heroine. Preserve the source silhouette/features exactly; the runtime character is a hand-built JS pixel rig, not a translated source PNG. Do not replace her with any other character or generated image.',
       features: Object.freeze([
         'blue-to-cyan long hair and single ahoge',
         'white ruffled maid headband',
@@ -26,8 +26,8 @@
       laptop: `${ROOT}/source/laptop.png`,
       standing: `${ROOT}/source/standing.png`,
     }),
-    // Each file is a saved visual treatment of the approved standing pose.
-    // Hands/laptop keep their exact source pose; neutral shots use this library.
+    // Saved visual treatments are model-sheet references. The runtime rig
+    // recreates hands/laptop/standing from code rather than drawing these files.
     styleSheets: Object.freeze({
       pixel: `${ROOT}/styles/pixel-rpg.png`,
       cel: `${ROOT}/styles/cel-pop.png`,
@@ -40,8 +40,8 @@
   const members = Object.freeze([
     {
       id: 'lan', code: 'REF-01', icon: '◒', name: '鲸鱼娘 · 参考锁定', role: '主唱 / 源片形象母版',
-      bio: '人物形象直接按用户提供视频复刻：蓝色渐变长发、女仆头饰、耳鳍、蓝白裙装、鲸图围裙和深蓝鲸尾。站姿、捧脸与笔记本三套姿势会按镜头调用。',
-      specs: [['POSE', '03 源片姿势'], ['LOOK', '参考锁定'], ['STYLE', '04 已存参照'], ['PROP', '笔记本 / 鲸尾']], color: '#3866bc', type: 'whale'
+      bio: '人物形象直接按用户提供视频复刻：蓝色渐变长发、女仆头饰、耳鳍、蓝白裙装、鲸图围裙和深蓝鲸尾。JavaScript rig 会重排站姿、捧脸与笔记本三套姿势，并让表情、头发和鲸尾独立运动。',
+      specs: [['POSE', '03 JS 姿势'], ['LOOK', '参考锁定'], ['STYLE', '04 已存参照'], ['PROP', '笔记本 / 鲸尾']], color: '#3866bc', type: 'whale'
     },
     {
       id: 'mimo', code: 'M-02', icon: '♧', name: '米沫 · 水母 DJ', role: '节拍设计 / 声呐采样',

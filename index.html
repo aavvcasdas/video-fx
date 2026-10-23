@@ -25,7 +25,7 @@
         <div class="hero-copy">
           <p class="eyebrow"><span></span> TIDE / LYRIC-DRIVEN MUSIC VIDEO / 117 BPM</p>
           <h1>潮汐<br /><em>寻觅</em>之歌</h1>
-          <p class="hero-description">以已保存的鲸鱼娘参照库为主角：源片站姿、捧脸、笔记本姿势，以及像素 RPG、赛璐璐、水墨、霓虹四套保存风格都会进入《潮汐》的歌词镜头。</p>
+          <p class="hero-description">以已保存的鲸鱼娘模型表为唯一身份锚点：JavaScript 将站姿、捧脸、笔记本、微表情、蓝发与鲸尾逐部件重建；像素、赛璐璐、水墨、霓虹四套参照引导《潮汐》的歌词镜头。</p>
           <div class="hero-ctas">
             <button class="accent-button large" id="playButton"><span class="play-icon">▶</span><span id="playButtonText">播放第 01 幕</span></button>
             <button class="text-button" id="jumpButton">查看 32 秒歌词镜头 <span>↓</span></button>
@@ -84,14 +84,14 @@
           <div><p class="eyebrow"><span></span> LYRIC MAP / 31.843 SECONDS</p><h2>每一句都有卡点画面</h2></div>
           <p>点击任意秒跳转。歌词识别卡、人声段落、强拍转场和环境隐喻均同步到原曲预览。</p>
         </div>
-        <div class="timeline-legend"><span><i class="legend-cut"></i> 歌词 / 强拍卡</span><span><i class="legend-motion"></i> 已保存姿势</span><span><i class="legend-fx"></i> 歌词隐喻 / 特效</span></div>
+        <div class="timeline-legend"><span><i class="legend-cut"></i> 歌词 / 强拍卡</span><span><i class="legend-motion"></i> JS 姿势 / 微表情</span><span><i class="legend-fx"></i> 歌词隐喻 / 特效</span></div>
         <div class="timeline-grid" id="timelineGrid" aria-label="31.8 秒潮汐歌词 MV 时间轴"></div>
       </section>
 
       <section class="styles-section">
         <div class="section-heading horizontal">
           <div><p class="eyebrow"><span></span> VISUAL LANGUAGE</p><h2>同一片海，四种画法</h2></div>
-          <p>不调用任何生图接口。主角只使用项目内已保存的 `hands.png`、`laptop.png`、`standing.png`，以及像素 RPG、赛璐璐、水墨、霓虹四套 PNG 风格参照。</p>
+          <p>不调用任何生图接口。项目内的 `hands.png`、`laptop.png`、`standing.png` 与四套风格 PNG 只作受控模型表；预览与 MP4 的主角均由同一套 JavaScript 部件 rig 绘制。</p>
         </div>
         <div class="style-grid" id="styleGrid">
           <button class="style-card active" data-style="pixel" aria-pressed="true">
@@ -134,11 +134,11 @@
         </div>
         <div class="build-table">
           <div class="table-head"><span>模块</span><span>已建立</span><span>节拍职责</span></div>
-          <div><b>SAVED CAST POSES</b><span>03 / 03</span><small>站姿、捧脸、笔记本</small></div>
+          <div><b>JS CAST POSES</b><span>03 / 03</span><small>站姿、捧脸、笔记本</small></div>
           <div><b>LYRIC SHOTS</b><span>08 / 08</span><small>句意、姿势、转场绑定</small></div>
           <div><b>MICRO MOTION</b><span>32 / 32</span><small>每秒歌词或环境提示</small></div>
           <div><b>LYRIC CARDS</b><span>12 / 12</span><small>识别行 / 强拍进入</small></div>
-          <div><b>SAVED STYLE LUTS</b><span>04 / 04</span><small>像素、赛璐璐、水墨、霓虹</small></div>
+          <div><b>MODEL-SHEET STYLES</b><span>04 / 04</span><small>像素、赛璐璐、水墨、霓虹</small></div>
         </div>
       </section>
 
@@ -148,6 +148,7 @@
     <div class="toast" id="toast" role="status" aria-live="polite"></div>
     <script src="src/cast.js"></script>
     <script src="src/timeline.js"></script>
+    <script src="src/whale-pixel-rig.js"></script>
     <script src="app.js"></script>
   </body>
 </html>

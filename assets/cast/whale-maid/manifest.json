@@ -26,8 +26,9 @@
   },
   "runtimePolicy": {
     "activeSong": "潮汐.MP3",
-    "sourceLockedShots": "opening standing, hands reaction and laptop prop shots directly use source/*.png",
-    "neutralStanding": "pixel-rpg.png, cel-pop.png, ink-tide.png or neon-sonar.png is selected by the active style card",
-    "rendering": "all sprites are composed in the 320x180 stage before nearest-neighbour presentation; runtime image generation is prohibited"
+    "modelSheets": "source/*.png and styles/*.png are approved visual references only; they are never directly composited as the moving heroine",
+    "renderer": "src/whale-pixel-rig.js is the shared browser/offline part-based heroine implementation",
+    "poseStates": "stand, hands and laptop reconfigure the same independently animated JS parts; emotion keys control eyes, lids, brows, mouth, blush, hair and tail",
+    "rendering": "transparent 320x180 JS rig layers are composed before nearest-neighbour presentation; runtime image generation and generic-character substitution are prohibited"
   }
 }

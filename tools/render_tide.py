@@ -95,44 +95,6 @@ def make_fonts():
     }
 
 
-def load_sprite(path: str):
-    image = cv2.imread(str(ROOT / path), cv2.IMREAD_UNCHANGED)
-    if image is None:
-        raise RuntimeError(f'Missing saved reference asset: {path}')
-    if image.shape[2] != 4:
-        raise RuntimeError(f'Expected alpha PNG: {path}')
-    return image
-
-
-def composite(frame, sprite, center, height, opacity=1.0, scale=1.0, angle=0.0, squash=0.0, xscale=1.0):
-    """Put a saved actor pose into the frame with cartoon squash/turn motion.
-
-    The pose image never changes identity: this only applies reversible 2D
-    staging transforms, analogous to Clawd's dy/sq/rot acting controls.
-    """
-    h = max(1, int(height * scale * (1 - squash)))
-    w = max(1, int(sprite.shape[1] * h / sprite.shape[0] * (1 + squash * .72) * xscale))
-    layer = cv2.resize(sprite, (w, h), interpolation=cv2.INTER_LANCZOS4)
-    if abs(angle) > .01:
-        pad = max(w, h) // 4 + 4
-        layer = cv2.copyMakeBorder(layer, pad, pad, pad, pad, cv2.BORDER_CONSTANT, value=(0, 0, 0, 0))
-        cy, cx = layer.shape[0] / 2, layer.shape[1] / 2
-        matrix = cv2.getRotationMatrix2D((cx, cy), angle, 1.0)
-        layer = cv2.warpAffine(layer, matrix, (layer.shape[1], layer.shape[0]), flags=cv2.INTER_LANCZOS4, borderMode=cv2.BORDER_CONSTANT, borderValue=(0, 0, 0, 0))
-        h, w = layer.shape[:2]
-    x0 = int(center[0] - w / 2)
-    y0 = int(center[1] - h * .56)
-    x1, y1 = x0 + w, y0 + h
-    cx0, cy0, cx1, cy1 = max(0, x0), max(0, y0), min(W, x1), min(H, y1)
-    if cx0 >= cx1 or cy0 >= cy1:
-        return
-    lx0, ly0 = cx0 - x0, cy0 - y0
-    layer = layer[ly0:ly0 + (cy1 - cy0), lx0:lx0 + (cx1 - cx0)]
-    alpha = (layer[:, :, 3:4].astype(np.float32) / 255.0) * opacity
-    roi = frame[cy0:cy1, cx0:cx1].astype(np.float32)
-    frame[cy0:cy1, cx0:cx1] = (layer[:, :, :3].astype(np.float32) * alpha + roi * (1 - alpha)).astype(np.uint8)
-
-
 def draw_text(frame, fonts, text, xy, font_key, fill, anchor='la'):
     rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
     pil = Image.fromarray(rgb)
@@ -265,6 +227,10 @@ def title_end(frame, fonts, t, palette):
 def ease(p):
     p = min(1.0, max(0.0, p))
     return p * p * (3 - 2 * p)
+
+
+def lerp(a, b, p):
+    return a * (1 - p) + b * p
 
 
 def scene_gradient(top, bottom):
@@ -533,213 +499,25 @@ def scene_environment(frame, t, scene, palette):
         cv2.circle(frame, (640, 402), 28 + int(22 * beat), (235, 244, 232), -1, cv2.LINE_8)
         pixel_star(frame, 640, 402, 20 + int(12 * beat), accent)
 
-# The saved references are staged as a small 2D character rig. This follows
-# the useful *structure* of ClaudeAnimationBase (key views, emotion keys,
-# anticipation, take, overshoot and held reads), without borrowing its
-# character artwork or drawing a replacement singer.
-ACTING_KEYS = [
-    # start,      saved pose,  ground/anchor,  height, mood
-    (0.00, 'standing', (915, 516), 558, 'curious'),
-    (2.42, 'laptop',   (812, 520), 540, 'hopeful'),
-    (4.42, 'laptop',   (780, 520), 540, 'determined'),
-    (6.58, 'hands',    (892, 518), 557, 'shocked'),
-    (8.33, 'hands',    (892, 518), 557, 'retreat'),
-    (10.43, 'pixel',   (835, 528), 500, 'wistful'),
-    (12.43, 'pixel',   (882, 532), 490, 'seeking'),
-    (15.82, 'cel',     (866, 532), 505, 'relieved'),
-    (18.12, 'cel',     (860, 530), 510, 'hopeful'),
-    (20.12, 'ink',     (852, 535), 505, 'distant'),
-    (24.03, 'hands',   (864, 535), 510, 'retreat'),
-    (26.13, 'hands',   (866, 535), 510, 'wistful'),
-    (28.13, 'neon',    (644, 520), 575, 'seeking'),
-]
-
-
-def lerp(a, b, p):
-    return a * (1 - p) + b * p
-
-
-def acting_key_at(t):
-    index = 0
-    for i, key in enumerate(ACTING_KEYS):
-        if key[0] <= t:
-            index = i
-        else:
-            break
-    return index, ACTING_KEYS[index]
-
-
-def actor_motion(mood, t):
-    """An emotion is a full body response, not a static label.
-
-    Values are deliberately modest because the approved PNG is the model sheet:
-    we animate staging (dy/sq/rot/turn), never redraw the heroine's face.
-    """
-    phase = (t * BPM / 60) % 1
-    hit = (1 - phase) ** 4
-    half = math.sin(phase * math.pi)
-    swing = math.sin(t * 2.15)
-    out = {'dx': 0.0, 'dy': -7 * abs(half) - hit * 7, 'sq': .025 * hit,
-           'angle': swing * 1.1, 'xscale': 1.0, 'emote': 'spark'}
-    if mood == 'curious':
-        out.update(dx=8 * math.sin(t * 1.35), angle=-1.3 + swing * 1.6, emote='spark')
-    elif mood == 'hopeful':
-        out.update(dy=-14 * abs(half) - hit * 10, sq=-.045 + .045 * hit,
-                   angle=.8 * swing, emote='spark')
-    elif mood == 'determined':
-        out.update(dx=5 * math.sin(t * 1.7), dy=-9 * abs(half) - hit * 9,
-                   sq=-.025 + .055 * hit, angle=2.2 + swing * .55,
-                   xscale=.95, emote='compass')
-    elif mood == 'shocked':
-        out.update(dx=4 * math.sin(t * 22), dy=-12 - 10 * abs(half), sq=-.09,
-                   angle=math.sin(t * 14) * 1.1, xscale=.94, emote='shock')
-    elif mood == 'retreat':
-        out.update(dx=-15 - 7 * math.sin(t * 2.0), dy=-4 * abs(half), sq=.055 + .035 * hit,
-                   angle=-2.2 + swing * .5, xscale=1.06, emote='retreat')
-    elif mood == 'wistful':
-        out.update(dx=4 * math.sin(t * .85), dy=-5 - 8 * abs(math.sin(t * .8)),
-                   sq=-.035, angle=-1.6 + swing * .7, emote='memory')
-    elif mood == 'seeking':
-        out.update(dx=8 * math.sin(t * 3.8), dy=-11 * abs(half) - hit * 13,
-                   sq=-.025 + .08 * hit, angle=math.sin(t * 7.5) * 2.0,
-                   xscale=.97, emote='search')
-    elif mood == 'relieved':
-        out.update(dy=-7 * abs(half), sq=.04 + .025 * math.sin(t * .8),
-                   angle=-.5 + swing * .8, emote='bubbles')
-    elif mood == 'distant':
-        out.update(dx=-5 + 4 * math.sin(t * .7), dy=-4 * abs(half), sq=.025,
-                   angle=-2.6 + swing * .45, xscale=.91, emote='distance')
-    return out
-
-
-def pixel_emote(frame, center, height, mood, t, palette):
-    """Tiny pixel symbols make the reaction legible without altering the PNG face."""
-    _, _, light, accent = palette
-    x = int(center[0] + height * .22)
-    y = int(center[1] - height * .61)
-    p = 1 + pulse(t) * .16
-    if mood == 'spark':
-        for ang in (0, math.pi / 2, math.pi / 4, math.pi * .75):
-            dx, dy = int(math.cos(ang) * 18 * p), int(math.sin(ang) * 18 * p)
-            cv2.line(frame, (x - dx, y - dy), (x + dx, y + dy), light, 3, cv2.LINE_8)
-        cv2.rectangle(frame, (x - 4, y - 4), (x + 4, y + 4), accent, -1)
-    elif mood == 'compass':
-        cv2.circle(frame, (x, y), int(17 * p), light, 2, cv2.LINE_8)
-        cv2.line(frame, (x - 10, y + 10), (x + 12, y - 13), accent, 3, cv2.LINE_8)
-        cv2.rectangle(frame, (x + 8, y - 15), (x + 14, y - 9), light, -1)
-    elif mood == 'shock':
-        cv2.rectangle(frame, (x - 3, y - 23), (x + 3, y - 4), accent, -1)
-        cv2.rectangle(frame, (x - 3, y + 6), (x + 3, y + 12), accent, -1)
-        for sx in (-1, 1):
-            cv2.rectangle(frame, (x + sx * 16 - 3, y - 13), (x + sx * 16 + 3, y - 7), light, -1)
-    elif mood == 'retreat':
-        for i in range(3):
-            xx = x + 10 + i * 13
-            yy = y + int(math.sin(t * 4 + i) * 4) + i * 7
-            cv2.rectangle(frame, (xx, yy), (xx + 7, yy + 7), accent if i % 2 else light, -1)
-    elif mood in ('memory', 'bubbles'):
-        for i in range(3):
-            a = t * 1.6 + i * math.pi * 2 / 3
-            xx, yy = int(x + math.cos(a) * 19), int(y + math.sin(a) * 14)
-            cv2.circle(frame, (xx, yy), 6, light, 2, cv2.LINE_8)
-    elif mood == 'search':
-        for r in (10, 18, 28):
-            cv2.circle(frame, (x, y), int(r * p), light, 2, cv2.LINE_8)
-        cv2.line(frame, (x, y), (x + 25, y - 13), accent, 2, cv2.LINE_8)
-    elif mood == 'distance':
-        cv2.circle(frame, (x - 16, y), 6, accent, -1, cv2.LINE_8)
-        cv2.circle(frame, (x + 16, y), 6, light, -1, cv2.LINE_8)
-        cv2.line(frame, (x - 8, y), (x + 8, y), (226, 238, 255), 2, cv2.LINE_8)
-
-
-
-def draw_actor_transition(frame, t, begin, old_key, new_key, sprites, palette):
-    """Layer the two approved poses during a readable 0.64-second transform."""
-    u = ease((t - begin) / .64)
-    old_pose, old_center, old_height, _ = old_key[1:]
-    new_pose, new_center, new_height, new_mood = new_key[1:]
-    cx = lerp(old_center[0], new_center[0], u)
-    cy = lerp(old_center[1], new_center[1], u) - 36 * math.sin(u * math.pi)
-    height = lerp(old_height, new_height, u)
-    turn = math.sin(u * math.pi)
-    _, _, light, accent = palette
-    # Intentional held smear: previous positions arc toward the new anchor.
-    for lag, opacity in ((.17, .075), (.10, .10), (.04, .13)):
-        q = max(0.0, u - lag)
-        gx = lerp(old_center[0], new_center[0], q)
-        gy = lerp(old_center[1], new_center[1], q) + 12
-        composite(frame, sprites[old_pose], (gx, gy), height, opacity=opacity,
-                  scale=1 + .04 * q, angle=-5 * q, squash=.05 * turn,
-                  xscale=1 - .27 * turn)
-    composite(frame, sprites[old_pose], (cx - 15 * u, cy + 14 * u), height,
-              opacity=1 - u, scale=1 + .11 * u, angle=-8 * u,
-              squash=.10 * turn, xscale=1 - .38 * turn)
-    composite(frame, sprites[new_pose], (cx + 17 * (1 - u), cy - 12 * (1 - u)), height,
-              opacity=u, scale=.88 + .12 * u, angle=8 * (1 - u),
-              squash=-.09 * turn, xscale=1 - .38 * turn)
-    for i in range(24):
-        a = i * 2.399 + t * 6
-        r = 58 + 135 * turn + (i % 4) * 14
-        x = int(cx + math.cos(a) * r)
-        y = int(cy - 55 + math.sin(a) * r * .55)
-        size = 3 + i % 4
-        cv2.rectangle(frame, (x - size, y - size), (x + size, y + size), light if i % 2 else accent, -1)
-    cv2.ellipse(frame, (int(cx), int(cy + height * .36)),
-                (int(height * .22 * (1 - .2 * turn)), max(3, int(height * .035))),
-                0, 0, 360, (22, 13, 39), 2, cv2.LINE_8)
-    if u > .46:
-        pixel_emote(frame, (cx, cy), height, new_mood, t, palette)
-
-
-def acted_actor(frame, t, scene, sprites, palette):
-    """Perform the lyric-keyed emotion timeline with anticipation and holds."""
-    index, key = acting_key_at(t)
-    start, pose, center, height, mood = key
-    next_key = ACTING_KEYS[index + 1] if index + 1 < len(ACTING_KEYS) else None
-    # The previous emotional state is visibly transformed into this one.
-    if index and t < start + .64:
-        draw_actor_transition(frame, t, start, ACTING_KEYS[index - 1], key, sprites, palette)
-        return
-    motion = actor_motion(mood, t)
-    # Anticipation: compress and settle just before a new thought / pose lands.
-    if next_key and 0 < next_key[0] - t < .18:
-        prep = ease((.18 - (next_key[0] - t)) / .18)
-        motion['sq'] += .11 * prep
-        motion['dy'] += 21 * prep
-        motion['angle'] -= 2.4 * prep
-    cx = center[0] + motion['dx']
-    cy = center[1] + motion['dy']
-    # A stable, low pixel shadow keeps the saved sprite planted in each world.
-    cv2.ellipse(frame, (int(cx), int(cy + height * .37)),
-                (int(height * .27 * motion['xscale']), max(4, int(height * .045))),
-                0, 0, 360, (22, 13, 39), -1, cv2.LINE_8)
-    # Delayed copies make tail/hair follow-through visible on every beat.
-    composite(frame, sprites[pose], (cx - 20, cy + 13), height, opacity=.055,
-              scale=.985, angle=motion['angle'] - 4.2, squash=motion['sq'],
-              xscale=motion['xscale'] * .98)
-    composite(frame, sprites[pose], (cx - 8, cy + 5), height, opacity=.09,
-              scale=.995, angle=motion['angle'] - 2.0, squash=motion['sq'],
-              xscale=motion['xscale'] * .99)
-    pixel_emote(frame, (cx, cy), height, motion['emote'], t, palette)
-    composite(frame, sprites[pose], (cx, cy), height,
-              scale=1 + pulse(t) * .035, angle=motion['angle'],
-              squash=motion['sq'], xscale=motion['xscale'])
-
 
 def pixel_finish(frame):
-    """Commit the whole composition to a 320×180 pixel stage, then scale it.
-
-    This makes scenery, type, effects and the reference sprite share the same
-    deliberate pixel grid instead of pasting smooth art over pixel graphics.
-    """
+    """Commit worlds, type and the JS-built heroine to one pixel grid."""
     low = cv2.resize(frame, (W // PIXEL_SIZE, H // PIXEL_SIZE), interpolation=cv2.INTER_AREA)
-    # A restrained 8-level posterisation removes painterly micro-gradients while
-    # retaining the saved heroine's blue / white / navy identity.
     levels = 8
     low = ((low.astype(np.uint16) * (levels - 1) + 127) // 255 * (255 // (levels - 1))).astype(np.uint8)
     return cv2.resize(low, (W, H), interpolation=cv2.INTER_NEAREST)
 
-def render_frame(t, sprites, fonts):
+
+def composite_rig_layer(frame, actor_layer):
+    """Composite the transparent JS-rig frame on the 1280×720 movie canvas."""
+    if actor_layer is None or actor_layer.shape[2] != 4:
+        raise RuntimeError('Expected a transparent BGRA actor layer from tools/render_whale_rig.mjs')
+    layer = cv2.resize(actor_layer, (W, H), interpolation=cv2.INTER_NEAREST)
+    alpha = layer[:, :, 3:4].astype(np.float32) / 255.0
+    frame[:] = (layer[:, :, :3].astype(np.float32) * alpha + frame.astype(np.float32) * (1 - alpha)).astype(np.uint8)
+
+
+def render_frame(t, fonts, actor_layer):
     scene = scene_at(t)
     style_index = 0 if scene <= 3 else 1 if scene == 4 else 2 if scene == 5 else 3
     palette = PALETTES[style_index]
@@ -756,7 +534,9 @@ def render_frame(t, sprites, fonts):
     # The scene itself carries the lyric objective; keep the ambient layer quiet
     # enough that its single focal action can be read.
     bubbles(frame, t, palette)
-    acted_actor(frame, t, scene, sprites, palette)
+    # The heroine layer is generated by the shared part-based JS rig. No
+    # saved source PNG is composited into the finished MV.
+    composite_rig_layer(frame, actor_layer)
     lyric_card(frame, fonts, t, lyric_at(t), palette)
     title_end(frame, fonts, t, palette)
     return pixel_finish(frame)
@@ -764,6 +544,7 @@ def render_frame(t, sprites, fonts):
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('--frames', default='render/tide-frames', help='Output directory for numbered PNG frames')
+    parser.add_argument('--rig-frames', default='render/whale-rig', help='Transparent 320×180 layers made by tools/render_whale_rig.mjs')
     parser.add_argument('--fps', type=int, default=FPS)
     parser.add_argument('--width', type=int, default=W)
     parser.add_argument('--height', type=int, default=H)
@@ -774,21 +555,19 @@ def main():
         raise SystemExit('This timing sheet is authored at 24 fps.')
 
     fonts = make_fonts()
-    sprites = {
-        'standing': load_sprite('assets/cast/whale-maid/source/standing.png'),
-        'hands': load_sprite('assets/cast/whale-maid/source/hands.png'),
-        'laptop': load_sprite('assets/cast/whale-maid/source/laptop.png'),
-        'pixel': load_sprite('assets/cast/whale-maid/styles/pixel-rpg.png'),
-        'cel': load_sprite('assets/cast/whale-maid/styles/cel-pop.png'),
-        'ink': load_sprite('assets/cast/whale-maid/styles/ink-tide.png'),
-        'neon': load_sprite('assets/cast/whale-maid/styles/neon-sonar.png'),
-    }
     output = ROOT / args.frames
     output.mkdir(parents=True, exist_ok=True)
+    rig_dir = ROOT / args.rig_frames
+    if not rig_dir.is_dir():
+        raise SystemExit(f'Missing JS rig frames at {rig_dir}; run node tools/render_whale_rig.mjs first.')
     frame_count = math.ceil(DURATION * FPS)
     for number in range(frame_count):
         t = min(DURATION - 1 / FPS, number / FPS)
-        frame = render_frame(t, sprites, fonts)
+        rig_frame = rig_dir / f'{number + 1:06d}.png'
+        actor_layer = cv2.imread(str(rig_frame), cv2.IMREAD_UNCHANGED)
+        if actor_layer is None or actor_layer.shape[:2] != (180, 320) or actor_layer.shape[2] != 4:
+            raise SystemExit(f'Invalid JS rig frame: {rig_frame}')
+        frame = render_frame(t, fonts, actor_layer)
         cv2.imwrite(str(output / f'{number + 1:06d}.png'), frame)
         if number % 72 == 0 or number == frame_count - 1:
             print(f'frame {number + 1:04d}/{frame_count}  {t:05.2f}s')

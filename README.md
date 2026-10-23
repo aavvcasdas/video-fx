@@ -76,3 +76,9 @@ app.js                                   Canvas 场景、音频同步、歌词�
 5. **可复现**：`drawMV(t)` 只依赖时间、时间表、调色板和已保存资源；不使用无约束的随机状态。
 
 点击“导出歌词蓝图”可下载 `tide-lyric-mv-blueprint.json`，其中包含音轨、歌词识别草稿、角色素材路径、镜头和逐秒事件，供后续离线帧渲染与 MP4 封装使用。
+
+## 已输出 MP4
+
+成片已在 [`output/tide-lyric-mv.mp4`](output/tide-lyric-mv.mp4)：**1280 × 720、24 fps、31.84 秒、H.264 + AAC**。它只合成已保存的七张鲸鱼娘参照图、代码背景/歌词卡和仓库内 `潮汐.MP3`。
+
+可复现渲染器在 [`tools/render_tide.py`](tools/render_tide.py)。帧序列写入被忽略的 `render/tide-frames/`，以避免把中间 PNG 提交进仓库；最终 MP4 则保留并推送。

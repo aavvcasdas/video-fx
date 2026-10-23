@@ -9,6 +9,7 @@ const STAGE_W = 320;
 const STAGE_H = 180;
 const timeline = window.ABYSSAL_TIMELINE;
 const castBible = window.ABYSSAL_CAST;
+const storyboard = window.TIDE_STORYBOARD;
 const DURATION = timeline.duration;
 const BPM = timeline.bpm;
 const BEAT = 60 / BPM;
@@ -345,10 +346,42 @@ function drawOverlayEffects(context, t, palette, scene) {
   if (barPhase(t) === 0) { context.save(); context.globalAlpha = pulse * .14; fillRect(context, 0, 0, STAGE_W, STAGE_H, palette.light2); context.restore(); }
 }
 
+function drawStoryboardBridge(context, t, palette) {
+  if (!storyboard) return;
+  const bridge = storyboard.bridgeAt(t);
+  if (!bridge) return;
+  const p = bridge.p;
+  const cx = STAGE_W / 2;
+  const cy = STAGE_H / 2;
+  context.save();
+  context.globalAlpha = .36 * Math.sin(Math.PI * p);
+  if (bridge.type === 'shape-morph' || bridge.type === 'callback') {
+    const r = Math.round(8 + p * 46);
+    context.strokeStyle = palette.light; context.lineWidth = 2;
+    context.beginPath(); context.arc(cx, cy, r, 0, Math.PI * 2); context.stroke();
+    const s = Math.round(4 + (1 - p) * 8);
+    context.fillStyle = palette.accent || palette.light;
+    context.beginPath(); context.moveTo(cx, cy - s); context.lineTo(cx + s, cy); context.lineTo(cx, cy + s); context.lineTo(cx - s, cy); context.closePath(); context.fill();
+  } else if (bridge.type === 'cause-effect') {
+    context.strokeStyle = palette.coral; context.lineWidth = 2;
+    context.beginPath(); context.moveTo(cx - 48 * (1 - p), cy + 18); context.lineTo(cx + 48 * p, cy - 18); context.stroke();
+  } else {
+    fillRect(context, Math.round(cx - 1), Math.round(cy - 28 * p), 2, Math.round(56 * p), palette.light);
+  }
+  context.restore();
+}
+
 function drawMV(t) {
   const palette = currentPalette();
   const scene = sceneAt(t);
+  const camera = storyboard ? storyboard.cameraAt(t) : { x: 0, y: 0, zoom: 1 };
   ctx.clearRect(0, 0, STAGE_W, STAGE_H);
+  // Animate-style board camera: every lyric beat receives an authored lens
+  // instead of reusing one static mid-shot through the entire song.
+  ctx.save();
+  ctx.translate(STAGE_W / 2, STAGE_H / 2);
+  ctx.scale(camera.zoom, camera.zoom);
+  ctx.translate(-STAGE_W / 2 + camera.x, -STAGE_H / 2 + camera.y);
   drawBackground(ctx, t, palette, Math.sin(t * .65) * 2);
   drawCoral(ctx, t, palette, 2);
 
@@ -382,7 +415,8 @@ function drawMV(t) {
     drawWhale(ctx, 160, 119, 1.08, t, palette, { pose: 'stand', mood: 'wink', dance: 1 });
     drawFish(ctx, 48 + mod(t * 14, 230), 83, .37, t, palette, 1, true);
   }
-
+  ctx.restore();
+  drawStoryboardBridge(ctx, t, palette);
   drawOverlayEffects(ctx, t, palette, scene);
   ctx.save(); ctx.globalAlpha = .25; fillRect(ctx, 0, 174, STAGE_W, 6, palette.ink); ctx.restore();
 }

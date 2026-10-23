@@ -16,11 +16,10 @@
 ```text
 src/timeline.js           修改歌词起止时间、镜头、每秒提示；不要在 app.js 写散乱秒数
 src/cast.js               保存模型表路径与身份规则；不创建临时形象
-src/whale-pixel-model.js  三个批准姿势的透明像素 run；每一格由 Canvas 重绘而非读取图片
-src/whale-pixel-rig.js    绘制一比一像素模型，并叠加五官/发丝/鲸尾的动态微表情，供浏览器和离线共用
-app.js                    绘制背景、JS rig、歌词卡、歌词隐喻及播放器控件
-tools/build_whale_pixel_model.py 从批准模型表重新构建像素 run
-tools/render_whale_rig.mjs 逐帧调用同一 JS rig，写出透明角色层
+src/whale-pixel-rig.js    手写 Canvas 路径/像素单元，绘制并动画鲸尾、卷发、五官、服装、手势与笔记本
+src/storyboard-renderer.js 12 拍分镜板：锚点、因果、镜头、match-object 转场及角色表演键
+app.js                    绘制背景、JS rig、分镜镜头、歌词卡、歌词隐喻及播放器控件
+tools/render_whale_rig.mjs 逐帧调用同一 JS rig 与分镜表，写出透明角色层
 STORYBOARD.md             复核每段应该调用的姿势和特效
 ```
 
@@ -42,7 +41,7 @@ STORYBOARD.md             复核每段应该调用的姿势和特效
  drawWhale(ctx, 151, 115, 1.0, t, palette, { pose: 'stand', mood: 'search', dance: true });
 ```
 
-`src/whale-pixel-model.js` 必须持续保留批准模型表中完整的尾巴、所有发锁、发箍、耳鳍/蝴蝶结、眼白/虹膜/高光、手臂/手、裙装/围裙、鞋和笔记本；模型不可由概括性的几何人偶替换。`src/whale-pixel-rig.js` 在模型上独立改变眼睑、瞳孔/高光、嘴形、腮红、发丝高光与尾巴波纹。情绪键至少改变两项可读细节；切换遵循“预备 → 窄幅转身/起跳 → 落点回弹 → 清晰读姿势”的因果顺序。离线生成器以相同参数调用该 rig，禁止退回至任何静态参考图路径。
+`src/whale-pixel-rig.js` 必须用 JavaScript 路径/像素单元持续构造完整的尾巴、所有发锁、呆毛、发箍、耳鳍/蝴蝶结、眼白/虹膜/眼睑/高光、眉、嘴、腮红、手臂/手、裙装/围裙、鞋和笔记本；不可读取、嵌入、编码或移动模型表位图。情绪键至少改变两项可读细节；切换遵循“预备 → 窄幅转身/起跳 → 落点回弹 → 清晰读姿势”的因果顺序。离线生成器以相同参数调用该 rig。
 
 ## 歌词卡规则
 
@@ -59,7 +58,6 @@ STORYBOARD.md             复核每段应该调用的姿势和特效
 
 ```bash
 npm run check
-PYTHONPATH=/tmp/tide-render-libs python3 tools/build_whale_pixel_model.py
 npm run render:rig
 PYTHONPATH=/tmp/tide-render-libs python3 tools/render_tide.py --rig-frames render/whale-rig
 ```

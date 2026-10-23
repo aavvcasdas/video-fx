@@ -12,7 +12,7 @@
     reference: Object.freeze({
       sourceVideo: '42868804351-1-192.mp4',
       sourceFrame: Object.freeze({ hands: '00:16', laptop: '00:32', standing: '01:04' }),
-      lock: 'User-approved heroine. Preserve the source silhouette/features exactly; runtime is a source-derived JS pixel-run model with animated facial/detail cells, never a loaded or translated PNG. Do not replace her with any other character or generated image.',
+      lock: 'User-approved heroine. Preserve the source silhouette/features exactly; runtime is a hand-written JavaScript Canvas rig with independently drawn parts, never a loaded, encoded or translated PNG. Do not replace her with any other character or generated image.',
       features: Object.freeze([
         'blue-to-cyan long hair and single ahoge',
         'white ruffled maid headband',

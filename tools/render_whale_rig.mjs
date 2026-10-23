@@ -11,6 +11,7 @@ import { createRequire } from 'node:module';
 const require = createRequire(import.meta.url);
 const { createCanvas } = require('@napi-rs/canvas');
 const rig = require('../src/whale-pixel-rig.js');
+const storyboard = require('../src/storyboard-renderer.js');
 
 const ROOT = path.resolve(path.dirname(new URL(import.meta.url).pathname), '..');
 const FPS = 24;
@@ -22,23 +23,9 @@ const PALETTES = [
   { light: '#86f1ef' }, { light: '#86f1ef' }, { light: '#fff8da' }, { light: '#39fce1' },
 ];
 
-// Every key is an acted thought, not a static source-pose selection. The rig
-// gives the key independent eye, mouth, hair, tail and arm movement.
-const KEYS = [
-  { at: 0.00, pose: 'stand', mood: 'hopeful', x: 229, y: 129, s: 1.16 },
-  { at: 2.42, pose: 'laptop', mood: 'hopeful', x: 203, y: 130, s: 1.17 },
-  { at: 4.42, pose: 'laptop', mood: 'focus', x: 195, y: 130, s: 1.17 },
-  { at: 6.58, pose: 'hands', mood: 'surprise', x: 223, y: 129, s: 1.18 },
-  { at: 8.33, pose: 'hands', mood: 'sad', x: 223, y: 129, s: 1.18 },
-  { at: 10.43, pose: 'stand', mood: 'wistful', x: 209, y: 132, s: 1.06 },
-  { at: 12.43, pose: 'stand', mood: 'search', x: 221, y: 133, s: 1.05 },
-  { at: 15.82, pose: 'stand', mood: 'relieved', x: 216, y: 133, s: 1.08 },
-  { at: 18.12, pose: 'stand', mood: 'hopeful', x: 215, y: 132, s: 1.09 },
-  { at: 20.12, pose: 'stand', mood: 'focus', x: 213, y: 134, s: 1.07 },
-  { at: 24.03, pose: 'hands', mood: 'sad', x: 216, y: 134, s: 1.09 },
-  { at: 26.13, pose: 'hands', mood: 'wistful', x: 217, y: 134, s: 1.09 },
-  { at: 28.13, pose: 'stand', mood: 'search', x: 160, y: 130, s: 1.22, dance: true },
-];
+// Every key is an acted thought on the shared Animate-style board, not a
+// static source-pose selection. The same beat board drives the browser studio.
+const KEYS = storyboard.shots.map((shot) => ({ at: shot.start, ...storyboard.actorKeyAt(shot.start) }));
 
 function clamp(value, min = 0, max = 1) { return Math.max(min, Math.min(max, value)); }
 function ease(value) { const p = clamp(value); return p * p * (3 - 2 * p); }

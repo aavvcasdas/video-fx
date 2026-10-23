@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
-"""Offline frame renderer for the saved-reference 《潮汐》 lyric MV.
+"""Offline frame renderer for the hand-drawn-JS 《潮汐》 lyric MV.
 
-It intentionally draws only from assets/cast/whale-maid/ and never invokes a
-model or network service. Encode its PNG frames with ffmpeg and 潮汐.MP3.
+It composites only transparent frames emitted by the shared JavaScript whale
+rig, then draws its deterministic 12-beat storyboard worlds. It never invokes
+a model, network service, or runtime character image. Encode PNG frames with ffmpeg and 潮汐.MP3.
 
 Example:
   PYTHONPATH=/tmp/audio-libs python3 tools/render_tide.py --frames render/tide-frames
@@ -76,8 +77,21 @@ def lyric_at(t: float):
     return None
 
 
+# Animate-style beat board: each lyric step receives its own world objective,
+# focal anchor and match-object bridge rather than four-second generic scenes.
+SHOT_STARTS = (0.00, 2.42, 4.42, 6.58, 8.33, 10.43, 12.43, 15.82, 18.12, 20.12, 24.03, 28.13)
+ENV_BY_SHOT = (0, 0, 1, 1, 2, 2, 3, 4, 4, 5, 6, 7)
+PALETTE_BY_SHOT = (0, 0, 0, 0, 0, 0, 0, 1, 1, 2, 2, 3)
+
+
 def scene_at(t: float) -> int:
-    return min(7, int(t // 4))
+    index = 0
+    for i, start in enumerate(SHOT_STARTS):
+        if start <= t:
+            index = i
+        else:
+            break
+    return index
 
 
 def mix(a, b, p):
@@ -500,6 +514,58 @@ def scene_environment(frame, t, scene, palette):
         pixel_star(frame, 640, 402, 20 + int(12 * beat), accent)
 
 
+def storyboard_layer(frame, t, shot, palette):
+    """Shot-specific foreground and bridge beats from the 12-beat story board.
+
+    The environment is a reusable set, while this layer makes the beat a
+    readable cause/effect moment: one anchor, a world action and a reaction.
+    """
+    deep, upper, light, accent = palette
+    if shot == 1:  # Pearl beam turns into a look-out window / mountain route.
+        cv2.rectangle(frame, (38, 118), (442, 428), mix(deep, upper, .28), -1)
+        cv2.rectangle(frame, (52, 132), (428, 414), mix(deep, upper, .68), -1)
+        cv2.rectangle(frame, (52, 132), (428, 414), light, 4)
+        draw_mountain_chain(frame, t, 454, palette, rise=1, offset=77)
+        cv2.line(frame, (100, 362), (424, 224), accent, 3, cv2.LINE_8)
+    elif shot == 3:  # The map proof becomes two visibly separate shore beacons.
+        cv2.rectangle(frame, (460, 342), (820, 464), mix(deep, upper, .36), -1)
+        for side in (-1, 1):
+            x = 640 + side * 128
+            cv2.circle(frame, (x, 390), 18 + int(pulse(t) * 8), accent if side < 0 else light, 2, cv2.LINE_8)
+            cv2.line(frame, (x, 420), (x, 450), light, 2, cv2.LINE_8)
+        cv2.rectangle(frame, (627, 377), (653, 404), deep, -1)
+    elif shot == 5:  # Retreating boat's folded result: tangible memory orbit.
+        for i in range(5):
+            a = (t - 10.43) * 1.7 + i * math.pi * 2 / 5
+            x, y = int(555 + math.cos(a) * 116), int(470 + math.sin(a) * 65)
+            cv2.rectangle(frame, (x - 12, y - 9), (x + 12, y + 9), (235, 241, 232), -1)
+            cv2.rectangle(frame, (x - 9, y - 6), (x + 9, y + 6), accent if i % 2 else upper, -1)
+        cv2.circle(frame, (555, 470), 23 + int(pulse(t) * 10), light, -1, cv2.LINE_8)
+        pixel_star(frame, 555, 470, 12, accent)
+    elif shot == 6:  # Searching gets a moving crosshair, not only abstract rings.
+        x = int(805 + math.sin(t * 2.4) * 128)
+        cv2.circle(frame, (x, 274), 22, accent, 2, cv2.LINE_8)
+        cv2.line(frame, (x - 34, 274), (x + 34, 274), light, 2, cv2.LINE_8)
+        cv2.line(frame, (x, 240), (x, 308), light, 2, cv2.LINE_8)
+        for i in range(4):
+            cv2.rectangle(frame, (x - 8 + i * 5, 266), (x - 4 + i * 5, 282), light, -1)
+    elif shot == 8:  # Callback: carried pearl reaches a newly lit mountain roof.
+        draw_mountain_chain(frame, t, 618, palette, rise=1, offset=11)
+        cv2.circle(frame, (376, 272), 16 + int(pulse(t) * 7), light, -1, cv2.LINE_8)
+        pixel_star(frame, 376, 272, 10, accent)
+        cv2.line(frame, (376, 288), (510, 387), light, 3, cv2.LINE_8)
+    elif shot == 10:  # Archive holds literal callbacks from the prior worlds.
+        for i, kind in enumerate((0, 1, 2)):
+            a = (t - 24.03) * .75 + i * math.pi * 2 / 3
+            draw_memory_frame(frame, 420 + math.cos(a) * 170, 306 + math.sin(a) * 92, .88, kind, palette)
+    elif shot == 11:  # Final board connects every recurring object to one pearl.
+        for x, y in ((204, 488), (391, 320), (889, 320), (1076, 488)):
+            cv2.line(frame, (x, y), (640, 402), light, 2, cv2.LINE_8)
+            cv2.circle(frame, (x, y), 12, accent, -1, cv2.LINE_8)
+        cv2.circle(frame, (640, 402), 22 + int(pulse(t) * 12), (242, 246, 235), -1, cv2.LINE_8)
+        pixel_star(frame, 640, 402, 14, accent)
+
+
 def pixel_finish(frame):
     """Commit worlds, type and the JS-built heroine to one pixel grid."""
     low = cv2.resize(frame, (W // PIXEL_SIZE, H // PIXEL_SIZE), interpolation=cv2.INTER_AREA)
@@ -518,19 +584,21 @@ def composite_rig_layer(frame, actor_layer):
 
 
 def render_frame(t, fonts, actor_layer):
-    scene = scene_at(t)
-    style_index = 0 if scene <= 3 else 1 if scene == 4 else 2 if scene == 5 else 3
-    palette = PALETTES[style_index]
-    # Each shot replaces the entire world, not merely a new prop on the same stage.
-    if scene == 5:
+    shot = scene_at(t)
+    environment = ENV_BY_SHOT[shot]
+    palette = PALETTES[PALETTE_BY_SHOT[shot]]
+    # Every board shot gets a legible world plus a foreground story action.
+    # The gradient changes on world turns, while the bridge object stays visible.
+    if environment == 5:
         frame = scene_gradient((208, 202, 178), (83, 89, 77))
-    elif scene == 7:
+    elif environment == 7:
         frame = scene_gradient((84, 25, 100), (27, 10, 52))
-    elif scene == 4:
+    elif environment == 4:
         frame = scene_gradient((198, 126, 113), (86, 49, 77))
     else:
         frame = scene_gradient(palette[1], palette[0])
-    scene_environment(frame, t, scene, palette)
+    scene_environment(frame, t, environment, palette)
+    storyboard_layer(frame, t, shot, palette)
     # The scene itself carries the lyric objective; keep the ambient layer quiet
     # enough that its single focal action can be read.
     bubbles(frame, t, palette)

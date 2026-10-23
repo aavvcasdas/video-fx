@@ -1,6 +1,6 @@
 # Cast bible — read before painting a shot
 
-This is the equivalent of a character module in a code-rendered MV: scenes **call a cast identity and pose** rather than inventing a new character per scene. Runtime metadata lives in [`src/cast.js`](src/cast.js); image provenance and variants live in [`assets/cast/whale-maid/manifest.json`](assets/cast/whale-maid/manifest.json); the live character implementation is [`src/whale-pixel-model.js`](src/whale-pixel-model.js) plus [`src/whale-pixel-rig.js`](src/whale-pixel-rig.js). The seven saved images are authoritative model sheets only: the active 《潮汐》 MV code-paints a pixel-for-pixel reduced version of the three approved poses, with no runtime generation, replacement character, or moving raster sprite.
+This is the equivalent of a character module in a code-rendered MV: scenes **call a cast identity and pose** rather than inventing a new character per scene. Runtime metadata lives in [`src/cast.js`](src/cast.js); image provenance and variants live in [`assets/cast/whale-maid/manifest.json`](assets/cast/whale-maid/manifest.json); the live character implementation is [`src/whale-pixel-rig.js`](src/whale-pixel-rig.js). The seven saved images are authoritative model sheets only: the active 《潮汐》 MV builds the heroine from hand-written JavaScript Canvas parts, with no runtime image, encoded raster, replacement character or moving sprite.
 
 ## REF-01 · 鲸鱼娘 / locked heroine
 
@@ -24,7 +24,7 @@ Do not replace these with a generic whale girl or redraw them loosely. The chara
 
 ### Motion policy
 
-The supplied poses are model sheets, not runtime sprites. `tools/build_whale_pixel_model.py` reduces their full transparent silhouettes to a crisp 120px Canvas grid and writes `whale-pixel-model.js`; this retains the source hair, headwear, ear fins/bow, eye detail, arms/hands, dress/apron, shoes, tail and laptop rather than replacing them with an approximate geometric doll. `whale-pixel-rig.js` adds eye-lid/pupil/highlight, mouth, blush, hair-glint and tail-ripple cells. Stage motion can add anticipation, a narrow turn, beat breathing, bounce, head/eye gaze, blink/wink and hair/tail follow-through. Never substitute the outfit, crop out the tail, swap to a generic whale girl, or use generated imagery.
+The supplied poses are model sheets, not runtime sprites. `whale-pixel-rig.js` constructs the source-observed silhouette from hand-written Canvas paths: full whale tail/fluke, six curled blue/cyan hair locks, ahoge, ruffle puffs, ear fins/bows, eye whites/irises/lids/highlights, facial states, bodice, apron emblem, ruffled skirt, sleeves/hands, socks/shoes and laptop. Stage motion adds anticipation, narrow turns, beat breathing, bounce, head/eye gaze, blink/wink and hair/tail follow-through. Never substitute the outfit, crop out the tail, swap to a generic whale girl, use generated imagery, or load/encode the saved model-sheet images at runtime.
 
 ## Saved alternate style references
 

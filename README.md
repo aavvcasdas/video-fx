@@ -89,6 +89,6 @@ app.js                                   Canvas 场景、音频同步、歌词�
 
 成片已在 [`output/tide-lyric-mv.mp4`](output/tide-lyric-mv.mp4)：**1280 × 720、24 fps、31.84 秒、H.264 + AAC**。它只合成 JavaScript 绘制的鲸鱼娘角色层、代码环境/歌词识别卡和仓库内 `潮汐.MP3`。
 
-可复现渲染分两步：先运行 `node tools/render_whale_rig.mjs --frames=render/whale-rig`，它用 `@napi-rs/canvas` 逐帧调用与浏览器相同的手写 JS rig，写出 765 张透明 `320 × 180` 角色层；随后 `tools/render_tide.py --rig-frames render/whale-rig` 只合成这些 JS 层。`src/storyboard-renderer.js` 提供 12 个有锚点、因果动作、镜头位置和 match-object 转场的拍点；逐句表演键会触发预备压缩、转身、落点回弹、停顿读姿势与独立微表情。成帧统一先落到 **320 × 180** 的像素舞台，再以最近邻放大到 1280 × 720，并进行克制的 8 阶色彩归并，因此人物、歌词卡、特效和环境处在同一像素语言中。
+可复现渲染分两步：先运行 `node tools/render_whale_rig.mjs --frames=render/whale-rig`，它用 `@napi-rs/canvas` 逐帧调用与浏览器相同的**纯 JavaScript 部件 rig**，写出 765 张透明 `1280 × 720` 角色层；随后 `tools/render_tide.py --rig-frames render/whale-rig` 合成这些 JS 层。角色层不读取 PNG、精灵表、Base64 或像素运行数据：它由独立的鲸尾、分层发型、高光、头饰、耳鳍/蝴蝶结、眼睛/眼睑、微表情、服装、围裙、手势和笔记本组件绘制。`src/storyboard-renderer.js` 提供 12 个有锚点、因果动作、镜头位置和 match-object 转场的拍点；逐句表演键会触发预备压缩、转身、落点回弹、停顿读姿势与独立微表情。环境与歌词卡先落到 **320 × 180** 的像素舞台并最近邻放大；角色随后以全分辨率组件线稿覆盖，因此角色识别特征不会被世界的 8 阶色彩归并抹平。
 
 分镜仍按歌词给予明确的视觉目标：海面揭示、地图/远山、不可跨越的裂隙、声呐寻找、潮汐回灌、墨色山景、记忆月亮和霓虹终场。歌词卡出现时，歌词语义图形也持续推进。帧序列写入被忽略的 `render/tide-frames/`，以避免把中间 PNG 提交进仓库；最终 MP4 则保留并推送。

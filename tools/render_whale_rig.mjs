@@ -1,8 +1,9 @@
 #!/usr/bin/env node
 /*
- * Renders the hand-built JS Whale Pixel Rig into transparent 320 × 180 layers.
- * tools/render_tide.py composites these layers over its lyric worlds, so the
- * shipped MP4 uses the exact same JS character logic as the browser preview.
+ * Renders the hand-built JS Whale Pixel Rig into transparent 1280 × 720 layers.
+ * The preview keeps its deliberately pixel-grid world at 320 × 180; export
+ * preserves the heroine's component-authored facial and costume linework at
+ * final resolution before compositing it over that world.
  */
 import fs from 'node:fs';
 import path from 'node:path';
@@ -16,8 +17,9 @@ const storyboard = require('../src/storyboard-renderer.js');
 const ROOT = path.resolve(path.dirname(new URL(import.meta.url).pathname), '..');
 const FPS = 24;
 const DURATION = 31.843;
-const WIDTH = 320;
-const HEIGHT = 180;
+const STAGE_SCALE = 4;
+const WIDTH = 320 * STAGE_SCALE;
+const HEIGHT = 180 * STAGE_SCALE;
 
 const PALETTES = [
   { light: '#86f1ef' }, { light: '#86f1ef' }, { light: '#fff8da' }, { light: '#39fce1' },
@@ -45,9 +47,9 @@ function paletteAt(t) {
 function drawLayer(ctx, key, t, alpha = 1, transform = {}) {
   ctx.save();
   ctx.globalAlpha = alpha;
-  const x = (transform.x ?? key.x);
-  const y = (transform.y ?? key.y);
-  const s = (transform.s ?? key.s);
+  const x = (transform.x ?? key.x) * STAGE_SCALE;
+  const y = (transform.y ?? key.y) * STAGE_SCALE;
+  const s = (transform.s ?? key.s) * STAGE_SCALE;
   rig.draw(ctx, x, y, s, t, paletteAt(t), {
     pose: key.pose,
     mood: key.mood,

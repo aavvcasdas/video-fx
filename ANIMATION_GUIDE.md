@@ -9,14 +9,14 @@
 - 舞台：原生 `320 × 180`，展示时最近邻放大。
 - 主角：只能依照 `src/cast.js` 的 `whaleMaid` 模型表与 `src/whale-pixel-rig.js` 绘制；不使用运行时生图、外部 URL、另一位角色或移动的 PNG 精灵。
 - 每一秒：`secondCues` 至少有一个可见变化；每一行：`lyrics` 至少有识别卡与一种画面隐喻。
-- 离线 MP4 先由 `tools/render_whale_rig.mjs` 写出共享 JS rig 的透明角色层，再由 `tools/render_tide.py` 的 `pixel_finish()` 统一落至 `320 × 180` 并最近邻放大；不得在最后输出使用平滑放大、模糊或一张保存角色图。
+- 离线 MP4 先由 `tools/render_whale_rig.mjs` 写出共享 JS rig 的透明 `1280 × 720` 角色层；`tools/render_tide.py` 先将环境与歌词卡经 `pixel_finish()` 落到 `320 × 180` 的像素网格，再叠加全分辨率角色部件线稿。不得使用一张保存角色图、精灵表、Base64、像素运行数据或运行时图像读取。
 
 ## 项目职责
 
 ```text
 src/timeline.js           修改歌词起止时间、镜头、每秒提示；不要在 app.js 写散乱秒数
 src/cast.js               保存模型表路径与身份规则；不创建临时形象
-src/whale-pixel-rig.js    手写 Canvas 路径/像素单元，绘制并动画鲸尾、卷发、五官、服装、手势与笔记本
+src/whale-pixel-rig.js    手写 Canvas 组件、路径与渐变，绘制并动画鲸尾、分层卷发、五官、服装、手势与笔记本
 src/storyboard-renderer.js 12 拍分镜板：锚点、因果、镜头、match-object 转场及角色表演键
 app.js                    绘制背景、JS rig、分镜镜头、歌词卡、歌词隐喻及播放器控件
 tools/render_whale_rig.mjs 逐帧调用同一 JS rig 与分镜表，写出透明角色层
@@ -41,7 +41,7 @@ STORYBOARD.md             复核每段应该调用的姿势和特效
  drawWhale(ctx, 151, 115, 1.0, t, palette, { pose: 'stand', mood: 'search', dance: true });
 ```
 
-`src/whale-pixel-rig.js` 必须用 JavaScript 路径/像素单元持续构造完整的尾巴、所有发锁、呆毛、发箍、耳鳍/蝴蝶结、眼白/虹膜/眼睑/高光、眉、嘴、腮红、手臂/手、裙装/围裙、鞋和笔记本；不可读取、嵌入、编码或移动模型表位图。情绪键至少改变两项可读细节；切换遵循“预备 → 窄幅转身/起跳 → 落点回弹 → 清晰读姿势”的因果顺序。离线生成器以相同参数调用该 rig。
+`src/whale-pixel-rig.js` 必须用 JavaScript 命名组件、Canvas 路径和渐变持续构造完整的尾巴、分层发量/高光、呆毛、发箍、耳鳍/蝴蝶结、眼白/虹膜/眼睑/高光、眉、嘴、腮红、手臂/手、裙装/围裙、鞋和笔记本；不可读取、嵌入、编码、描摹像素运行数据或移动模型表位图。情绪键至少改变两项可读细节；切换遵循“预备 → 窄幅转身/起跳 → 落点回弹 → 清晰读姿势”的因果顺序。离线生成器以相同参数调用该 rig。
 
 ## 歌词卡规则
 

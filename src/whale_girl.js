@@ -202,61 +202,114 @@
   };
 
   // ==========================================================================
-  // Modular Overhead Emotes (`EMOTES`)
+  // Modular Overhead Emotes (`EMOTES`) — 16-Bit Pixel-Art Edition
   // ==========================================================================
+  function makePx(ctx, x, y, u) {
+    const cell = u / 10;
+    return (gx, gy, gw, gh, col) => {
+      ctx.fillStyle = col;
+      ctx.fillRect(x + (gx - 0.5) * cell, y + (gy - 0.5) * cell, gw * cell + 0.35, gh * cell + 0.35);
+    };
+  }
+
   const EMOTES = {
     spout(ctx, x, y, u, k = 1, t = 0) {
+      const px = makePx(ctx, x, y, u);
+      const bob = Math.round(Math.sin(t * 8) * 1.5);
+      // Central water jet + left/right cyan pixel droplets
+      px(-1, -4 + bob, 3, 6, '#38BDF8');
+      px(0, -5 + bob, 1, 5, '#E0F2FE');
       for (const s of [-1, 1]) {
-        const pts = [
-          [x, y + 0.25 * u],
-          [x + s * 0.45 * u * k, y - 0.45 * u * k],
-          [x + s * 0.95 * u * k, y - 0.15 * u * k]
-        ];
-        inkLine(ctx, pts, 1.3, PAL.whaleCyan, 'ink', 0.5);
-        paint(ctx, ellPts(x + s * 1.05 * u * k, y - 0.05 * u * k, 0.11 * u, 0.15 * u, 8), { wash: PAL.whaleCyan, ink: null });
+        px(s * 5 - 1, -6 + bob, 3, 2, '#72E2F7');
+        px(s * 9 - 1, -4 + bob, 3, 3, '#38BDF8');
+        px(s * 9, -3 + bob, 1, 1, '#FFFFFF');
       }
     },
     heart(ctx, x, y, u, k = 1, t = 0) {
       const dy = Math.sin(t * 5) * 0.12 * u;
-      paint(ctx, heartPts(x + 1.55 * u, y + dy, 0.42 * u * k), { wash: '#FF5C8A', ink: C.ink, sw: 0.85 });
+      const px = makePx(ctx, x + 1.65 * u, y + dy, u);
+      px(-4, -3, 3, 2, '#161F3A'); px(2, -3, 3, 2, '#161F3A');
+      px(-5, -2, 11, 4, '#161F3A');
+      px(-4, 2, 9, 2, '#161F3A');
+      px(-2, 4, 5, 2, '#161F3A');
+      px(-1, 6, 3, 1, '#161F3A');
+      px(-3, -2, 3, 2, '#FF4D6D'); px(1, -2, 3, 2, '#FF4D6D');
+      px(-4, -1, 9, 3, '#FF4D6D');
+      px(-3, 2, 7, 2, '#E11D48');
+      px(-1, 4, 3, 2, '#E11D48');
+      px(-3, -1, 2, 2, '#FDA4AF');
     },
     sparkle(ctx, x, y, u, k = 1, t = 0) {
-      const sc = (0.85 + 0.2 * Math.sin(t * 7)) * k;
-      paint(ctx, starPts(x - 1.75 * u, y + 0.2 * u, 0.36 * u * sc, 0.14 * u * sc, 4), { wash: PAL.gold, ink: C.ink, sw: 0.7 });
-      paint(ctx, starPts(x + 1.75 * u, y + 0.45 * u, 0.28 * u * sc, 0.11 * u * sc, 4), { wash: PAL.whaleCyan, ink: C.ink, sw: 0.7 });
+      const px = makePx(ctx, x, y, u);
+      const bob = Math.round(Math.sin(t * 7) * 1);
+      // Left Golden 4-Point Pixel Star
+      const lx = -18, ly = 1 + bob;
+      px(lx - 4, ly, 9, 1, '#EAB308');
+      px(lx, ly - 4, 1, 9, '#EAB308');
+      px(lx - 2, ly - 1, 5, 3, '#FACC15');
+      px(lx - 1, ly - 2, 3, 5, '#FACC15');
+      px(lx - 1, ly - 1, 3, 3, '#FEF08A');
+      px(lx, ly, 1, 1, '#FFFFFF');
+      // Right Cyan 4-Point Pixel Star
+      const rx = 18, ry = 3 - bob;
+      px(rx - 3, ry, 7, 1, '#0284C7');
+      px(rx, ry - 3, 1, 7, '#0284C7');
+      px(rx - 1, ry - 1, 3, 3, '#72E2F7');
+      px(rx, ry, 1, 1, '#FFFFFF');
     },
     sweat(ctx, x, y, u, k = 1, t = 0) {
-      const dy = ((t * 2.2) % 1) * 0.35 * u;
-      paint(ctx, [
-        [x + 1.65 * u, y + 0.45 * u + dy],
-        [x + 1.82 * u, y + 0.85 * u + dy],
-        [x + 1.65 * u, y + 1.02 * u + dy],
-        [x + 1.48 * u, y + 0.85 * u + dy]
-      ], { wash: '#67E8F9', ink: C.ink, sw: 0.75, curv: 0.4 });
+      const dy = ((t * 2.2) % 1) * 0.30 * u;
+      const px = makePx(ctx, x + 1.65 * u, y + 0.55 * u + dy, u);
+      px(-1, -3, 3, 2, '#161F3A');
+      px(-2, -1, 5, 4, '#161F3A');
+      px(-1, 3, 3, 1, '#161F3A');
+      px(0, -2, 1, 2, '#72E2F7');
+      px(-1, 0, 3, 3, '#38BDF8');
+      px(-1, 0, 1, 2, '#E0F2FE');
     },
     anger(ctx, x, y, u, k = 1) {
-      const ax = x + 1.35 * u, ay = y + 0.45 * u, r = 0.26 * u * k;
-      inkLine(ctx, [[ax - r, ay - r * 0.3], [ax - r * 0.3, ay - r * 0.3], [ax - r * 0.3, ay - r]], 1.4, '#EF4444', 'ink', 0);
-      inkLine(ctx, [[ax + r, ay - r * 0.3], [ax + r * 0.3, ay - r * 0.3], [ax + r * 0.3, ay - r]], 1.4, '#EF4444', 'ink', 0);
-      inkLine(ctx, [[ax - r, ay + r * 0.3], [ax - r * 0.3, ay + r * 0.3], [ax - r * 0.3, ay + r]], 1.4, '#EF4444', 'ink', 0);
-      inkLine(ctx, [[ax + r, ay + r * 0.3], [ax + r * 0.3, ay + r * 0.3], [ax + r * 0.3, ay + r]], 1.4, '#EF4444', 'ink', 0);
+      const px = makePx(ctx, x + 1.45 * u, y + 0.55 * u, u);
+      px(-4, -4, 9, 9, '#161F3A');
+      px(-3, -3, 2, 2, '#EF4444'); px(2, -3, 2, 2, '#EF4444');
+      px(-3, 2, 2, 2, '#EF4444');  px(2, 2, 2, 2, '#EF4444');
+      px(-1, -1, 3, 3, '#FCA5A5');
     },
     exclaim(ctx, x, y, u, k = 1) {
-      paint(ctx, rrPts(x - 0.12 * u, y - 0.65 * u, 0.24 * u, 0.62 * u * k, 3, 0.4), { wash: '#FF4D6D', ink: C.ink, sw: 0.85 });
-      paint(ctx, ellPts(x, y + 0.18 * u, 0.13 * u, 0.13 * u, 8), { wash: '#FF4D6D', ink: C.ink, sw: 0.85 });
+      const px = makePx(ctx, x, y - 0.15 * u, u);
+      px(-2, -7, 5, 7, '#161F3A');
+      px(-1, -6, 3, 5, '#FF4D6D');
+      px(-1, -5, 1, 3, '#FDA4AF');
+      px(-2, 1, 5, 4, '#161F3A');
+      px(-1, 2, 3, 2, '#FF4D6D');
     },
     question(ctx, x, y, u, k = 1) {
-      letter(ctx, '?', x + 1.65 * u, y + 0.25 * u, Math.round(0.95 * u * k), PAL.gold, { stroke: C.ink });
+      const px = makePx(ctx, x + 1.65 * u, y + 0.15 * u, u);
+      px(-3, -5, 7, 3, '#161F3A');
+      px(1, -2, 3, 3, '#161F3A');
+      px(-1, 0, 3, 3, '#161F3A');
+      px(-1, 4, 3, 3, '#161F3A');
+      px(-2, -4, 5, 2, '#FACC15');
+      px(2, -2, 1, 2, '#FACC15');
+      px(0, 0, 1, 2, '#FACC15');
+      px(0, 5, 1, 1, '#FACC15');
     },
     music(ctx, x, y, u, k = 1, t = 0) {
-      const ny = ((t * 1.8) % 1) * 0.55 * u;
-      const mx = x + 1.75 * u, my = y + 0.45 * u - ny;
-      paint(ctx, ellPts(mx, my, 0.16 * u * k, 0.12 * u * k, 8), { wash: PAL.whaleCyan, ink: C.ink, sw: 0.75 });
-      inkLine(ctx, [[mx + 0.14 * u * k, my], [mx + 0.14 * u * k, my - 0.48 * u * k], [mx + 0.38 * u * k, my - 0.38 * u * k]], 1.3, PAL.whaleCyan, 'ink', 0);
+      const ny = ((t * 1.8) % 1) * 0.45 * u;
+      const px = makePx(ctx, x + 1.75 * u, y + 0.35 * u - ny, u);
+      px(-2, -4, 7, 2, '#38BDF8');
+      px(-1, -3, 2, 6, '#38BDF8');
+      px(3, -3, 2, 5, '#38BDF8');
+      px(-3, 1, 3, 3, '#72E2F7');
+      px(1, 0, 3, 3, '#72E2F7');
     },
     idea(ctx, x, y, u, k = 1) {
-      paint(ctx, ellPts(x, y - 0.25 * u, 0.32 * u * k, 0.36 * u * k, 12), { wash: '#FEF08A', fill: PAL.gold, fillOp: 140, ink: C.ink, sw: 0.85 });
-      paint(ctx, rectPts(x - 0.14 * u * k, y + 0.12 * u, 0.28 * u * k, 0.16 * u * k), { wash: '#94A3B8', ink: C.ink, sw: 0.75 });
+      const px = makePx(ctx, x, y - 0.20 * u, u);
+      px(-3, -6, 7, 6, '#161F3A');
+      px(-2, -5, 5, 4, '#FEF08A');
+      px(-1, -4, 2, 2, '#FFFFFF');
+      px(-2, 0, 5, 3, '#94A3B8');
+      px(-6, -4, 2, 1, '#FACC15'); px(5, -4, 2, 1, '#FACC15');
+      px(0, -9, 1, 2, '#FACC15');
     },
     zzz(ctx, x, y, u, k = 1, t = 0) {
       const dy = ((t * 1.2) % 1) * 0.45 * u;
@@ -409,12 +462,16 @@
     const headTilt = (o.headTilt || 0) + Math.sin(t * 2.1) * 0.03;
     const poseKey = resolvePoseKey(o);
 
-    // Motion smear ghost (ClaudeAnimationBase style)
-    if (o.smear && o.smear > 0.05) {
-      ctx.save();
-      ctx.globalAlpha = 0.25 * clamp(o.smear, 0, 1);
-      paint(ctx, ellPts(x - 1.8 * u * o.smear, y - 4.5 * u, 2.2 * u, 3.8 * u, 16), { wash: C.hairLight, ink: null });
-      ctx.restore();
+    // Motion smear ghost (16-bit Pixel-Rig Afterimage Trail!)
+    if (o.smear && o.smear > 0.05 && root.WHALE_GIRL_PIXEL_RIG) {
+      for (const [lag, al] of [[1.55, 0.20], [0.82, 0.38]]) {
+        ctx.save();
+        ctx.globalAlpha = al * clamp(o.smear, 0, 1);
+        ctx.translate(x + dx - lag * u * o.smear, y + dy);
+        ctx.scale(sx, sy);
+        drawArticulatedPixelRig(ctx, u, t, Object.assign({}, o, { hat: 'none', emote: null }), poseKey, headBob, headTilt, 'neon', view);
+        ctx.restore();
+      }
     }
 
     // Ground shadow
@@ -426,16 +483,14 @@
     ctx.translate(x + dx, y + dy);
     ctx.scale(sx, sy);
 
-    // Decide whether to render via Mode A (Articulated 7-Bone Rig from 42868804351-1-192.mp4)
-    // or Mode B (Multi-View Turnaround Vector/Brush Anatomy for q/side/qback/back or explicit 'vector' mode)
+    // Use Articulated 7-Bone Pixel-Grid Rig across ALL 5 turnaround views (front, q, side, qback, back)!
     const usePixelRig = (
       root.WHALE_GIRL_PIXEL_RIG &&
-      view === 'front' &&
       o.constructMode !== 'vector'
     );
 
     if (usePixelRig) {
-      drawArticulatedPixelRig(ctx, u, t, o, poseKey, headBob, headTilt, style);
+      drawArticulatedPixelRig(ctx, u, t, o, poseKey, headBob, headTilt, style, view);
     } else {
       drawVectorConstruct(ctx, u, t, o, poseKey, view, vx, isBack, isQBack, headBob, headTilt, style);
     }
@@ -445,12 +500,13 @@
 
   // ==========================================================================
   // MODE A: Articulated 7-Bone Pixel-Grid Rig (100% faithful to 42868804351-1-192.mp4)
-  // Bones: tail, backHair, legL, legR, torso, armR, head + dynamic face/hat/props
+  // Supports all 5 Canonical Poses AND all 5 Turnaround Views (front/q/side/qback/back)
   // ==========================================================================
-  function drawArticulatedPixelRig(ctx, u, t, o, poseKey, headBob, headTilt, style) {
+  function drawArticulatedPixelRig(ctx, u, t, o, poseKey, headBob, headTilt, style, view = 'front') {
     const rig = root.WHALE_GIRL_PIXEL_RIG;
     const basePal = rig.palette;
-    const poseBones = rig.poses[poseKey] || rig.poses.wave;
+    const isTurnView = (view && view !== 'front' && rig.views && rig.views[view]);
+    const poseBones = isTurnView ? rig.views[view] : (rig.poses[poseKey] || rig.poses.wave);
     const cell = u / rig.scale; // 1u = 10 grid cells; total character height ~9.5u
 
     // Style-specific palette transformation so Watercolor, Ukiyo-e, Risograph, and Neon look distinct
@@ -601,10 +657,10 @@
 
     // 6. Head Bone (tilts & nods around neck pivot)
     let headPoseKey = poseKey;
-    if (o.eyes === 'happy' && poseKey !== 'laptop' && poseKey !== 'heart') {
+    if (!isTurnView && o.eyes === 'happy' && poseKey !== 'laptop' && poseKey !== 'heart') {
       headPoseKey = 'heart';
     }
-    const headRuns = (rig.poses[headPoseKey] || poseBones).head;
+    const headRuns = isTurnView ? poseBones.head : (rig.poses[headPoseKey] || poseBones).head;
     const neckY = (poseKey === 'laptop' ? -3.85 : -4.68) * u;
     ctx.save();
     ctx.translate(0, neckY + headBob);
@@ -615,47 +671,59 @@
     // Layer surgical pixel-art emotion details directly at the exact eye/mouth coordinates
     // of 42868804351-1-192.mp4 (left eye: -0.60u, right eye: +0.56u, eyeY: -5.82u) without erasing bangs!
     const faceOffsetY = (poseKey === 'laptop' ? 0.85 : 0) * u;
-    ctx.save();
-    ctx.translate(0, faceOffsetY);
-    const eLx = -0.60 * u, eRx = 0.56 * u, eY = -5.82 * u;
+    if (!isTurnView || view === 'q') {
+      const vxShift = view === 'q' ? 0.30 * u : 0;
+      ctx.save();
+      ctx.translate(vxShift, faceOffsetY);
+      const eLx = -0.60 * u, eRx = 0.56 * u, eY = -5.82 * u;
 
-    if (o.eyes === 'spark') {
-      // Crisp golden 4-point star sparkles inside both pupils!
-      paint(ctx, starPts(eLx, eY, 0.24 * u, 0.09 * u, 4), { wash: '#FFE45E', ink: C.ink, sw: 0.55 });
-      paint(ctx, starPts(eRx, eY, 0.24 * u, 0.09 * u, 4), { wash: '#FFE45E', ink: C.ink, sw: 0.55 });
-    } else if (o.eyes === 'lids') {
-      // Half-lidded smug/deadpan/sleepy upper eyelids right over the upper iris
-      ctx.fillStyle = C.skin;
-      ctx.fillRect(eLx - 0.26 * u, eY - 0.24 * u, 0.52 * u, 0.22 * u);
-      ctx.fillRect(eRx - 0.26 * u, eY - 0.24 * u, 0.52 * u, 0.22 * u);
-      ctx.fillStyle = C.eyeLash;
-      ctx.fillRect(eLx - 0.28 * u, eY - 0.04 * u, 0.56 * u, 0.07 * u);
-      ctx.fillRect(eRx - 0.28 * u, eY - 0.04 * u, 0.56 * u, 0.07 * u);
-    } else if (o.eyes === 'cry') {
-      // Glowing cyan teardrops at outer eye corners
-      paint(ctx, ellPts(eLx - 0.22 * u, eY + 0.20 * u, 0.09 * u, 0.16 * u, 8), { wash: '#67E8F9', ink: C.ink, sw: 0.5 });
-      paint(ctx, ellPts(eRx + 0.22 * u, eY + 0.20 * u, 0.09 * u, 0.16 * u, 8), { wash: '#67E8F9', ink: C.ink, sw: 0.5 });
-    } else if (o.eyes === 'angry') {
-      // Sharp angled angry/pouty eyebrows
-      inkLine(ctx, [[eLx - 0.24 * u, eY - 0.34 * u], [eLx + 0.22 * u, eY - 0.18 * u]], 1.6, C.ink, 'ink', 0);
-      inkLine(ctx, [[eRx + 0.24 * u, eY - 0.34 * u], [eRx - 0.22 * u, eY - 0.18 * u]], 1.6, C.ink, 'ink', 0);
+      const drawPixelStarEye = (ex, ey) => {
+        ctx.fillStyle = '#FACC15';
+        ctx.fillRect(ex - 2.2 * cell, ey - 0.5 * cell, 4.4 * cell, cell);
+        ctx.fillRect(ex - 0.5 * cell, ey - 2.2 * cell, cell, 4.4 * cell);
+        ctx.fillStyle = '#FFFFFF';
+        ctx.fillRect(ex - 0.8 * cell, ey - 0.8 * cell, 1.6 * cell, 1.6 * cell);
+      };
+
+      if (o.eyes === 'spark') {
+        drawPixelStarEye(eLx, eY);
+        drawPixelStarEye(eRx, eY);
+      } else if (o.eyes === 'lids') {
+        ctx.fillStyle = C.skin;
+        ctx.fillRect(eLx - 0.26 * u, eY - 0.24 * u, 0.52 * u, 0.20 * u);
+        ctx.fillRect(eRx - 0.26 * u, eY - 0.24 * u, 0.52 * u, 0.20 * u);
+        ctx.fillStyle = C.eyeLash;
+        ctx.fillRect(eLx - 0.28 * u, eY - 0.05 * u, 0.56 * u, 0.07 * u);
+        ctx.fillRect(eRx - 0.28 * u, eY - 0.05 * u, 0.56 * u, 0.07 * u);
+      } else if (o.eyes === 'cry') {
+        ctx.fillStyle = '#38BDF8';
+        ctx.fillRect(eLx - 2.6 * cell, eY + 1.0 * cell, 1.6 * cell, 2.8 * cell);
+        ctx.fillRect(eRx + 1.2 * cell, eY + 1.0 * cell, 1.6 * cell, 2.8 * cell);
+        ctx.fillStyle = '#E0F2FE';
+        ctx.fillRect(eLx - 2.2 * cell, eY + 1.2 * cell, 0.8 * cell, 1.2 * cell);
+        ctx.fillRect(eRx + 1.4 * cell, eY + 1.2 * cell, 0.8 * cell, 1.2 * cell);
+      } else if (o.eyes === 'angry') {
+        inkLine(ctx, [[eLx - 0.24 * u, eY - 0.34 * u], [eLx + 0.22 * u, eY - 0.18 * u]], 1.5, C.ink, 'ink', 0);
+        inkLine(ctx, [[eRx + 0.24 * u, eY - 0.34 * u], [eRx - 0.22 * u, eY - 0.18 * u]], 1.5, C.ink, 'ink', 0);
+      }
+
+      if (o.talking && (Math.floor(t * 9) % 2 === 1) && poseKey !== 'heart' && poseKey !== 'panic') {
+        ctx.fillStyle = C.skin;
+        ctx.fillRect(-1.4 * cell, -54.0 * cell, 2.8 * cell, 2.2 * cell);
+        ctx.fillStyle = '#B84A52';
+        ctx.fillRect(-1.4 * cell, -53.2 * cell, 2.8 * cell, 0.8 * cell);
+      }
+      ctx.restore();
     }
 
-    // Lip-sync talking animation when singing/speaking in MV
-    if (o.talking && (Math.floor(t * 9) % 2 === 1) && poseKey !== 'heart' && poseKey !== 'panic') {
-      paint(ctx, ellPts(-0.02 * u, -5.28 * u, 0.14 * u, 0.11 * u, 8), { wash: C.skin, ink: null });
-      inkLine(ctx, [[-0.14 * u, -5.28 * u], [0.10 * u, -5.28 * u]], 1.1, '#B84A52', 'ink', 0);
-    }
-    ctx.restore();
-
-    // Overhead Emotes & Hats
+    // Overhead Emotes & Pixel-Art Hats
     ctx.save();
     ctx.translate(0, faceOffsetY);
     if (o.emote && EMOTES[o.emote]) {
       EMOTES[o.emote](ctx, 0, -8.85 * u, u, o.emoteK ?? 1, t);
     }
     if (o.hat && o.hat !== 'none' && o.hat !== 'maid' && o.hat !== 'maidHeadband') {
-      drawHat(ctx, u, t, o.hat, 0);
+      drawHat(ctx, u, t, o.hat, VIEW_VX[view] || 0);
     }
     ctx.restore();
 
@@ -1312,51 +1380,120 @@
   }
 
   function drawHat(ctx, u, t, hat, vx) {
-    const cx = vx * 0.22 * u;
-    const topY = -8.75 * u;
+    const cell = u / 10;
+    const gx0 = Math.round(vx * 2.2);
+    const px = (gx, gy, gw, gh, col) => {
+      ctx.fillStyle = col;
+      ctx.fillRect((gx0 + gx - 0.5) * cell, (gy - 0.5) * cell, gw * cell + 0.35, gh * cell + 0.35);
+    };
 
     if (hat === 'crown') {
-      paint(ctx, [
-        [cx - 0.95 * u, topY + 0.15 * u],
-        [cx - 1.05 * u, topY - 0.65 * u],
-        [cx - 0.45 * u, topY - 0.20 * u],
-        [cx,            topY - 0.82 * u],
-        [cx + 0.45 * u, topY - 0.20 * u],
-        [cx + 1.05 * u, topY - 0.65 * u],
-        [cx + 0.95 * u, topY + 0.15 * u]
-      ], { wash: PAL.gold, fill: PAL.ochre, fillOp: 120, ink: C.ink, sw: 1.05 });
+      // Royal Gold Pixel Crown with Ruby/Sapphire Jewels
+      px(-10, -88, 21, 3, '#182038');
+      px(-10, -91, 3, 3, '#182038'); px(-2, -93, 5, 5, '#182038'); px(8, -91, 3, 3, '#182038');
+      px(-9, -89, 19, 3, '#EAB308');
+      px(-9, -88, 19, 1, '#CA8A04');
+      px(-9, -92, 2, 3, '#FACC15'); px(-5, -90, 2, 2, '#FACC15');
+      px(-1, -94, 3, 5, '#FDE047'); px(4, -90, 2, 2, '#FACC15');
+      px(8, -92, 2, 3, '#FACC15');
+      // Jewels
+      px(-6, -88, 2, 2, '#38BDF8');
+      px(0, -89, 2, 2, '#F43F5E');
+      px(5, -88, 2, 2, '#38BDF8');
     } else if (hat === 'wizard') {
-      paint(ctx, ellPts(cx, topY + 0.12 * u, 1.65 * u, 0.28 * u, 14), { wash: '#312E81', ink: C.ink, sw: 1.0 });
-      paint(ctx, [[cx - 1.05 * u, topY + 0.10 * u], [cx + 0.15 * u, topY - 1.45 * u], [cx + 1.05 * u, topY + 0.10 * u]], { wash: '#4338CA', ink: C.ink, sw: 1.0 });
+      // Starry Deep-Sea Wizard Cone Hat with Gold Buckle Band
+      px(-16, -86, 33, 2, '#182038');
+      px(-15, -87, 31, 2, '#312E81');
+      px(-11, -90, 23, 3, '#3730A3');
+      px(-8, -94, 17, 4, '#4338CA');
+      px(-5, -98, 12, 4, '#4F46E5');
+      px(-2, -101, 8, 3, '#6366F1');
+      px(2, -103, 5, 2, '#818CF8');
+      // Gold band & star buckle
+      px(-11, -88, 23, 2, '#EAB308');
+      px(-2, -89, 5, 3, '#FDE047');
+      px(-3, -95, 2, 2, '#FDE047');
+      px(3, -92, 2, 2, '#72E2F7');
     } else if (hat === 'hard' || hat === 'hardHat') {
-      paint(ctx, ellPts(cx, topY, 1.35 * u, 0.72 * u, 14), { wash: '#FACC15', ink: C.ink, sw: 1.05 });
-      paint(ctx, rrPts(cx - 1.52 * u, topY + 0.10 * u, 3.04 * u, 0.26 * u, 4, 0.4), { wash: '#EAB308', ink: C.ink, sw: 1.05 });
+      // Engineer Yellow Safety Hard Hat with Ridge & Stripe
+      px(-15, -85, 31, 2, '#182038');
+      px(-14, -86, 29, 2, '#CA8A04');
+      px(-12, -90, 25, 4, '#EAB308');
+      px(-10, -93, 21, 3, '#FACC15');
+      px(-6, -95, 13, 2, '#FEF08A');
+      px(-2, -95, 5, 8, '#FDE047');
+      px(-3, -89, 7, 2, '#FFFFFF');
     } else if (hat === 'sweatband') {
-      paint(ctx, rrPts(cx - 1.75 * u, -7.75 * u, 3.50 * u, 0.34 * u, 3, 0.4), { wash: '#EF4444', ink: C.ink, sw: 0.95 });
+      // Hachimaki Red Fighting Headband with Trailing Knot
+      px(-18, -77, 36, 4, '#182038');
+      px(-17, -76, 34, 3, '#EF4444');
+      px(-10, -76, 20, 1, '#FCA5A5');
+      px(-4, -76, 8, 2, '#FFFFFF');
+      px(17, -75, 4, 2, '#DC2626');
+      px(19, -73, 4, 2, '#EF4444');
     } else if (hat === 'diving') {
-      paint(ctx, rrPts(cx - 1.25 * u, -7.85 * u, 2.50 * u, 0.72 * u, 5, 0.5), { wash: '#38BDF8', fill: '#E0F2FE', fillOp: 130, ink: C.ink, sw: 1.05 });
+      // Deep-Sea Aqua Diving Goggles on Forehead
+      px(-14, -79, 29, 6, '#182038');
+      px(-13, -78, 12, 5, '#0284C7');
+      px(2, -78, 12, 5, '#0284C7');
+      px(-11, -77, 8, 3, '#7DD3FC');
+      px(4, -77, 8, 3, '#7DD3FC');
+      px(-10, -77, 3, 2, '#FFFFFF');
+      px(5, -77, 3, 2, '#FFFFFF');
+      px(-1, -77, 3, 2, '#334155');
     } else if (hat === 'headphones' || hat === 'headset') {
+      // Gaming Cyan-Glow Earcups & Mic Boom
       for (const s of [-1, 1]) {
-        paint(ctx, ellPts(cx + s * 2.15 * u, -5.85 * u, 0.28 * u, 0.45 * u, 10), { wash: '#38BDF8', ink: C.ink, sw: 1.0 });
+        px(s * 20 - 2, -64, 5, 9, '#182038');
+        px(s * 20 - 1, -63, 4, 7, '#0284C7');
+        px(s * 20, -62, 2, 5, '#72E2F7');
       }
+      px(-19, -56, 6, 1, '#334155');
+      px(-14, -55, 3, 2, '#38BDF8');
     } else if (hat === 'party') {
-      paint(ctx, [[cx - 0.65 * u, topY + 0.15 * u], [cx, topY - 1.05 * u], [cx + 0.65 * u, topY + 0.15 * u]], { wash: '#EC4899', ink: C.ink, sw: 1.0 });
+      // Festive Striped Party Cone + Pom-pom
+      px(-7, -87, 15, 2, '#182038');
+      px(-6, -90, 13, 3, '#EC4899');
+      px(-5, -93, 11, 3, '#38BDF8');
+      px(-3, -96, 7, 3, '#FACC15');
+      px(-2, -99, 5, 3, '#EC4899');
+      px(-2, -102, 5, 3, '#FEF08A');
     } else if (hat === 'halo') {
-      paint(ctx, ellPts(cx, topY - 0.55 * u, 1.05 * u, 0.22 * u, 16), { wash: null, ink: PAL.gold, sw: 1.8 });
+      // Glowing Golden Pixel Angel Halo
+      px(-10, -94, 21, 2, '#CA8A04');
+      px(-12, -93, 4, 2, '#FACC15');
+      px(9, -93, 4, 2, '#FACC15');
+      px(-10, -91, 21, 2, '#FDE047');
+      px(-6, -91, 12, 1, '#FFFFFF');
     } else if (hat === 'top' || hat === 'topHat') {
-      paint(ctx, rrPts(cx - 0.72 * u, topY - 1.15 * u, 1.44 * u, 1.25 * u, 3, 0.4), { wash: '#1E293B', ink: C.ink, sw: 1.05 });
-      paint(ctx, rrPts(cx - 1.28 * u, topY, 2.56 * u, 0.22 * u, 3, 0.4), { wash: '#1E293B', ink: C.ink, sw: 1.05 });
+      // Gentleman Silk Top Hat with Crimson Ribbon
+      px(-14, -86, 29, 2, '#0F172A');
+      px(-9, -98, 19, 12, '#1E293B');
+      px(-7, -97, 5, 10, '#334155');
+      px(-9, -89, 19, 2, '#E11D48');
+      px(-2, -89, 4, 2, '#FACC15');
     } else if (hat === 'fedora') {
-      paint(ctx, ellPts(cx, topY + 0.08 * u, 1.55 * u, 0.24 * u, 14), { wash: '#78350F', ink: C.ink, sw: 1.0 });
-      paint(ctx, ellPts(cx, topY - 0.25 * u, 1.05 * u, 0.48 * u, 12), { wash: '#92400E', ink: C.ink, sw: 1.0 });
+      // Detective Brown Fedora with Dark Band
+      px(-16, -86, 33, 2, '#451A03');
+      px(-15, -87, 31, 2, '#78350F');
+      px(-10, -92, 21, 5, '#92400E');
+      px(-7, -94, 15, 2, '#B45309');
+      px(-10, -89, 21, 2, '#451A03');
     } else if (hat === 'flower') {
-      for (let a = 0; a < TAU; a += TAU / 5) {
-        paint(ctx, ellPts(cx + 0.85 * u + Math.cos(a) * 0.22 * u, topY + Math.sin(a) * 0.22 * u, 0.16 * u, 0.16 * u, 8), { wash: '#F472B6', ink: C.ink, sw: 0.75 });
-      }
-      paint(ctx, ellPts(cx + 0.85 * u, topY, 0.14 * u, 0.14 * u, 8), { wash: PAL.gold, ink: C.ink, sw: 0.75 });
+      // Sakura / Sea-Blossom Hairpin
+      px(6, -86, 8, 8, '#182038');
+      px(7, -87, 6, 3, '#F472B6');
+      px(5, -84, 10, 4, '#FB7185');
+      px(7, -81, 6, 3, '#F472B6');
+      px(8, -84, 4, 4, '#FDE047');
     } else if (hat === 'cat') {
+      // Cute Navy & Pink Neko Ears
       for (const s of [-1, 1]) {
-        paint(ctx, [[cx + s * 0.75 * u, topY + 0.15 * u], [cx + s * 1.25 * u, topY - 0.65 * u], [cx + s * 1.55 * u, topY + 0.25 * u]], { wash: '#1E293B', ink: C.ink, sw: 1.0 });
+        const cx = s * 11;
+        px(cx - 4, -90, 8, 5, '#182038');
+        px(cx - 3, -93, 6, 3, '#1E293B');
+        px(cx - 2, -95, 4, 2, '#1E293B');
+        px(cx - 2, -91, 4, 4, '#FDA4AF');
       }
     }
   }

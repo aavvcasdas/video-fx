@@ -361,17 +361,88 @@
     halo: true, top: true, topHat: true, fedora: true, flower: true, cat: true, chef: true
   };
 
+  const EMO_ALIASES = {
+    sparkle: 'starstruck',
+    starry: 'starstruck',
+    hope: 'starstruck',
+    curious: 'question',
+    huh: 'question',
+    gasp: 'surprised',
+    shock: 'shocked',
+    shy: 'joy',
+    determined: 'proud',
+    scared: 'nervous',
+    worry: 'nervous',
+    panicked: 'panic',
+    dizzy: 'panic',
+    bored: 'deadpan',
+    dead: 'deadpan',
+    annoyed: 'angry',
+    sigh: 'sad',
+    plead: 'sob',
+    think: 'thinking',
+    zen: 'calm',
+    mischief: 'smug'
+  };
+
   function feel(name, t = 0, extra = {}) {
-    const base = EMO[name] || EMO.happy;
-    return Object.assign({}, base, { emotion: name, t }, extra);
+    const key = EMO[name] ? name : (EMO_ALIASES[name] || 'happy');
+    const base = EMO[key] || EMO.happy;
+    return Object.assign({}, base, { emotion: key, t }, extra);
   }
 
-  function emotions(t, timeline = []) {
-    let cur = 'happy';
+  // Smooth multi-emotion timeline with anticipation blink (`squint`), reaction squash-stretch (`take`),
+  // interpolated posture (`dy`, `sq`, `headTilt`), and `backOut` overhead emote pop (`emoteK`).
+  // Modeled directly after `JohnHeibel/PDoomVideo` (`mood`) & `tuzhechen2005/opus-video-skills` (`emotions`).
+  function emotions(t, timeline = [], opts = {}) {
+    if (!timeline || !timeline.length) return feel('happy', t);
+    let idx = 0;
     for (let i = 0; i < timeline.length; i++) {
-      if (t >= timeline[i][0]) cur = timeline[i][1];
+      if (t >= timeline[i][0]) idx = i;
     }
-    return feel(cur, t);
+    const [t0, curName, customEmote] = timeline[idx];
+    const cur = feel(curName, t);
+    const prevName = idx > 0 ? timeline[idx - 1][1] : curName;
+    const prev = feel(prevName, t);
+    const age = Math.max(0, t - t0);
+    const nextIn = (idx + 1 < timeline.length) ? (timeline[idx + 1][0] - t) : 99;
+    const takeMul = opts.take ?? 1.0;
+
+    // 1. Smooth posture interpolation over 0.28s after each emotion change
+    const blend = idx > 0 ? clamp(age / 0.28, 0, 1) : 1;
+    const k = blend * blend * (3 - 2 * blend);
+    const dy = lerp(prev.dy || 0, cur.dy || 0, k);
+    const sqBase = lerp(prev.sq || 0, cur.sq || 0, k);
+    const headTilt = lerp(prev.headTilt || 0, cur.headTilt || 0, k);
+
+    // 2. Eyelid squint/blink across the transition seam (-0.08s .. +0.15s) so faces never snap
+    let squint = 0;
+    let take = 0;
+    if (idx > 0 && age < 0.15) {
+      squint = 1 - age / 0.15;
+      take = -0.11 * takeMul * Math.sin((age / 0.15) * Math.PI);
+    } else if (idx > 0 && age >= 0.15 && age < 0.38) {
+      const u = (age - 0.15) / 0.23;
+      take = 0.08 * takeMul * Math.sin(u * Math.PI) * (1 - u);
+    }
+    if (nextIn < 0.08 && nextIn >= 0) {
+      squint = Math.max(squint, 1 - nextIn / 0.08);
+    }
+
+    // 3. Overhead Emote pop progress
+    const em = customEmote !== undefined ? customEmote : cur.emote;
+    const emoteK = em ? clamp(age / 0.22, 0, 1) : 0;
+
+    return Object.assign({}, cur, {
+      dy: dy + take * 0.35,
+      sq: sqBase + take,
+      headTilt,
+      squint,
+      take,
+      emote: em,
+      emoteK,
+      transitionBlend: k
+    });
   }
 
   function move(mode = 'bounce', t = 0, seed = 0) {
@@ -430,43 +501,119 @@
   }
 
   function resolvePoseKey(o = {}) {
+    const isWalking = Math.abs(o.walk || 0) > 0.001;
+    if (!isWalking && (o.tailSit === true || o.tailMode === 'cushion' || o.laptop === true)) return 'laptop';
+    if (o.heartHands === true) return 'heart';
+    if (o.cheekHands === true) return 'panic';
+    if (o.hips === true) return 'wink';
     if (o.poseMode && ['wave', 'wink', 'panic', 'laptop', 'heart'].includes(o.poseMode)) {
+      if (isWalking && o.poseMode === 'laptop') return 'wave';
       return o.poseMode;
     }
-    if (o.tailSit || o.tailMode === 'cushion' || o.laptop) return 'laptop';
-    if (o.heartHands || o.eyes === 'heart' || o.emotion === 'love' || o.emotion === 'joy') return 'heart';
-    if (o.hips || o.tailMode === 'highRight' || o.eyes === 'wink' || o.emotion === 'wink' || o.emotion === 'smug' || o.emotion === 'proud') return 'wink';
-    if (o.cheekHands || ['panic', 'shocked', 'surprised', 'cry', 'sob', 'sad', 'rage', 'angry'].includes(o.emotion) || o.eyes === 'wide' || o.eyes === 'cry') return 'panic';
+    if (o.eyes === 'heart' || o.emotion === 'love' || o.emotion === 'joy') return 'heart';
+    if (o.tailMode === 'highRight' || o.eyes === 'wink' || o.emotion === 'wink' || o.emotion === 'smug' || o.emotion === 'proud') return 'wink';
+    if (['panic', 'shocked', 'surprised', 'cry', 'sob', 'sad', 'rage', 'angry'].includes(o.emotion) || o.eyes === 'wide' || o.eyes === 'cry') return 'panic';
     return 'wave';
   }
+
+  const EMO_PROGRESSION = {
+    neutral:    ['neutral', 'idle', 'happy'],
+    idle:       ['idle', 'happy', 'wink'],
+    calm:       ['calm', 'idle', 'happy'],
+    happy:      ['happy', 'excited', 'joy'],
+    excited:    ['excited', 'starstruck', 'joy'],
+    joy:        ['joy', 'love', 'happy'],
+    love:       ['love', 'joy', 'starstruck'],
+    starstruck: ['starstruck', 'excited', 'love'],
+    wink:       ['wink', 'proud', 'smug'],
+    smug:       ['smug', 'wink', 'proud'],
+    proud:      ['proud', 'wink', 'happy'],
+    laugh:      ['laugh', 'happy', 'joy'],
+    singing:    ['singing', 'happy', 'excited'],
+    surprised:  ['surprised', 'shocked', 'excited'],
+    shocked:    ['shocked', 'panic', 'surprised'],
+    panic:      ['panic', 'shocked', 'nervous'],
+    nervous:    ['nervous', 'panic', 'sad'],
+    confused:   ['confused', 'question', 'idea'],
+    question:   ['question', 'confused', 'idea'],
+    idea:       ['idea', 'excited', 'proud'],
+    thinking:   ['thinking', 'focused', 'idea'],
+    typing:     ['typing', 'focused', 'happy'],
+    focused:    ['focused', 'thinking', 'proud'],
+    sad:        ['sad', 'cry', 'sob'],
+    cry:        ['cry', 'sob', 'sad'],
+    sob:        ['sob', 'cry', 'sad'],
+    pout:       ['pout', 'angry', 'wink'],
+    angry:      ['angry', 'pout', 'rage'],
+    rage:       ['rage', 'angry', 'shocked'],
+    deadpan:    ['deadpan', 'sleepy', 'confused'],
+    sleepy:     ['sleepy', 'deadpan', 'calm']
+  };
 
   // ==========================================================================
   // Main Character Renderer: `whaleGirl(ctx, x, y, u = 20, o = {})`
   // ==========================================================================
-  function whaleGirl(ctx, x, y, u = 20, o = {}) {
+  function whaleGirl(ctx, x, y, u = 20, rawO = {}) {
     boilSeed('whaleGirl' + Math.round(x));
-    const t = o.t ?? 0;
+    const t = rawO.t ?? 0;
+    // Automatically expand multi-stage `emotions: [[t0, emo, emote], ...]` or single `emo`/`emotion` string!
+    const isSheetFrame = Math.abs(t - 1.2) < 0.001;
+    let o = rawO;
+    if (Array.isArray(rawO.emotions) && rawO.emotions.length > 0) {
+      const emoT = rawO.lt !== undefined ? rawO.lt : t;
+      o = Object.assign({}, emotions(emoT, rawO.emotions, { take: rawO.take !== false }), rawO);
+    } else if ((rawO.emo || rawO.emotion) && !rawO.eyes) {
+      o = Object.assign({}, feel(rawO.emo || rawO.emotion, rawO.emote), rawO);
+    }
+    // Automatic 3-stage 31-emotion progression & stepping micro-action for MV frames without explicit `emotions()`
+    if (!isSheetFrame && !Array.isArray(rawO.emotions) && rawO.transitionBlend === undefined) {
+      const baseKey = EMO[o.emotion] ? o.emotion : (EMO_ALIASES[o.emotion] || 'happy');
+      const triad = EMO_PROGRESSION[baseKey] || ['happy', 'excited', 'joy'];
+      const cycT = (t + (rawO.seed || 0) * 0.41) % 2.4;
+      const autoEmo = emotions(cycT, [[0.0, triad[0]], [0.8, triad[1]], [1.6, triad[2]]], { take: 0.75 });
+      const autoStep = (rawO.walk === undefined && !o.tailSit && o.poseMode !== 'laptop')
+        ? Math.sin(t * 2.8) * 0.14
+        : (o.walk || 0);
+      o = Object.assign({}, o, {
+        eyes: autoEmo.eyes,
+        mouth: autoEmo.mouth,
+        blush: autoEmo.blush,
+        squint: Math.max(o.squint || 0, autoEmo.squint || 0),
+        sq: (o.sq || 0) + (autoEmo.take || 0),
+        headTilt: (o.headTilt || 0) + (autoEmo.headTilt || 0) * 0.5,
+        walk: autoStep
+      });
+    }
     const style = o.style || (typeof getActiveStyle === 'function' ? getActiveStyle() : 'pixel');
     const view = o.view || 'front';
     const vx = VIEW_VX[view] || 0;
     const isBack = view === 'back';
     const isQBack = view === 'qback';
 
-    const sq = clamp(o.sq || 0, -0.35, 0.35);
+    // Micro-action emotion modifiers (tremble on shock/cry/rage, bounce on happy/love, droop on sad/tired)
+    const emoName = o.emotion || o.emo || 'idle';
+    const isTremble = ['panic', 'shock', 'shocked', 'gasp', 'cry', 'bawl', 'sob', 'rage', 'furious'].includes(emoName);
+    const isBouncy = ['happy', 'joy', 'yay', 'excited', 'love', 'starry', 'proud', 'smug', 'wink'].includes(emoName);
+    const isDroop = ['sad', 'gloom', 'sigh', 'tired', 'sleepy', 'dead', 'hurt', 'plead'].includes(emoName);
+
+    const sq = clamp((o.sq || 0) + (isBouncy ? Math.sin(t * 7.5) * 0.035 : 0), -0.35, 0.35);
     const sx = (1 + sq * 0.55) * (o.flip ? -1 : 1);
     const sy = 1 - sq * 0.65;
-    const dx = (o.dx || 0) * u;
+    const trembleDx = isTremble ? Math.sin(t * 42) * 0.045 : 0;
+    const dx = ((o.dx || 0) + trembleDx) * u;
     const jumpDy = o.jump ? -(o.jump / u) : 0;
     const kneelDy = (o.kneel || 0) * 0.88;
-    const dy = ((o.dy ?? -0.10 * pulse(t)) + jumpDy + kneelDy) * u;
+    const droopDy = isDroop ? 0.08 + Math.sin(t * 2.2) * 0.03 : 0;
+    const dy = ((o.dy ?? -0.10 * pulse(t)) + jumpDy + kneelDy + droopDy) * u;
     const bodyRot = (o.rot || 0) + (o.kneel ? (o.flip ? -1 : 1) * o.kneel * 0.16 : 0);
 
     const walkRaw = o.walk || 0;
     const walkRad = walkRaw * 4.2;
     const walkBob = walkRaw ? -Math.abs(Math.sin(walkRad)) * 0.22 * u : 0;
 
-    const headBob = Math.sin(t * 4.2) * 0.04 * u + walkBob;
-    const headTilt = (o.headTilt || 0) + Math.sin(t * 2.1) * 0.04 + (walkRaw ? Math.sin(walkRad) * 0.06 : 0);
+    const headBob = Math.sin(t * (isBouncy ? 6.4 : 4.2)) * (isBouncy ? 0.065 : 0.04) * u + walkBob;
+    const emoTilt = isDroop ? -0.07 : (['curious', 'huh', 'question', 'think', 'shy', 'wink'].includes(emoName) ? 0.085 : 0);
+    const headTilt = (o.headTilt || 0) + emoTilt + Math.sin(t * 2.1) * 0.045 + (walkRaw ? Math.sin(walkRad) * 0.06 : 0);
     const poseKey = resolvePoseKey(o);
 
     // Motion smear ghost (16-bit Pixel-Rig Afterimage Trail!)
@@ -535,12 +682,12 @@
     const tailWag = Math.sin(t * (isMoving ? 7.5 : 3.5)) * (isMoving ? 0.16 : 0.075) + (o.tailWag || 0);
     const hairSway = Math.sin(t * (isMoving ? 6.2 : 2.4)) * (isMoving ? 0.085 : 0.035) - (isMoving ? 0.08 : 0);
     const kneelK = clamp(o.kneel || 0, 0, 1);
-    const hipL = o.hipL !== undefined ? o.hipL : (isMoving ? Math.sin(walkRad) * 0.62 : 0) - kneelK * 0.65;
-    const hipR = o.hipR !== undefined ? o.hipR : (isMoving ? -Math.sin(walkRad) * 0.62 : 0) + kneelK * 0.45;
-    const strideLx = isMoving ? Math.sin(walkRad) * 0.68 * u : -kneelK * 0.35 * u;
-    const strideRx = isMoving ? -Math.sin(walkRad) * 0.68 * u : kneelK * 0.40 * u;
-    const liftLy = isMoving ? (Math.sin(walkRad) > 0 ? 0.10 * u : -0.26 * u) : -kneelK * 0.32 * u;
-    const liftRy = isMoving ? (-Math.sin(walkRad) > 0 ? 0.10 * u : -0.26 * u) : -kneelK * 0.45 * u;
+    const hipL = (o.hipL !== undefined ? o.hipL : (isMoving ? Math.sin(walkRad) * 0.42 : 0)) - kneelK * 0.50;
+    const hipR = (o.hipR !== undefined ? o.hipR : (isMoving ? -Math.sin(walkRad) * 0.42 : 0)) + kneelK * 0.38;
+    const strideLx = isMoving ? Math.sin(walkRad) * 0.28 * u : -kneelK * 0.22 * u;
+    const strideRx = isMoving ? -Math.sin(walkRad) * 0.28 * u : kneelK * 0.26 * u;
+    const liftLy = isMoving ? -Math.max(0, Math.cos(walkRad)) * 0.22 * u : -kneelK * 0.28 * u;
+    const liftRy = isMoving ? -Math.max(0, -Math.cos(walkRad)) * 0.22 * u : -kneelK * 0.36 * u;
 
     const isSmoothBrush = (style === 'watercolor' || style === 'ukiyoe' || style === 'risograph') && o.constructMode !== 'pixelRig';
 
@@ -625,13 +772,14 @@
       ctx.restore();
     }
 
-    // 3. Back-stepping Leg Bone (behind skirt hem)
+    // 3. Left & Right Leg Bones (both drawn BEFORE torso with upper thigh extending to gy=-22
+    //    so legs NEVER detach or split from the skirt hem during walking/running!)
     const drawLegBone = (runs, pivotX, strideX, liftY, hipAng) => {
       if (!runs || !runs.length) return;
       ctx.save();
-      ctx.translate(pivotX + strideX, -1.35 * u + liftY);
+      ctx.translate(pivotX + strideX, -1.65 * u + headBob + liftY);
       ctx.rotate(hipAng);
-      ctx.translate(-pivotX, 1.35 * u);
+      ctx.translate(-pivotX, 1.65 * u);
       drawBoneRuns(runs);
       ctx.restore();
     };
@@ -639,39 +787,35 @@
     const leftForward = Math.sin(walkRad) >= 0;
     if (poseKey !== 'laptop') {
       if (leftForward) {
-        drawLegBone(poseBones.legR, 0.72 * u, strideRx, liftRy, hipR);
+        drawLegBone(poseBones.legR, 1.10 * u, strideRx, liftRy, hipR);
+        drawLegBone(poseBones.legL, -0.70 * u, strideLx, liftLy, hipL);
       } else {
-        drawLegBone(poseBones.legL, -0.72 * u, strideLx, liftLy, hipL);
+        drawLegBone(poseBones.legL, -0.70 * u, strideLx, liftLy, hipL);
+        drawLegBone(poseBones.legR, 1.10 * u, strideRx, liftRy, hipR);
       }
     }
 
-    // 4. Torso, Bodice, Apron & Skirt Bone (shares upper-body headBob + gait sway)
+    // 4. Torso, Bodice, Apron & Skirt Bone (overlaps upper thighs seamlessly!)
     ctx.save();
     ctx.translate(0, headBob);
     if (isMoving) {
       ctx.translate(0, -3.2 * u);
-      ctx.rotate(Math.sin(walkRad) * 0.055);
+      ctx.rotate(Math.sin(walkRad) * 0.045);
       ctx.translate(0, 3.2 * u);
     }
     drawBoneRuns(poseBones.torso);
     ctx.restore();
 
-    // 4b. Forward-stepping Leg Bone (steps visibly in front of skirt hem during gait!)
-    if (poseKey !== 'laptop') {
-      if (leftForward) {
-        drawLegBone(poseBones.legL, -0.72 * u, strideLx, liftLy, hipL);
-      } else {
-        drawLegBone(poseBones.legR, 0.72 * u, strideRx, liftRy, hipR);
-      }
-    }
-
     // 5. Articulated Right Arm Bone & Left/Right Prop Hooks
+    const emoTag = o.emotion || o.emo || 'idle';
+    const emoWave = ['happy', 'joy', 'yay', 'excited', 'love', 'starry', 'proud', 'wink'].includes(emoTag);
+    const emoTremble = ['panic', 'shock', 'shocked', 'gasp', 'cry', 'bawl', 'rage', 'furious'].includes(emoTag);
     const armRRot = o.aR !== undefined
       ? (0.55 - o.aR) * 0.55
-      : (o.waveArm ? Math.sin(t * 9.5) * 0.34 : (isMoving ? Math.sin(walkRad) * 0.65 : Math.sin(t * 4.2) * 0.10));
+      : ((o.waveArm || emoWave) ? Math.sin(t * 9.5) * 0.34 : (isMoving ? Math.sin(walkRad) * 0.58 : (emoTremble ? Math.sin(t * 28) * 0.16 : Math.sin(t * 4.2) * 0.12)));
     const armLRot = o.aL !== undefined
       ? (o.aL - 0.35) * 0.55
-      : (isMoving ? -Math.sin(walkRad) * 0.65 : Math.sin(t * 3.8 + 1.2) * 0.08);
+      : (isMoving ? -Math.sin(walkRad) * 0.58 : (emoWave ? -Math.sin(t * 9.5) * 0.28 : Math.sin(t * 3.8 + 1.2) * 0.10));
 
     if (poseBones.armR && poseBones.armR.length > 0) {
       ctx.save();
@@ -714,13 +858,13 @@
     drawBoneRuns(headRuns);
 
     // Layer surgical pixel-art emotion details directly at the exact eye/mouth coordinates
-    // of 42868804351-1-192.mp4 (left eye: -0.60u, right eye: +0.56u, eyeY: -5.82u) without erasing bangs!
+    // across front, q, and side views, including smooth `squint` transition blinks & all 31 emotions!
     const faceOffsetY = (poseKey === 'laptop' ? 0.85 : 0) * u;
-    if (!isTurnView || view === 'q') {
-      const vxShift = view === 'q' ? 0.30 * u : 0;
+    if (!isTurnView || view === 'q' || view === 'side') {
+      const vxShift = view === 'side' ? 0.36 * u : (view === 'q' ? 0.20 * u : 0);
       ctx.save();
       ctx.translate(vxShift, faceOffsetY);
-      const eLx = -0.60 * u, eRx = 0.56 * u, eY = -5.82 * u;
+      const eLx = -0.60 * u, eRx = (view === 'side' ? 0.46 : 0.56) * u, eY = -5.82 * u;
 
       const drawPixelStarEye = (ex, ey) => {
         ctx.fillStyle = '#FACC15';
@@ -730,10 +874,43 @@
         ctx.fillRect(ex - 0.8 * cell, ey - 0.8 * cell, 1.6 * cell, 1.6 * cell);
       };
 
-      if (o.eyes === 'spark') {
+      const drawPixelHeartEye = (ex, ey) => {
+        ctx.fillStyle = '#FF4D6D';
+        ctx.fillRect(ex - 2.0 * cell, ey - 1.5 * cell, 1.8 * cell, 1.8 * cell);
+        ctx.fillRect(ex + 0.2 * cell, ey - 1.5 * cell, 1.8 * cell, 1.8 * cell);
+        ctx.fillRect(ex - 1.6 * cell, ey - 0.2 * cell, 3.2 * cell, 1.6 * cell);
+        ctx.fillRect(ex - 0.8 * cell, ey + 1.0 * cell, 1.6 * cell, 1.2 * cell);
+      };
+
+      const blinkCycle = (t * 0.85 + (o.seed || 0) * 1.3) % 3.4;
+      const autoBlink = (o.eyes === 'open' || !o.eyes) && (
+        blinkCycle < 0.10 || (blinkCycle > 0.22 && blinkCycle < 0.29 && (Math.floor(t / 3.4) % 2 === 0))
+      );
+      const sqz = clamp(o.squint || (autoBlink ? 0.92 : 0), 0, 1);
+      // Subtle living pupil saccade highlight when eyes are open
+      if (!sqz && (!o.eyes || o.eyes === 'open')) {
+        const sacX = Math.round(Math.sin(t * 1.7) * 0.6) * cell;
+        const sacY = Math.round(Math.cos(t * 1.3) * 0.4) * cell;
+        ctx.fillStyle = '#FFFFFF';
+        ctx.fillRect(eLx - 0.08 * u + sacX, eY - 0.14 * u + sacY, 1.2 * cell, 1.2 * cell);
+        ctx.fillRect(eRx - 0.08 * u + sacX, eY - 0.14 * u + sacY, 1.2 * cell, 1.2 * cell);
+      }
+
+      if (sqz > 0.45) {
+        // Smooth transition blink / squint across emotion seams!
+        ctx.fillStyle = C.skin;
+        ctx.fillRect(eLx - 0.27 * u, eY - 0.26 * u, 0.54 * u, 0.48 * u);
+        ctx.fillRect(eRx - 0.27 * u, eY - 0.26 * u, 0.54 * u, 0.48 * u);
+        ctx.fillStyle = C.eyeLash;
+        ctx.fillRect(eLx - 0.26 * u, eY - 0.02 * u, 0.52 * u, 0.08 * u);
+        ctx.fillRect(eRx - 0.26 * u, eY - 0.02 * u, 0.52 * u, 0.08 * u);
+      } else if (o.eyes === 'spark') {
         drawPixelStarEye(eLx, eY);
         drawPixelStarEye(eRx, eY);
-      } else if (o.eyes === 'lids') {
+      } else if (o.eyes === 'heart') {
+        drawPixelHeartEye(eLx, eY);
+        drawPixelHeartEye(eRx, eY);
+      } else if (o.eyes === 'lids' || o.eyes === 'dead') {
         ctx.fillStyle = C.skin;
         ctx.fillRect(eLx - 0.26 * u, eY - 0.24 * u, 0.52 * u, 0.20 * u);
         ctx.fillRect(eRx - 0.26 * u, eY - 0.24 * u, 0.52 * u, 0.20 * u);
@@ -750,13 +927,42 @@
       } else if (o.eyes === 'angry') {
         inkLine(ctx, [[eLx - 0.24 * u, eY - 0.34 * u], [eLx + 0.22 * u, eY - 0.18 * u]], 1.5, C.ink, 'ink', 0);
         inkLine(ctx, [[eRx + 0.24 * u, eY - 0.34 * u], [eRx - 0.22 * u, eY - 0.18 * u]], 1.5, C.ink, 'ink', 0);
+      } else if (o.eyes === 'shades') {
+        ctx.fillStyle = '#0F172A';
+        ctx.fillRect(eLx - 0.34 * u, eY - 0.18 * u, 0.68 * u, 0.36 * u);
+        ctx.fillRect(eRx - 0.34 * u, eY - 0.18 * u, 0.68 * u, 0.36 * u);
+        ctx.fillRect(eLx + 0.30 * u, eY - 0.08 * u, (eRx - eLx) - 0.60 * u, 0.09 * u);
+        ctx.fillStyle = '#E2E8F0';
+        ctx.fillRect(eLx - 0.22 * u, eY - 0.12 * u, 0.18 * u, 0.08 * u);
+        ctx.fillRect(eRx - 0.22 * u, eY - 0.12 * u, 0.18 * u, 0.08 * u);
+      } else if (o.eyes === 'dizzy') {
+        EYES.dizzy(ctx, eLx, eY, u, 0.9, o);
+        EYES.dizzy(ctx, eRx, eY, u, 0.9, o);
       }
 
-      if (o.talking && (Math.floor(t * 9) % 2 === 1) && poseKey !== 'heart' && poseKey !== 'panic') {
-        ctx.fillStyle = C.skin;
-        ctx.fillRect(-1.4 * cell, -54.0 * cell, 2.8 * cell, 2.2 * cell);
-        ctx.fillStyle = '#B84A52';
-        ctx.fillRect(-1.4 * cell, -53.2 * cell, 2.8 * cell, 0.8 * cell);
+      // Expressive mouth variations (`o`, `waveO`, `cat`, `pout`, `flat`, `grin`, `smirk`) & lip-sync talking
+      const mKey = o.talking ? ((Math.floor(t * 9) % 2 === 0) ? 'openSmile' : 'o') : (o.mouth || 'openSmile');
+      if (poseKey !== 'panic') {
+        if (mKey === 'o' || mKey === 'waveO') {
+          ctx.fillStyle = C.skin;
+          ctx.fillRect(-1.8 * cell, -54.2 * cell, 3.6 * cell, 2.8 * cell);
+          ctx.fillStyle = '#B84A52';
+          ctx.fillRect(-1.3 * cell, -53.8 * cell, 2.6 * cell, 2.2 * cell);
+          ctx.fillStyle = '#FF9690';
+          ctx.fillRect(-0.8 * cell, -53.2 * cell, 1.6 * cell, 1.2 * cell);
+        } else if (mKey === 'pout' || mKey === 'flat') {
+          ctx.fillStyle = C.skin;
+          ctx.fillRect(-2.0 * cell, -54.2 * cell, 4.0 * cell, 2.8 * cell);
+          ctx.fillStyle = '#B84A52';
+          ctx.fillRect(-1.5 * cell, -53.0 * cell, 3.0 * cell, 0.9 * cell);
+        } else if (mKey === 'cat' || mKey === 'smirk') {
+          ctx.fillStyle = C.skin;
+          ctx.fillRect(-2.0 * cell, -54.2 * cell, 4.0 * cell, 2.8 * cell);
+          ctx.fillStyle = '#B84A52';
+          ctx.fillRect(-1.8 * cell, -53.2 * cell, 1.4 * cell, 0.9 * cell);
+          ctx.fillRect(0.4 * cell, -53.2 * cell, 1.4 * cell, 0.9 * cell);
+          ctx.fillRect(-0.5 * cell, -53.8 * cell, 1.0 * cell, 0.9 * cell);
+        }
       }
       ctx.restore();
     }

@@ -79,13 +79,20 @@
       [51.4, 640], [52.2, 640],
       [52.8, 920], [56.2, 640]
     ], easeOut);
+    const isWalking = (t >= 50.8 && t <= 51.4) || (t >= 52.2 && t <= 56.2);
     const md = emotions(t, [
       [48.8, 'happy'],
-      [tAvatar, 'playful', { emote: 'spark' }],
-      [tBio, 'determined'],
-      [tWheel, 'starstruck', { emote: 'heart' }]
+      [tAvatar, 'wink', 'sparkle'],
+      [tBio, 'determined', 'idea'],
+      [tWheel, 'starstruck', 'heart']
     ]);
-    whaleGirl(ctx, wx, 565, 22, { ...md, ...move('bounce', t), t });
+    whaleGirl(ctx, wx, 565, 22, {
+      ...md,
+      ...move(isWalking ? 'walk' : 'bounce', t),
+      view: isWalking ? 'q' : 'front',
+      flip: t > 52.8,
+      t
+    });
 
     const fAge = t - tAvatar;
     if (fAge > 0 && fAge < 0.22) {
@@ -299,7 +306,11 @@
 
     const dMove = move('dance', t);
     ladyClaude(ctx, 165, 560, 16, { hasFan: true, t });
-    researcher(ctx, 315, 560, 14.5, { vacation: true, dy: dMove.dy, t });
+    if (CAST.ladyGemini) {
+      CAST.ladyGemini(ctx, 315, 560, 16, { t, walk: Math.sin(t * 5) * 0.25, emote: 'sparkle' });
+    } else {
+      researcher(ctx, 315, 560, 14.5, { vacation: true, dy: dMove.dy, t });
+    }
     bionicPuppy(ctx, 455, 568, 13.5, { t });
     miniWhale(ctx, 435, 365 + Math.sin(t * 5) * 14, 14, { t });
     agentReachBot(ctx, 845, 365 + Math.cos(t * 5) * 14, 13.5, { t });

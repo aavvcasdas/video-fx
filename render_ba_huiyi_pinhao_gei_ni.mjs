@@ -83,11 +83,11 @@ function renderStoryboardSheet(outFile = 'docs/mv_ba_huiyi_pinhao_gei_ni_storybo
 
 function renderLocomotionStrip(outFile = 'docs/mv_ba_huiyi_walk_run_strip.png') {
   fs.mkdirSync(path.dirname(outFile), { recursive: true });
-  // 12 consecutive moments showing walking, kneeling pickup, running with smear, jumping, and Star-Whale riding
+  // 12 moments showing walking stride, kneeling pickup, tail-cushion sitting, fast run with smear, jump, and finale
   const stripTimes = [
-    5.8,  6.2,  6.6,  7.0,   // Row 1: Platform walk cycle (`stroll` stride)
-    8.5,  9.0,  9.5,  10.0,  // Row 2: Kneeling down & picking up Puzzle Piece #1 (`kneel`)
-    16.2, 17.0, 32.3, 115.0  // Row 3: Fast run (`runTo` + smear), Polaroid leap (`jump`), Star-Whale flight
+    0.8,  1.3,  1.8,  2.3,   // Row 1: Beach walk cycle (`stroll` stride + emotion transitions)
+    3.2,  3.7,  4.2,  6.5,   // Row 2: Kneeling pickup (`kneel`) + Tail-cushion sitting (`tailSit`) with Lady Gemini
+    14.0, 29.0, 29.6, 140.2  // Row 3: Parabolic leap (`jumpJoy`), Fast run (`runRight` + smear), Grand Finale
   ];
   const cols = 4, rows = 3;
   const cellW = 320, cellH = 180;

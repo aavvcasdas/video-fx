@@ -1,49 +1,57 @@
-# Storyboard · 《椰子水很甜 - 把回忆拼好给你（纯享Beat）》(142.11s)
+# 《椰子水很甜 - 把回忆拼好给你（纯享Beat）》 — 56-Shot Storyboard & Emotion Arc
 
-Built with the [tuzhechen2005/opus-video-skills](https://github.com/tuzhechen2005/opus-video-skills) `painted-animation` workflow (`references/music-video.md` & `examples/xiaozhen/STORYBOARD.md`).
+## 1. Audio & Beat-Sync Specification
+- **Audio Source**: `椰子水很甜 - 把回忆拼好给你（纯享Beat）.mp3` (`320 kbps`, `44.1 kHz`, stereo)
+- **Envelope Module**: `assets/ba_huiyi_pinhao_gei_ni_audio.js`
+- **Duration**: `142.11s` (`4263` frames @ `30 fps`, `1280×720`)
+- **Tempo**: `94.85 BPM` (`1 beat = 0.6326s`, `1 bar = 4 beats = 2.5304s`, `first downbeat OFF = 0.415s`)
+- **Shot Density**: **56 Storyboard Shots** (`1 shot per bar = 2.5304s`), plus intra-shot focus pulls on Chorus/Coda bars.
+- **Lyric Attribution**: Authentic lyrics of **《把回忆拼好给你》** (作词：童子-T / Shingo.S / 一只然).
 
-**Logline:** On a dusk seaside railway platform, a gust of wind scatters 9 glowing jigsaw puzzle pieces from `whaleGirl`'s keepsake box. Across sepia summer streets (`椰子水很甜`), a rainy train departure, a twilight lighthouse studio, and a starry rooftop, she walks, runs, kneels, leaps, and collects all 9 fragments — until the completed puzzle comes alive as a giant bioluminescent Star-Whale that carries her back to the dawn station for a joyful reunion.
+## 2. Character Rig, Cast & 31-Emotion Transition Engine
+- **Protagonist**: `whaleGirl` (`src/whale_girl_rig_data.js` + `src/whale_girl.js`), 7-bone articulated pixel-grid rig (`backHair`, `tail`, `legL`, `legR`, `torso`, `armR`, `head`) with unified non-split legs (`legL: gx = -10..-4`, `legR: gx = 7..15`, extended up to `gy = -21` under the skirt hem) and 5 dense perspective-warped turnaround views (`front`, `q`, `side`, `qback`, `back`).
+- **Guest Co-Stars (`src/cast.js`)**:
+  - **`ladyGemini` (`双子星 Gemini 大小姐`)**: Astral twin-tailed AI noblewoman with golden 4-point star tiara, cyan/magenta dual-tone twin-tails, and heterochromia eyes (`#38BDF8` & `#FACC15`).
+  - **`ladyClaude` (`隔壁 Claude 大小姐`)**, **`clawd` (`Clawd 吉祥物`)**, **`miniWhale` (`深海小蓝鲸`)**, and **`bionicPuppy` (`仿生机械小狗`)**.
+- **Seamless 31-Emotion Transitions (`WHALE.emotions(lt, [[0, emoA, emA], [0.85, emoB, emB], [1.70, emoC, emC]])`)**:
+  - Every 2.53s shot transitions smoothly across **3 distinct emotions** from `characters/whale_girl_emotions_31.png`, with an anticipatory blink/squint (`squint`) over `[-0.08s .. +0.15s]`, a squash-and-stretch reaction `take`, interpolated head tilt, and `backOut` overhead emote pop.
 
-**Song Grid (`scripts/beat_grid.py`):** `94.85 BPM` (`half-time 47.425 BPM`), `BEAT = 0.6326 s`, `OFF = 0.415 s`, `1 bar = 4 beats = 2.530 s`, total duration `142.11 s` (`4,263 frames @ 30fps`).
+## 3. Bar-by-Bar 56-Shot Table (`0.00s – 142.11s`)
 
-**One World & Palette Arc:** A coastal railway town & lighthouse across 6 lighting chapters:
-1. `LOOK.dusk` (`0.00–20.66s`) — Dusk violet & warm peach glow (`watercolor`)
-2. `LOOK.sepia` (`20.66–40.90s`) — Golden-amber memory lane with `filmFX` scratches (`ukiyoe`)
-3. `LOOK.rain` (`40.90–61.14s`) — Indigo rainy night platform & steam train (`watercolor`)
-4. `LOOK.twilight` (`61.14–81.39s`) — Magenta-gold lighthouse studio & ocean waves (`risograph`)
-5. `LOOK.night` (`81.39–101.63s`) — Deep midnight attic & spotlight (`neon` + `spotDark`)
-6. `LOOK.dawn` (`101.63–142.11s`) — Star-Whale galaxy flight & rose-gold sunrise station (`neon` $\rightarrow$ `watercolor`)
-
-**Escalating Motif:** The **9-Piece Glowing Star-Whale Jigsaw Puzzle (`回忆拼图: 0/9 -> 9/9`)**. Each chapter snaps new pieces into the 3×3 frame until `9/9` locks together at `106.7s` and transforms into the swimming `drawStarWhale`.
-
-**Rhyme:** Opens with an `iris()` reveal on `whaleGirl` sitting alone on the dusk station bench (`0.0s`); ends at `142.11s` with `whaleGirl` and her companion sitting together on the same bench at sunrise, closing with an `iris()` on the completed 9/9 Star-Whale puzzle in the sky.
-
-| Shot | Time (s) | Bars | Action, Locomotion & Camera Reads | Transition |
-| :--- | :--- | :--- | :--- | :--- |
-| **01** | `0.00–2.95` | `B(0)..B(4)` | Dusk station bench. `whaleGirl` sits holding the keepsake puzzle piece (`emotions`: `wistful` $\rightarrow$ `curious`). Camera slowly pushes in (`camBegin`). | `iris()` open |
-| **02** | `2.95–5.48` | `B(4)..B(8)` | Close-up (`zoom=1.38`). Sea wind blows 9 glowing puzzle pieces out along `arcPt()` trajectories; `whaleGirl` jumps (`jump()`) in surprise (`emotions`: `surprised` $\rightarrow$ `panic`). | cut on action |
-| **03** | `5.48–8.01` | `B(8)..B(12)` | Tracking pan (`camBegin` `480->740`). `whaleGirl` walks (`stroll()`) across the platform with full leg stride & arm swing while `CAST.miniWhale` floats beside her. | camera carry |
-| **04** | `8.01–10.54` | `B(12)..B(16)` | Medium close-up (`zoom=1.32`). `whaleGirl` bends her knees (`kneel: 0->1->0`) to pick up glowing Piece #1 (`1/9`) from the platform floor. | cut on action |
-| **05** | `10.54–15.60` | `B(16)..B(24)` | `whaleGirl` spins from 3/4 view to front (`turn()`), hops (`jump()`), and raises Piece #1 as the `1/9` puzzle board materializes. | pull back |
-| **06** | `15.60–20.66` | `B(24)..B(32)` | Fast side-view run (`runTo()`, `smear`) across the promenade from `x=220` to `x=1040` as the camera tracks right. | `brushWipe()` sepia |
-| **07** | `20.66–25.72` | `B(32)..B(40)` | **Beat Drop 1!** Sepia memory (`filmFX`). `whaleGirl` and `partnerWhale` stroll (`stroll()`) side-by-side down the sunlit street toward Piece #2 (`2/9`). | `brushWipe()` open |
-| **08** | `25.72–30.78` | `B(40)..B(48)` | Seaside Coconut Stall (`椰子水很甜`). Both dance (`move('bounce')`) and clink fresh coconuts (`holdCoconut`) in `armR`/`armL`. | beat cut |
-| **09** | `30.78–35.84` | `B(48)..B(56)` | Polaroid jump snapshot! Both leap (`jump()`) in front view as the camera flashes (`flash()`) and Piece #3 (`3/9`) sparkles between them. | flash cut |
-| **10** | `35.84–40.90` | `B(56)..B(64)` | `whaleGirl` walks forward (`stroll()`) and throws a glowing paper plane along `arcPt()` across the bridge. | `curtains()` close |
-| **11** | `40.90–45.96` | `B(64)..B(72)` | Theatre `curtains()` open on rainy night platform. `partnerWhale` walks (`stroll()`), hops (`jump()`) into `drawTrain()` (`inDoor` jamb layering), and `whaleGirl` steps after her reaching out. | `curtains()` open |
-| **12** | `45.96–51.02` | `B(72)..B(80)` | POV Train Window Close-Up (`xz_shots.js` Shot D homage): `partnerWhale` cries (`feel('cry')`) and presses her hand to the glass as the carriage slides away (`4/9`). | cut on action |
-| **13** | `51.02–56.08` | `B(80)..B(88)` | `whaleGirl` sprints (`runTo()`) along the wet platform chasing the accelerating steam locomotive, then stops and waves (`aR` wave). | camera pan |
-| **14** | `56.08–61.14` | `B(88)..B(96)` | `whaleGirl` leaps (`jump()` + `arcPt()`) over rain puddles to catch Piece #5 (`5/9`) as locomotive steam fills the screen. | `smokeWipe()` |
-| **15** | `61.14–66.21` | `B(96)..B(104)` | Smoke clears in the Twilight Lighthouse Studio (`risograph`). `whaleGirl` walks (`stroll()`) from the arched window to the easel holding a paintbrush (`holdBrush`). | `smokeWipe()` clear |
-| **16** | `66.21–71.27` | `B(104)..B(112)` | Close-up at the easel (`zoom=1.34`): `whaleGirl` paints Piece #6 (`6/9`) into the glowing 3×3 puzzle frame. | match cut |
-| **17** | `71.27–76.33` | `B(112)..B(120)` | Wide ocean tracking shot: the glowing paper airplane flies out the lighthouse window along `arcPt()` while `CAST.miniWhale` leaps over the waves. | camera pan |
-| **18** | `76.33–81.39` | `B(120)..B(128)` | `whaleGirl` leaps (`jump()`) on the lighthouse balcony to catch Piece #7 (`7/9`). | `brushWipe()` night |
-| **19** | `81.39–86.45` | `B(128)..B(136)` | Midnight attic under a warm `spotDark()` spotlight. `whaleGirl` kneels (`kneel`) beside the puzzle board holding Piece #8. | `brushWipe()` open |
-| **20** | `86.45–91.51` | `B(136)..B(144)` | Close-up (`zoom=1.35`): `whaleGirl` snaps Piece #8 (`8/9`) into the frame (`emotions`: `determined` $\rightarrow$ `surprised` with `take`). | push in |
-| **21** | `91.51–96.57` | `B(144)..B(152)` | Camera tilts up (`kf` `cy: 490->260`) to reveal the 9th Golden Heart Piece shining high in the starry sky. | tilt up |
-| **22** | `96.57–101.63` | `B(152)..B(160)` | Pre-drop rooftop sprint (`runTo()`, `smear`) with `CAST.miniWhale` and `CAST.bionicPuppy` racing alongside! | cut on action |
-| **23** | `101.63–106.69` | `B(160)..B(168)` | **Beat Drop 2!** `whaleGirl` leaps (`arcPt()`) into the starry sky with trailing starlight sparks and catches Piece #9 (`9/9`)! | `flash()` gold |
-| **24** | `106.69–111.75` | `B(168)..B(176)` | All `9/9` puzzle pieces lock together in a starburst ring while `whaleGirl` spins (`spinView()`) in celebration! | starburst |
-| **25** | `111.75–121.87` | `B(176)..B(192)` | The completed puzzle transforms into the giant swimming Bioluminescent Star-Whale (`drawStarWhale`); `whaleGirl` rides it across the night sky! | `brushWipe()` dawn |
-| **26** | `121.87–132.00` | `B(192)..B(208)` | Dawn train pulls into the seaside station (`drawTrain`); the door opens and `partnerWhale` and `whaleGirl` walk (`stroll()`) toward each other for a joyful reunion! | `brushWipe()` open |
-| **27** | `132.00–142.11` | `B(208)..end` | Sitting together on the station bench with coconuts (`椰子水很甜`); camera tilts up to the `9/9` Star-Whale puzzle in the dawn sky and closes with an `iris()`. | `iris()` close |
+| Shot / Bar | Time (`s`) | Set | Action & Props | 3-Stage Emotion Arc | Authentic Lyric (`zh`) |
+|---|---|---|---|---|---|
+| **S01 (B00)** | `0.20–2.95` | Starlit Beach | `walkRight` + Lantern | `idle -> curious -> sparkle` | 《把回忆拼好给你》 · 椰子水很甜 |
+| **S02 (B01)** | `2.95–5.48` | Starlit Beach | `kneelPick` + Puzzle #1 | `curious -> gasp -> happy` | 词：童子-T / Shingo.S / 一只然 |
+| **S03 (B02)** | `5.48–8.01` | Observatory | `tailSit` + StarJar + Lady Gemini | `think -> excited -> proud` | 深海鲸鱼娘 · 记忆拼图剧场 |
+| **S04 (B03)** | `8.01–10.54` | Starlit Beach | `spinTurn` (5 views) + StarJar | `zen -> shy -> love` | 星光落在海面 泛起旧日涟漪 |
+| **S05 (B04)** | `10.54–13.07` | Observatory | `walkLeft` + Puzzle #3 | `determined -> wink -> happy` | 拾起散落的碎片 拂去岁月微尘 |
+| **S06 (B05)** | `13.07–15.60` | Observatory | `jumpJoy` + Crown + Lady Gemini | `sparkle -> laugh -> love` | 每一片微光 都藏着我们的曾经 |
+| **S07 (B06)** | `15.60–18.13` | Sunset Station | `walkRight` + Lantern + Puppy | `sigh -> worry -> sad` | 晚风轻轻吹过 海边的旧站台 |
+| **S08 (B07)** | `18.13–20.66` | Starlit Beach | `presentHeart` + Halo + Lady Gemini | `shy -> love -> determined` | 把散落的温柔 一一拼回你掌心 |
+| **S09 (B08)** | `20.66–23.19` | Observatory | `walkRight` + Puzzle #1 + Lady Gemini | `happy -> love -> shy` | 我们之间的回忆 |
+| **S10 (B09)** | `23.19–25.72` | Observatory | `kneelPick` + StarJar + Puzzle #3 | `curious -> determined -> proud` | 全部都小心地收集 |
+| **S11 (B10)** | `25.72–28.25` | Rain Bus Stop | `umbrellaStand` + Umbrella + Puppy | `sad -> cry -> plead` | 我总是偷偷地哭泣 |
+| **S12 (B11)** | `28.25–30.78` | Clocktower | `runRight` (`smear`) + Origami Birds | `worry -> panicked -> sad` | 像倦鸟失了归期 |
+| **S13 (B12)** | `30.78–33.31` | Cosmic Galaxy | `spinTurn` + Halo + Lady Gemini | `plead -> hope -> love` | 但愿我相信的爱情 |
+| **S14 (B13)** | `33.31–35.84` | Cosmic Galaxy | `jumpJoy` + Crown + Lady Claude | `determined -> proud -> excited` | 结局紧握在我手心 |
+| **S15 (B14)** | `35.84–38.37` | Clocktower | `walkLeft` + Lantern + Lady Gemini | `think -> zen -> happy` | 时光匆匆却没有遗失过去 |
+| **S16 (B15)** | `38.37–40.90` | Observatory | `presentHeart` + Puzzle #1/#3 | `sparkle -> love -> wink` | 时光匆匆却没有遗失过去 |
+| **S17 (B16)** | `40.90–43.43` | Dawn Hill | `walkRight` + Flower + Lady Gemini | `happy -> excited -> proud` | 希望我们 有光明的未来 |
+| **S18 (B17)** | `43.43–45.96` | Starlit Beach | `jumpJoy` + Wizard Hat + StarJar | `sparkle -> gasp -> love` | 还有能够装下星空的期待 |
+| **S19 (B18)** | `45.96–48.49` | Rain Bus Stop | `tailSit` + Rain Puddles | `bored -> sleepy -> sigh` | 可现实为何让我感到如此懈怠 |
+| **S20 (B19)** | `48.49–51.02` | Autumn Ginkgo | `duetWalk` + LoveLetter + Lady Gemini | `shy -> happy -> love` | 总怀念相遇时我们无视落叶和人海 |
+| **S21 (B20)** | `51.02–53.55` | Autumn Ginkgo | `jumpJoy` + Crown + Lady Claude | `scared -> determined -> proud` | 是你让我勇敢不再像颗尘埃 |
+| **S22 (B21)** | `53.55–56.08` | Greenhouse | `waterBonsai` + Bonsai + WateringCan | `zen -> happy -> love` | 是你常帮我照料装着梦的盆栽 |
+| **S23 (B22)** | `56.08–58.61` | Greenhouse | `spinTurn` + Cat Ears + Bonsai | `laugh -> wink -> excited` | 每一天我们都是如此愉快 |
+| **S24 (B23)** | `58.61–61.14` | Sunset Station | `runRight` (`smear`) + Departing Train | `worry -> sad -> plead` | 一直到天色渐晚看着落日无奈离开 |
+| **S25 (B24)** | `61.14–63.68` | Stamp Study | `tailSit` + StampAlbum + Lady Gemini | `curious -> laugh -> bored` | 我知道你爱集邮爱笑甚至爱发呆 |
+| **S26 (B25)** | `63.68–66.21` | Firefly Forest | `runLeft` (`smear`) + Night Yokai | `scared -> shock -> panicked` | 我知道你怕草虫还有夜晚的妖怪 |
+| **S27 (B26)** | `66.21–68.74` | Stamp Study | `walkRight` + StampAlbum + Lady Gemini | `confused -> shy -> smug` | 我喜欢你有一点心不在焉的状态 |
+| **S28 (B27)** | `68.74–71.27` | Autumn Ginkgo | `jumpJoy` + Party Cone + StarJar | `mischief -> laugh -> excited` | 看起来像个回到七岁时候的小孩 |
+| **S29 (B28)** | `71.27–73.80` | Starlit Beach | `presentHeart` + LoveLetter + Lady Gemini | `shy -> pout -> love` | 该如何将我这份感情向你告白 |
+| **S30 (B29)** | `73.80–76.33` | Cosmic Galaxy | `spinTurn` + LoveLetter + StarJar | `worry -> gasp -> sparkle` | 喜欢却又不敢爱 直到整个宇宙 |
+| **S31 (B30)** | `76.33–78.86` | Cosmic Galaxy | `runRight` (`smear`) + Puzzle #3 | `dizzy -> panicked -> determined` | 在为我焦虑失神慌张之中醒来 |
+| **S32 (B31)** | `78.86–81.39` | Dawn Hill | `jumpJoy` + Halo + Sunrise Rays | `gasp -> sparkle -> happy` | 就像是黑暗过后黎明盛开 |
+| **S33–S40 (B32–39)** | `81.39–101.63` | Chorus 2 Sets | Duet Walk, Kneel, Umbrella, Galaxy Leap | All 31 Emotions (`3 per bar`) | Chorus 2 (`我们之间的回忆...`) |
+| **S41–S48 (B40–47)** | `101.63–121.87` | Coda 1 Sets | Solo Search, Rain Kneel, Bonsai & Ginkgo | `sad/cry/angry/dead -> love` | Coda 1 (`独自收集两个人之间的回忆...祝你余生动听啊`) |
+| **S49–S56 (B48–55)** | `121.87–142.11` | Finale Sets | 9/9 Puzzle Assembly & Full Cast Sunrise | `cry/determined -> love/sparkle/wink` | Finale (`独自收集两个人之间的回忆...把回忆拼好给你`) |

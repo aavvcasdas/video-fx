@@ -60,6 +60,35 @@
     ctx.restore();
   }
 
+  // ---------- 3. Lady Gemini (Gemini 大小姐 — 104x102 16-Bit Chibi Twin-Star Celestial Ojou-sama) ----------
+  function ladyGemini(ctx, x, y, u = 19, o = {}) {
+    boilSeed('ladyGemini' + Math.round(x));
+    const t = o.t || 0;
+    const dy = (o.dy ?? -0.10 * pulse(t)) * u;
+    const sq = clamp(o.sq || 0, -0.35, 0.35);
+    const cell = u / (RIG ? RIG.scale : 10);
+
+    if (!o.noShadow) {
+      paint(ctx, ellPts(x, y + 0.12 * u, 2.5 * u, 0.5 * u, 16), { wash: PAL.ink, washOp: 65, ink: null });
+    }
+
+    ctx.save();
+    ctx.translate(x, y + dy);
+    if (o.rot) ctx.rotate(o.rot);
+    if (o.flip) ctx.scale(-1, 1);
+    ctx.scale(1 + sq * 0.5, 1 - sq * 0.6);
+
+    if (RIG && RIG.castSprites && RIG.castSprites.ladyGemini) {
+      drawCastPixelRuns(ctx, RIG.castSprites.ladyGemini, cell);
+    }
+
+    if (o.emote && WHALE.EMOTES && WHALE.EMOTES[o.emote]) {
+      WHALE.EMOTES[o.emote](ctx, 0, -9.2 * u, u, o.emoteK ?? 1, t);
+    }
+
+    ctx.restore();
+  }
+
   // ---------- 4. Human Researcher (人类研究员 — 104x102 16-Bit Chibi Scientist / Beach Vacation / Beard) ----------
   function researcher(ctx, x, y, u = 15, o = {}) {
     boilSeed('researcher' + Math.round(x));
@@ -316,7 +345,7 @@
       ['back', { view: 'back' }],
       ['tail-sit', { tailSit: true, hat: 'wizard', eyes: 'spark' }],
       ['heart-hands', { heartHands: true, eyes: 'heart', blush: true }],
-      ['run smear', { view: 'side', smear: 0.8, walk: t * 4, eyes: 'angry' }]
+      ['run smear', { view: 'side', smear: 0.72, walk: 0.36, rot: 0.08, eyes: 'spark' }]
     ];
     const cw = W / 8;
     row1.forEach(([lbl, opts], i) => {
@@ -341,13 +370,13 @@
       whaleGirl(ctx, cx, gy, 12.2, { hat, eyes: 'wink', t });
       sheetLabel(ctx, 'hat: ' + hat, cx, gy + 24, 12, style);
     });
-    // Plus 3 companions on right of Row 3
+    // Plus 3 companions on right of Row 3 (Clawd, Lady Claude, and Gemini 大小姐!)
     clawd(ctx, cw * 5.5, 675, 11.5, { hat: 'crown', eyes: 'star', t });
     sheetLabel(ctx, 'clawd', cw * 5.5, 699, 12, style);
     ladyClaude(ctx, cw * 6.5, 675, 12.2, { hasFan: true, t });
     sheetLabel(ctx, 'lady claude', cw * 6.5, 699, 12, style);
-    researcher(ctx, cw * 7.5, 675, 12.0, { hasKey: true, t });
-    sheetLabel(ctx, 'researcher', cw * 7.5, 699, 12, style);
+    ladyGemini(ctx, cw * 7.5, 675, 12.2, { t });
+    sheetLabel(ctx, 'gemini 大小姐', cw * 7.5, 699, 12, style);
     sheetFloor(ctx, 675, 28, W - 28, style);
   }
 
@@ -393,8 +422,8 @@
     const castList = [
       ['深海鲸鱼娘 DeepSeek', (cx, gy) => whaleGirl(ctx, cx, gy, 18, { ...feel('excited', t), emote: 'spout', t })],
       ['隔壁 Claude 大小姐', (cx, gy) => ladyClaude(ctx, cx, gy, 18, { hasFan: true, t })],
+      ['双子星 Gemini 大小姐', (cx, gy) => ladyGemini(ctx, cx, gy, 18, { emote: 'spark', t })],
       ['Clawd 吉祥物', (cx, gy) => clawd(ctx, cx, gy, 16, { ...move('bounce', t), hat: 'party', eyes: 'star', t })],
-      ['人类研究员 (交接前)', (cx, gy) => researcher(ctx, cx, gy, 17, { hasKey: true, t })],
       ['人类研究员 (海滩度假)', (cx, gy) => researcher(ctx, cx, gy, 17, { vacation: true, t })],
       ['Agent-Reach 检索机', (cx, gy) => agentReachBot(ctx, cx, gy - 45, 18, { t })],
       ['深海小蓝鲸', (cx, gy) => miniWhale(ctx, cx, gy - 40, 18, { t })],
@@ -428,6 +457,8 @@
     whaleGirl,
     clawd,
     ladyClaude,
+    ladyGemini,
+    geminiLady: ladyGemini,
     researcher,
     humanResearcher: researcher,
     agentReachBot,

@@ -7,7 +7,7 @@
 //   5. `agentReachBot`    (Agent-Reach Octopus Search Drone)
 //   6. `bionicPuppy`      (Mechanical Companion Puppy)
 //   7. `miniWhale`        (DeepSeek Mini Blue Whale)
-//   8. `biliTvMascot`     (Bilibili Little TV Mascot)
+//   8. `biliTvMascot`     (Retro Pixel TV Mascot)
 // Plus model sheet renderers (`renderEmotionsSheet`, `renderViewsSheet`, `renderStylesSheet`, `renderAllCastSheet`).
 
 (function (root) {
@@ -219,7 +219,7 @@
     ctx.restore();
   }
 
-  // ---------- 8. Bilibili Little TV Mascot (B站小电视 — 16-Bit Pixel Sprite) ----------
+  // ---------- 8. Retro Pixel TV Mascot (复古小电视 — 16-Bit Pixel Sprite) ----------
   function biliTvMascot(ctx, x, y, u = 13, o = {}) {
     boilSeed('biliTv' + Math.round(x));
     const t = o.t || 0;
@@ -398,7 +398,7 @@
       ['人类研究员 (海滩度假)', (cx, gy) => researcher(ctx, cx, gy, 17, { vacation: true, t })],
       ['Agent-Reach 检索机', (cx, gy) => agentReachBot(ctx, cx, gy - 45, 18, { t })],
       ['深海小蓝鲸', (cx, gy) => miniWhale(ctx, cx, gy - 40, 18, { t })],
-      ['B站小电视 & 机械狗', (cx, gy) => { biliTvMascot(ctx, cx - 48, gy, 15, { t }); bionicPuppy(ctx, cx + 48, gy, 15, { t }); }]
+      ['复古小电视 & 机械狗', (cx, gy) => { biliTvMascot(ctx, cx - 48, gy, 15, { t }); bionicPuppy(ctx, cx + 48, gy, 15, { t }); }]
     ];
 
     const cols = 4, cw = W / 4, ch = (H - 80) / 2;

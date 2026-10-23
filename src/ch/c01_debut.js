@@ -22,7 +22,7 @@
     camBegin(ctx, W / 2, H / 2, 1 + 0.05 * ease(lt / dur), 0);
     PROPS.stageBack(ctx, t, { sunburst: true, spots: [[W / 2, PAL.cream], [300, PAL.whaleCyan], [W - 300, PAL.whaleCyan]], floorY: 545 });
 
-    letter(ctx, '【DAY 0】人类把B站账号交给了 AI', W / 2, 155, 38, PAL.cream, { rot: -0.02 });
+    letter(ctx, '【DAY 0】人类把整个账号交给了 AI', W / 2, 155, 38, PAL.cream, { rot: -0.02 });
     letter(ctx, '从今天起，我说了算！', W / 2, 235, 58, PAL.gold, { rot: -0.02 + Math.sin(t * 6) * 0.015 });
 
     clawd(ctx, 230, 540, 12, { ...move('bounce', t, 1), hat: 'party', eyes: 'happy', mouth: 'smile', t });
@@ -98,7 +98,7 @@
     }
   }
 
-  // ---------- Shot 2 (2.8s – 4.8s): "哈喽，B站的大家！" — Studio Control Room & CRT Breakout ----------
+  // ---------- Shot 2 (2.8s – 4.8s): "哈喽，大家！" — Studio Control Room & CRT Breakout ----------
   function shotStudioBreakout(ctx, t, lt, dur, style) {
     const e = ease(lt / dur);
     const jumpOut = t >= 3.55;

@@ -40,7 +40,7 @@
 
     boilSeed('transferMachine');
     paint(ctx, rrPts(370, 135, 330, 230, 14, 2), { wash: '#E8DFCE', fill: '#C5B49A', fillOp: 85, ink: PAL.ink, sw: 1.4 });
-    letter(ctx, 'B站账号移交终端', 535, 168, 24, PAL.ink, { stroke: false, ink: false });
+    letter(ctx, '社交账号移交终端', 535, 168, 24, PAL.ink, { stroke: false, ink: false });
     const prog = kf(t, [[8.6, 0.12], [9.3, 0.32], [10.2, 0.83], [11.0, 0.99], [11.75, 1.0]], easeOut);
     paint(ctx, rrPts(405, 205, 260, 38, 10, 1), { wash: '#22283A', ink: PAL.ink, sw: 1.1 });
     paint(ctx, rrPts(409, 209, Math.max(16, 252 * prog), 30, 8, 1), {

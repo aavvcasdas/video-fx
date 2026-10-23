@@ -163,7 +163,7 @@
     // Stand
     paint(ctx, rectPts(cx - 42, y + h - 10, 84, 38, 1), { wash: '#94A3B8', ink: PAL.ink, sw: 1.1 });
     paint(ctx, rrPts(cx - 88, y + h + 18, 176, 18, 6, 1), { wash: '#64748B', ink: PAL.ink, sw: 1.1 });
-    // Bilibili TV Antenna Ears on top of monitor
+    // Retro CRT Antenna Ears on top of monitor
     inkLine(ctx, [[cx - 35, y + 6], [cx - 75, y - 42]], 2.0, PAL.ink, 'ink', 0);
     inkLine(ctx, [[cx + 35, y + 6], [cx + 75, y - 42]], 2.0, PAL.ink, 'ink', 0);
     // Bezel

@@ -247,7 +247,7 @@
     camEnd(ctx);
   }
 
-  // ---------- Shot 4 (71.8s – 82.5s): "想看AI把这个号带到哪里，就点个关注，一键三连吧！我们Day 1见！" ----------
+  // ---------- Shot 4 (71.8s – 82.5s): "想看AI把这个号带到哪里，就点个关注吧！我们Day 1见！" ----------
   function drawTripleComboIcon(ctx, x, y, type, active, popK, t) {
     boilSeed('combo' + type);
     ctx.save();
@@ -265,9 +265,9 @@
       paint(ctx, rrPts(-5, -24, 14, 22, 5, 1), { wash: '#FFFFFF', ink: PAL.ink, sw: 1.0 });
       letter(ctx, '点赞', 0, 64, 22, active ? '#FB7185' : '#94A3B8', { stroke: PAL.ink, ink: false });
     } else if (type === 1) {
-      paint(ctx, ellPts(0, 0, 28, 28, 16), { wash: PAL.gold, ink: PAL.ink, sw: 1.1 });
-      letter(ctx, 'B', 0, 2, 28, PAL.ink, { stroke: false, ink: false });
-      letter(ctx, '投币', 0, 64, 22, active ? '#38BDF8' : '#94A3B8', { stroke: PAL.ink, ink: false });
+      paint(ctx, rrPts(-20, -6, 40, 12, 4, 1), { wash: '#FFFFFF', ink: PAL.ink, sw: 1.0 });
+      paint(ctx, rrPts(-6, -20, 12, 40, 4, 1), { wash: '#FFFFFF', ink: PAL.ink, sw: 1.0 });
+      letter(ctx, '关注', 0, 64, 22, active ? '#38BDF8' : '#94A3B8', { stroke: PAL.ink, ink: false });
     } else {
       paint(ctx, starPts(0, 0, 30, 0.45, 5, -Math.PI / 2), { wash: PAL.gold, ink: PAL.ink, sw: 1.1 });
       letter(ctx, '收藏', 0, 64, 22, active ? '#FACC15' : '#94A3B8', { stroke: PAL.ink, ink: false });
@@ -288,7 +288,7 @@
       floorY: 565
     });
 
-    letter(ctx, isSeeYou ? '★ 我们 DAY 1 见！不见不散！ ★' : '点个关注 · 一键三连支持鲸鱼娘吧！', W / 2, 72, 38, PAL.gold, {
+    letter(ctx, isSeeYou ? '★ 我们 DAY 1 见！不见不散！ ★' : '点个关注 · 支持深海鲸鱼娘吧！', W / 2, 72, 38, PAL.gold, {
       stroke: PAL.ink, ink: false, pop: isSeeYou ? (t - seeYouT) * 4 : 1
     });
 

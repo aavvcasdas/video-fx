@@ -267,7 +267,7 @@
     boilSeed('boardroomScreen');
     paint(ctx, rrPts(280, 78, 720, 140, 14, 2), { wash: '#0F172A', fill: '#1E293B', fillOp: 110, ink: PAL.whaleCyan, sw: 1.5 });
     letter(ctx, '规矩③：评论区就是我的会议室', W / 2, 118, 30, PAL.whaleCyan, { stroke: false, ink: false });
-    letter(ctx, stamped ? '★ 最佳评论点子：直接采纳 ✓ ★' : '正在征集B站观众老爷们的好点子...', W / 2, 168, 26, stamped ? PAL.gold : PAL.cream, {
+    letter(ctx, stamped ? '★ 最佳评论点子：直接采纳 ✓ ★' : '正在征集观众朋友们的好点子...', W / 2, 168, 26, stamped ? PAL.gold : PAL.cream, {
       stroke: false, ink: false
     });
 

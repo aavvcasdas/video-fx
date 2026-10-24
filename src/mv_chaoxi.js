@@ -2,8 +2,8 @@
 // src/mv_chaoxi.js — 《傅梦彤 - 潮汐 (Natural)》(深海鲸鱼娘 · 澄蓝潮汐篇) 31.84s MV Director
 // Built on the `mv_ba_huiyi_pinhao_gei_ni` non-repeating multi-set architecture:
 //   - 11 unique non-repeating painted environments across 11 lyric shots (`31.84s`)
-//   - 100% acoustically & Vosk-verified lyrics of 傅梦彤《潮汐》 ([00:20.66]–[00:52.50])
-//   - 28 `codex-deepseek-pet` & `dsh-dayu-fish-skin` actions + `drawFatFish` + `ladyGemini`
+//   - Vosk-verified lyric strings and cue in/out timings for 傅梦彤《潮汐》
+//   - Whale Maid Girl alone, with lyrics-driven actions and 11 distinct full environments
 // ============================================================================
 
 (function (root) {
@@ -15,94 +15,83 @@
   const DURATION = 31.84;
 
   // ==========================================================================
-  // 100% Vosk & Official LRC-Verified Lyrics of 傅梦彤《潮汐》 (0.00s – 31.84s)
-  // Exact slice: [00:20.66] – [00:52.50] (`LRC_time - 20.66s`)
+  // Vosk-verified Chinese lyric cues for 傅梦彤《潮汐》 (0.30s – 31.80s)
+  // Timings follow the verified vocal onsets; do not show unverified paraphrases.
   // ==========================================================================
   const SUBTITLES_CHAOXI = [
     {
-      t0: 0.00, t1: 2.68,
+      t0: 0.30, t1: 2.68,
       zh: '当海面迎来汹涌的潮汐',
-      en: 'When the surging tide rises across the ocean surface',
       setKey: 'beachNight',
       action: 'umbrella_stroll',
       emos: [[0.0, 'calm', 'music'], [0.9, 'surprised', 'exclaim'], [1.8, 'excited', 'sparkle']]
     },
     {
-      t0: 2.68, t1: 5.35,
+      t0: 2.71, t1: 5.35,
       zh: '我奔跑寻找昔日的足迹',
-      en: 'I run along the shore searching for footprints of the past',
       setKey: 'sunflowerCoast',
       action: 'run_sprint',
       emos: [[0.0, 'focused', 'exclaim'], [0.9, 'excited', 'sparkle'], [1.8, 'happy', 'music']]
     },
     {
-      t0: 5.35, t1: 7.85,
+      t0: 5.38, t1: 7.85,
       zh: '夕阳下倒影迷人的美丽',
-      en: 'Beneath the setting sun, reflections shimmer with beauty',
       setKey: 'veniceBridge',
       action: 'camera_shutter',
       emos: [[0.0, 'starstruck', 'sparkle'], [0.85, 'love', 'heart'], [1.7, 'wink', 'heart']]
     },
     {
-      t0: 7.85, t1: 10.50,
+      t0: 7.88, t1: 10.50,
       zh: '可我却丢失故事和你',
-      en: 'Yet somehow I lost both our story and you',
       setKey: 'rainBusStop',
       action: 'cry_fountain',
       emos: [[0.0, 'sad', 'sweat'], [0.9, 'cry', 'sweat'], [1.8, 'sob', null]]
     },
     {
-      t0: 10.50, t1: 13.00,
+      t0: 10.55, t1: 13.00,
       zh: '你说过向往大海的神秘',
-      en: 'You once said you longed for the mystery of the deep sea',
       setKey: 'coralAbyss',
       action: 'peek_curious',
       emos: [[0.0, 'question', 'question'], [0.85, 'idea', 'idea'], [1.7, 'starstruck', 'sparkle']]
     },
     {
-      t0: 13.00, t1: 15.65,
+      t0: 13.02, t1: 15.64,
       zh: '也憧憬我们遗失的过去',
-      en: 'And dreamed of the past that slipped through our hands',
       setKey: 'observatory',
       action: 'eat_white_rice',
       emos: [[0.0, 'thinking', 'music'], [0.9, 'happy', 'heart'], [1.8, 'joy', 'sparkle']]
     },
     {
-      t0: 15.65, t1: 19.15,
+      t0: 15.67, t1: 19.15,
       zh: '分享给大海秘密',
-      en: 'Sharing every secret with the boundless azure sea',
       setKey: 'auroraHarbor',
       action: 'hum_working_song',
       emos: [[0.0, 'singing', 'music'], [1.1, 'shy', 'heart'], [2.2, 'wink', 'sparkle']]
     },
     {
-      t0: 19.15, t1: 21.55,
+      t0: 19.20, t1: 21.52,
       zh: '蓝色的海底',
-      en: 'Deep beneath the glowing sapphire seabed',
       setKey: 'deepseekLab',
       action: 'fatfish_transform',
       emos: [[0.0, 'excited', 'sparkle'], [0.8, 'starstruck', 'heart'], [1.6, 'joy', 'music']]
     },
     {
-      t0: 21.55, t1: 24.05,
+      t0: 21.56, t1: 24.04,
       zh: '远山的风景',
-      en: 'And the distant mountain horizons bathed in dawn',
       setKey: 'dawnHill',
       action: 'ciallo_wink',
       emos: [[0.0, 'happy', 'sparkle'], [0.8, 'wink', 'heart'], [1.6, 'proud', 'sparkle']]
     },
     {
-      t0: 24.05, t1: 29.25,
+      t0: 24.07, t1: 29.24,
       zh: '我们的距离遥不可及',
-      en: 'The distance between the two of us has grown out of reach',
       setKey: 'cosmicGalaxy',
       action: 'idol_mic_sing',
       emos: [[0.0, 'singing', 'music'], [1.6, 'sad', 'sweat'], [3.2, 'love', 'heart']]
     },
     {
-      t0: 29.25, t1: 31.84,
-      zh: '退守的爱情 还剩下回忆',
-      en: 'A retreating love with every memory still shining bright',
+      t0: 29.28, t1: 31.80,
+      zh: '退守的爱情',
       setKey: 'beachDawn',
       action: 'coin_hug',
       emos: [[0.0, 'calm', 'heart'], [0.85, 'love', 'sparkle'], [1.7, 'happy', 'heart']]
@@ -112,16 +101,22 @@
   function getActiveCue(t) {
     for (let i = 0; i < SUBTITLES_CHAOXI.length; i++) {
       const s = SUBTITLES_CHAOXI[i];
-      if (t >= s.t0 && t < s.t1) return { cue: s, idx: i };
+      if (t < s.t0) {
+        const prior = SUBTITLES_CHAOXI[Math.max(0, i - 1)];
+        const priorIdx = Math.max(0, i - 1);
+        return { cue: prior, idx: priorIdx, visible: false };
+      }
+      if (t < s.t1) return { cue: s, idx: i, visible: true };
     }
-    return { cue: SUBTITLES_CHAOXI[SUBTITLES_CHAOXI.length - 1], idx: SUBTITLES_CHAOXI.length - 1 };
+    const lastIdx = SUBTITLES_CHAOXI.length - 1;
+    return { cue: SUBTITLES_CHAOXI[lastIdx], idx: lastIdx, visible: false };
   }
 
   function renderChaoxiFrame(ctx, t) {
     ctx.save();
     ctx.clearRect(0, 0, W, H);
 
-    const { cue, idx } = getActiveCue(t);
+    const { cue, idx, visible } = getActiveCue(t);
     const lt = clamp(t - cue.t0, 0, cue.t1 - cue.t0);
     const dur = Math.max(0.2, cue.t1 - cue.t0);
 
@@ -135,20 +130,15 @@
         action: cue.action,
         emos: cue.emos,
         style: ['watercolor', 'neon', 'watercolor', 'pixel'][idx % 4],
-        guest: idx % 2 === 0 ? 'ladyGemini' : 'all'
+        solo: true,
+        showActionBadge: false,
       });
     }
 
-    // 2. Top Header HUD Badge
-    ctx.save();
-    paint(ctx, rrPts(24, 20, 410, 38, 12), { fill: '#090D1E', fillOp: 205, ink: '#38BDF8', sw: 1.8 });
-    ctx.font = 'bold 15px "ZCOOLKuaiLe", "NotoSansSC", sans-serif';
-    ctx.fillStyle = '#7DD3FC';
-    ctx.textAlign = 'left';
-    ctx.fillText(`《潮汐》傅梦彤 · SHOT ${String(idx + 1).padStart(2, '0')}/11 [${cue.action}]`, 40, 44);
-    ctx.restore();
+    // Chinese lyric captions are the only on-screen text.
 
-    // 3. Bottom Karaoke Subtitle Bar (100% Audio-Aligned)
+    // 2. Audio-aligned Chinese karaoke subtitle (only during the verified vocal cue)
+    if (visible) {
     const prog = clamp(lt / dur, 0, 1);
     const popY = lt < 0.16 ? (1 - backOut(lt / 0.16)) * 12 : 0;
     ctx.save();
@@ -174,10 +164,8 @@
     ctx.fillText(cue.zh, W / 2, H - 62);
     ctx.restore();
 
-    ctx.font = 'bold 13px "Silkscreen", "NotoSansSC", monospace';
-    ctx.fillStyle = '#93C5FD';
-    ctx.fillText(cue.en, W / 2, H - 36);
     ctx.restore();
+    }
 
     if (t > DURATION - 1.1) {
       const r = lerp(820, 0, easeIn(seg(t, DURATION - 1.1, DURATION - 0.04)));

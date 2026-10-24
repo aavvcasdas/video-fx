@@ -1451,57 +1451,60 @@
       actOpts.waveArm = true;
     }
 
-    // 3. Guest Co-Stars (`ladyGemini`, `ladyClaude`, `clawd`, `miniWhale`, `bionicPuppy`, `drawFatFish`)
-    const guest = opts.guest || shot.guest || 'ladyGemini';
-    if (guest === 'ladyGemini' || guest === 'all') {
-      const gx = shot.act === 'duetWalk' ? actOpts.x + 165 : 855 + Math.sin(t * 2.2) * 14;
-      if (CAST.ladyGemini) {
-        CAST.ladyGemini(ctx, gx, groundY, 28, {
+    // Optional cast is disabled for solo-protagonist replicas such as 潮汐.
+    if (!opts.solo) {
+      const guest = opts.guest || shot.guest || 'ladyGemini';
+      if (guest === 'ladyGemini' || guest === 'all') {
+        const gx = shot.act === 'duetWalk' ? actOpts.x + 165 : 855 + Math.sin(t * 2.2) * 14;
+        if (CAST.ladyGemini) {
+          CAST.ladyGemini(ctx, gx, groundY, 28, {
+            t,
+            walk: shot.act === 'duetWalk' ? actOpts.walk : 0,
+            flip: true,
+            emote: lt > dur * 0.45 ? 'sparkle' : null
+          });
+        }
+      }
+      if (guest === 'ladyClaude' || guest === 'all') {
+        const cxGuest = guest === 'all' ? 395 : 835;
+        if (CAST.ladyClaude) {
+          CAST.ladyClaude(ctx, cxGuest, groundY, 27, {
+            t,
+            flip: cxGuest > actOpts.x,
+            emote: lt > dur * 0.45 ? 'heart' : null
+          });
+        }
+      }
+      if (guest === 'clawd' || guest === 'all' || shotIdx % 3 === 0) {
+        const clx = guest === 'all' ? 275 : actOpts.x - 150;
+        if (CAST.clawd) {
+          CAST.clawd(ctx, clamp(clx, 140, 1140), groundY + 4, 21, { t, hat: 'crown', happy: true });
+        }
+      }
+      if (guest === 'miniWhale' || guest === 'all' || shotIdx % 4 === 1) {
+        const mwx = guest === 'all' ? 965 : actOpts.x + 150;
+        const mwy = groundY - 125 + Math.sin(t * 4.2) * 16;
+        if (CAST.miniWhale) {
+          CAST.miniWhale(ctx, clamp(mwx, 160, 1120), mwy, 20, { t, spout: true });
+        }
+      }
+      if (guest === 'bionicPuppy' || guest === 'all' || shotIdx % 4 === 2) {
+        const bpx = guest === 'all' ? 1020 : actOpts.x + 135;
+        if (CAST.bionicPuppy) {
+          CAST.bionicPuppy(ctx, clamp(bpx, 160, 1120), groundY + 2, 19, { t, flip: true });
+        }
+      }
+      if (typeof WHALE.drawFatFish === 'function') {
+        const fishModes = ['eat_rice', 'working', 'success', 'idle'];
+        const fMode = fishModes[shotIdx % fishModes.length];
+        const fx = actOpts.x > 640 ? actOpts.x - 175 : actOpts.x + 175;
+        WHALE.drawFatFish(ctx, clamp(fx, 160, 1120), groundY - 16, 20, {
           t,
-          walk: shot.act === 'duetWalk' ? actOpts.walk : 0,
-          flip: true,
-          emote: lt > dur * 0.45 ? 'sparkle' : null
+          mode: fMode,
+          flip: fx > actOpts.x
         });
       }
-    }
-    if (guest === 'ladyClaude' || guest === 'all') {
-      const cxGuest = guest === 'all' ? 395 : 835;
-      if (CAST.ladyClaude) {
-        CAST.ladyClaude(ctx, cxGuest, groundY, 27, {
-          t,
-          flip: cxGuest > actOpts.x,
-          emote: lt > dur * 0.45 ? 'heart' : null
-        });
-      }
-    }
-    if (guest === 'clawd' || guest === 'all' || shotIdx % 3 === 0) {
-      const clx = guest === 'all' ? 275 : actOpts.x - 150;
-      if (CAST.clawd) {
-        CAST.clawd(ctx, clamp(clx, 140, 1140), groundY + 4, 21, { t, hat: 'crown', happy: true });
-      }
-    }
-    if (guest === 'miniWhale' || guest === 'all' || shotIdx % 4 === 1) {
-      const mwx = guest === 'all' ? 965 : actOpts.x + 150;
-      const mwy = groundY - 125 + Math.sin(t * 4.2) * 16;
-      if (CAST.miniWhale) {
-        CAST.miniWhale(ctx, clamp(mwx, 160, 1120), mwy, 20, { t, spout: true });
-      }
-    }
-    if (guest === 'bionicPuppy' || guest === 'all' || shotIdx % 4 === 2) {
-      const bpx = guest === 'all' ? 1020 : actOpts.x + 135;
-      if (CAST.bionicPuppy) {
-        CAST.bionicPuppy(ctx, clamp(bpx, 160, 1120), groundY + 2, 19, { t, flip: true });
-      }
-    }
-    if (typeof WHALE.drawFatFish === 'function') {
-      const fishModes = ['eat_rice', 'working', 'success', 'idle'];
-      const fMode = fishModes[shotIdx % fishModes.length];
-      const fx = actOpts.x > 640 ? actOpts.x - 175 : actOpts.x + 175;
-      WHALE.drawFatFish(ctx, clamp(fx, 160, 1120), groundY - 16, 20, {
-        t,
-        mode: fMode,
-        flip: fx > actOpts.x
-      });
+
     }
 
     // 4. Protagonist `whaleGirl` with 28 Actions & 31-Emotion Smooth Transitions

@@ -18,6 +18,9 @@
   if (!root.WHALE_GIRL_PIXEL_RIG && typeof require === 'function') {
     try { require('./whale_girl_rig_data.js'); } catch (e) {}
   }
+  const ACTIONS = root.WHALE_ACTIONS || (typeof require === 'function' ? (() => {
+    try { return require('./whale_girl_actions.js'); } catch (e) { return null; }
+  })() : null);
 
   const {
     TAU, PAL, clamp, lerp, seg, ease, easeOut, backOut, wob, hash,
@@ -556,14 +559,36 @@
   function whaleGirl(ctx, x, y, u = 20, rawO = {}) {
     boilSeed('whaleGirl' + Math.round(x));
     const t = rawO.t ?? 0;
+    const actLib = root.WHALE_ACTIONS || ACTIONS;
+    const actionMod = (rawO.action && actLib && typeof actLib.evaluateAction === 'function')
+      ? actLib.evaluateAction(rawO.action, t, rawO)
+      : null;
+
     // Automatically expand multi-stage `emotions: [[t0, emo, emote], ...]` or single `emo`/`emotion` string!
     const isSheetFrame = Math.abs(t - 1.2) < 0.001;
-    let o = rawO;
-    if (Array.isArray(rawO.emotions) && rawO.emotions.length > 0) {
-      const emoT = rawO.lt !== undefined ? rawO.lt : t;
-      o = Object.assign({}, emotions(emoT, rawO.emotions, { take: rawO.take !== false }), rawO);
-    } else if ((rawO.emo || rawO.emotion) && !rawO.eyes) {
-      o = Object.assign({}, feel(rawO.emo || rawO.emotion, rawO.emote), rawO);
+    let o = Object.assign({}, rawO);
+    if (actionMod) {
+      if (actionMod.emotion && !o.emotion && !o.emo) o.emotion = actionMod.emotion;
+      if (actionMod.poseMode && !o.poseMode) o.poseMode = actionMod.poseMode;
+      if (actionMod.aL !== undefined && o.aL === undefined) o.aL = actionMod.aL;
+      if (actionMod.aR !== undefined && o.aR === undefined) o.aR = actionMod.aR;
+      if (actionMod.hipL !== undefined && o.hipL === undefined) o.hipL = actionMod.hipL;
+      if (actionMod.hipR !== undefined && o.hipR === undefined) o.hipR = actionMod.hipR;
+      if (actionMod.smear !== undefined && o.smear === undefined) o.smear = actionMod.smear;
+      o.dx = (o.dx || 0) + (actionMod.dx || 0);
+      o.dy = (o.dy || 0) + (actionMod.dy || 0);
+      o.rot = (o.rot || 0) + (actionMod.rot || 0);
+      o.sq = (o.sq || 0) + (actionMod.sq || 0);
+      o.walk = (o.walk || 0) + (actionMod.walk || 0);
+      o.kneel = (o.kneel || 0) + (actionMod.kneel || 0);
+      o.tailWag = (o.tailWag || 0) + (actionMod.tailWag || 0);
+      o.headTilt = (o.headTilt || 0) + (actionMod.headTilt || 0);
+    }
+    if (Array.isArray(o.emotions) && o.emotions.length > 0) {
+      const emoT = o.lt !== undefined ? o.lt : t;
+      o = Object.assign({}, emotions(emoT, o.emotions, { take: o.take !== false }), o);
+    } else if ((o.emo || o.emotion) && !o.eyes) {
+      o = Object.assign({}, feel(o.emo || o.emotion, o.emote), o);
     }
     // Automatic 3-stage 31-emotion progression & stepping micro-action for MV frames without explicit `emotions()`
     if (!isSheetFrame && !Array.isArray(rawO.emotions) && rawO.transitionBlend === undefined) {
@@ -651,6 +676,13 @@
       drawArticulatedPixelRig(ctx, u, t, o, poseKey, headBob, headTilt, style, view);
     } else {
       drawVectorConstruct(ctx, u, t, o, poseKey, view, vx, isBack, isQBack, headBob, headTilt, style);
+    }
+
+    if (actionMod && typeof actionMod.overlay === 'function') {
+      ctx.save();
+      if (o.flip) ctx.scale(-1, 1);
+      actionMod.overlay(ctx, u);
+      ctx.restore();
     }
 
     ctx.restore();
@@ -1788,7 +1820,12 @@
     EYES,
     MOUTHS,
     EMOTES,
-    PALETTE: C
+    PALETTE: C,
+    ACTION_LIST: ACTIONS ? ACTIONS.ACTION_LIST : [],
+    evaluateAction: ACTIONS ? ACTIONS.evaluateAction : null,
+    pickAction: ACTIONS ? ACTIONS.pickAction : null,
+    drawFatFish: ACTIONS ? ACTIONS.drawFatFish : null,
+    renderActionsSheet: ACTIONS ? ACTIONS.renderActionsSheet : null
   };
 
   root.WHALE_GIRL = WHALE_GIRL;

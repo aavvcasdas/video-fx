@@ -13,50 +13,64 @@
 
   const DURATION = 188.25;
 
-  // Beat-synced lyric timeline for 李晓杰《朋友的酒》 (188.25s)
+  // 100% Authentic Vosk & Official LRC-Verified Lyric Timeline for 李晓杰《朋友的酒》 (188.25s)
   const SUBTITLES = [
-    { t0: 2.0,   t1: 15.5,  text: '♪ 《朋友的酒》 · 深海鲸鱼娘与伙伴们篇 ♪', hi: '朋友的酒' },
-    { t0: 16.0,  t1: 20.0,  text: '昨日一去不复回 开心比什么都贵',         hi: '开心' },
-    { t0: 20.1,  t1: 24.0,  text: '覆水不能再收回 桃花谢了又开',           hi: '又开' },
-    { t0: 24.1,  t1: 28.0,  text: '人生几何能够得到知己 失去生命的力量也不可惜', hi: '知己' },
-    { t0: 28.1,  t1: 32.0,  text: '来吧朋友干了这杯酒 伤心的事全都丢脑后', hi: '干了这杯酒' },
-    { t0: 32.2,  t1: 37.5,  text: '快把酒满上干了这杯大声歌唱',             hi: '大声歌唱' },
-    { t0: 37.6,  t1: 43.0,  text: '好朋友好朋友今宵多欢畅',                 hi: '今宵多欢畅' },
-    { t0: 43.1,  t1: 48.5,  text: '理想改变了我们的模样',                   hi: '理想' },
-    { t0: 48.6,  t1: 54.0,  text: '也让我懂得了要珍惜朋友的肩膀',           hi: '朋友的肩膀' },
-    { t0: 54.1,  t1: 60.0,  text: '阳光总会在风雨之后撒向苍茫',             hi: '阳光' },
-    { t0: 60.1,  t1: 66.5,  text: '让我们抬起头学会了坚强',                 hi: '学会了坚强' },
-    { t0: 66.6,  t1: 72.5,  text: '就像朋友的这杯烈酒烫我心上',             hi: '烫我心上' },
-    { t0: 72.6,  t1: 79.5,  text: '温暖我凡事别再放心上',                   hi: '别再放心上' },
-    { t0: 80.0,  t1: 94.0,  text: '♪ 挚友欢聚 · 鲸歌伴奏间奏 ♪',            hi: '挚友欢聚' },
-    { t0: 94.5,  t1: 99.5,  text: '昨日一去不复回 开心比什么都贵',         hi: '开心' },
-    { t0: 99.6,  t1: 104.5, text: '覆水不能再收回 桃花谢了又开',           hi: '桃花' },
-    { t0: 104.6, t1: 109.5, text: '人生几何能够得到知己 真心换真情永不分离', hi: '知己' },
-    { t0: 109.6, t1: 115.0, text: '来吧朋友干了这杯酒 四海之内皆是好朋友', hi: '好朋友' },
-    { t0: 115.2, t1: 121.0, text: '快把酒满上干了这杯大声歌唱',             hi: '大声歌唱' },
-    { t0: 121.1, t1: 127.0, text: '好朋友好朋友今宵多欢畅',                 hi: '今宵多欢畅' },
-    { t0: 127.1, t1: 133.0, text: '理想改变了我们的模样',                   hi: '理想' },
-    { t0: 133.1, t1: 139.0, text: '也让我懂得了要珍惜朋友的肩膀',           hi: '朋友的肩膀' },
-    { t0: 139.1, t1: 145.0, text: '阳光总会在风雨之后撒向苍茫',             hi: '风雨之后' },
-    { t0: 145.1, t1: 151.0, text: '让我们抬起头学会了坚强',                 hi: '坚强' },
-    { t0: 151.1, t1: 157.5, text: '就像朋友的这杯烈酒烫我心上',             hi: '烈酒' },
-    { t0: 157.6, t1: 164.0, text: '温暖我凡事别再放心上',                   hi: '温暖' },
-    { t0: 164.2, t1: 173.0, text: '快把酒满上干了这杯大声歌唱 今宵多欢畅', hi: '今宵多欢畅' },
-    { t0: 173.1, t1: 181.5, text: '朋友的这杯烈酒烫我心上 温暖我凡事别再放心上', hi: '朋友' },
-    { t0: 181.6, t1: 188.0, text: '敬永远的知己 · 干杯！',                  hi: '干杯' }
+    { t0: 0.50,   t1: 18.25,  text: '《朋友的酒》 · 李晓杰（深海鲸鱼娘挚友欢聚篇）', hi: '朋友的酒' },
+    { t0: 18.31,  t1: 25.95,  text: '昨日一去不复回 哦也',                         hi: '一去不复回' },
+    { t0: 26.00,  t1: 34.05,  text: '开心比什么都贵',                               hi: '开心' },
+    { t0: 34.10,  t1: 41.95,  text: '覆水不能再收回 哦也',                         hi: '不能再收回' },
+    { t0: 41.99,  t1: 50.05,  text: '桃花谢了有玫瑰',                               hi: '玫瑰' },
+    { t0: 50.10,  t1: 53.90,  text: '人生几十年总会有风雨来陪',                     hi: '风雨来陪' },
+    { t0: 53.95,  t1: 57.95,  text: '潇潇洒洒赴会今不醉不归',                       hi: '不醉不归' },
+    { t0: 58.00,  t1: 61.45,  text: '往事后不后悔慢慢去体会',                       hi: '慢慢去体会' },
+    { t0: 61.49,  t1: 66.00,  text: '此刻朋友这杯酒最珍贵',                         hi: '最珍贵' },
+    { t0: 66.05,  t1: 69.90,  text: '快把酒满上干了这杯大声歌唱',                   hi: '大声歌唱' },
+    { t0: 69.94,  t1: 73.95,  text: '好朋友好朋友今宵多欢畅',                       hi: '今宵多欢畅' },
+    { t0: 73.99,  t1: 77.20,  text: '理想改变了我们的模样',                         hi: '理想' },
+    { t0: 77.23,  t1: 81.95,  text: '也让我懂得了要珍惜朋友的肩膀',                 hi: '朋友的肩膀' },
+    { t0: 81.99,  t1: 85.90,  text: '阳光总会在风雨之后撒向苍茫',                   hi: '阳光' },
+    { t0: 85.93,  t1: 89.82,  text: '让我们抬起头学会了坚强',                       hi: '学会了坚强' },
+    { t0: 89.87,  t1: 93.88,  text: '就像朋友的这杯烈酒烫我心上',                   hi: '烫我心上' },
+    { t0: 93.92,  t1: 100.50, text: '温暖我凡事别再放心上',                         hi: '别再放心上' },
+    { t0: 100.55, t1: 114.08, text: '（间奏 · 挚友欢聚 · 举杯共饮大肥鱼干饭篇）',   hi: '挚友欢聚' },
+    { t0: 114.13, t1: 121.98, text: '今天我们来相会 哦也',                         hi: '来相会' },
+    { t0: 122.02, t1: 130.08, text: '深情斟满了酒杯',                               hi: '斟满了酒杯' },
+    { t0: 130.12, t1: 137.98, text: '岁月匆匆如流水 哦也',                         hi: '如流水' },
+    { t0: 138.02, t1: 146.00, text: '管他昨天谁是谁',                               hi: '谁是谁' },
+    { t0: 146.06, t1: 149.92, text: '人生的旅程有苦有甜也有泪',                     hi: '有苦有甜' },
+    { t0: 149.97, t1: 153.82, text: '好汉不提当年酒再干一杯',                       hi: '再干一杯' },
+    { t0: 153.87, t1: 157.56, text: '往事决不后悔不必再理会',                       hi: '决不后悔' },
+    { t0: 157.61, t1: 161.96, text: '此刻朋友这杯酒最珍贵',                         hi: '最珍贵' },
+    { t0: 162.01, t1: 165.88, text: '快把酒满上干了这杯大声歌唱',                   hi: '大声歌唱' },
+    { t0: 165.91, t1: 169.90, text: '好朋友好朋友今宵多欢畅',                       hi: '今宵多欢畅' },
+    { t0: 169.95, t1: 173.25, text: '理想改变了我们的模样',                         hi: '理想' },
+    { t0: 173.29, t1: 177.90, text: '也让我懂得了要珍惜朋友的肩膀',                 hi: '朋友的肩膀' },
+    { t0: 177.95, t1: 181.95, text: '阳光总会在风雨之后撒向苍茫',                   hi: '风雨之后' },
+    { t0: 182.00, t1: 186.10, text: '让我们抬起头学会了坚强',                       hi: '学会了坚强' },
+    { t0: 186.16, t1: 188.25, text: '就像朋友的这杯烈酒烫我心上',                   hi: '烫我心上' }
   ];
 
   function drawWhaleRiso(ctx, x, y, opts = {}) {
     const t = opts.t || 0;
     const emo = opts.feel || 'happy';
     const u = (opts.scale || 2.35) * 11.5;
+    const actIdx = Math.floor(t / 3.4);
+    const chosenAction = opts.action || (typeof WHALE.pickAction === 'function' ? WHALE.pickAction(actIdx) : 'toast_cheers');
     const baseOps = Object.assign({}, feel(emo, t), opts, {
       view: opts.view || 'front',
       style: 'risograph',
       constructMode: 'pixelRig',
+      action: chosenAction,
+      showActionBadge: true,
       t
     });
     whaleGirl(ctx, x, y, u, baseOps);
+    if (typeof WHALE.drawFatFish === 'function') {
+      WHALE.drawFatFish(ctx, x + 150, y - 12, 19, {
+        t,
+        mode: ['eat_rice', 'success', 'working', 'idle'][actIdx % 4]
+      });
+    }
   }
 
   // Sparkling golden cheers mug prop
@@ -134,16 +148,14 @@
     }
     if (!active) return;
 
-    const prog = Math.min(1, (t - active.t0) / Math.max(0.25, (active.t1 - active.t0) * 0.4));
-    const shown = active.text.slice(0, Math.max(1, Math.ceil(active.text.length * prog)));
-    const hasHi = active.hi && shown.includes(active.hi);
+    const prog = Math.min(1, Math.max(0, (t - active.t0) / Math.max(0.25, active.t1 - active.t0)));
 
     ctx.save();
-    ctx.fillStyle = 'rgba(24, 16, 40, 0.78)';
-    ctx.strokeStyle = hasHi ? '#FACC15' : '#FB7185';
+    ctx.fillStyle = 'rgba(24, 16, 40, 0.88)';
+    ctx.strokeStyle = '#FACC15';
     ctx.lineWidth = 2.5;
     ctx.beginPath();
-    ctx.roundRect(250, 618, 780, 56, 14);
+    ctx.roundRect(210, 616, 860, 60, 16);
     ctx.fill();
     ctx.stroke();
 
@@ -152,9 +164,18 @@
     ctx.font = 'bold 28px "ZCOOLKuaiLe", "NotoSansSC", sans-serif';
     ctx.lineWidth = 6;
     ctx.strokeStyle = '#181028';
-    ctx.strokeText(shown, 640, 646);
-    ctx.fillStyle = hasHi ? '#FACC15' : '#FFF1F2';
-    ctx.fillText(shown, 640, 646);
+    ctx.strokeText(active.text, 640, 646);
+    ctx.fillStyle = '#FFF1F2';
+    ctx.fillText(active.text, 640, 646);
+
+    const tw = ctx.measureText(active.text).width;
+    ctx.save();
+    ctx.beginPath();
+    ctx.rect(640 - tw * 0.5, 616, tw * prog, 60);
+    ctx.clip();
+    ctx.fillStyle = '#FACC15';
+    ctx.fillText(active.text, 640, 646);
+    ctx.restore();
     ctx.restore();
   }
 
@@ -254,7 +275,7 @@
       ctx.fillRect(0, 550, 1280, 170);
 
       // WhaleGirl & friends toasting under the peach blossoms
-      CAST.researcher(ctx, 410, 545, 24, { t, flip: false });
+      if (CAST.ladyGemini) CAST.ladyGemini(ctx, 410, 545, 24, { t, flip: false });
       drawWhaleRiso(ctx, 640, 555, {
         view: 'front',
         feel: 'happy',
@@ -371,7 +392,7 @@
         }
       }
 
-      CAST.researcher(ctx, 260, 535, 23, { t });
+      if (CAST.ladyGemini) CAST.ladyGemini(ctx, 260, 535, 23, { t });
       CAST.ladyClaude(ctx, 435, 535, 23, { t });
       drawWhaleRiso(ctx, 640, 545, {
         view: 'front',

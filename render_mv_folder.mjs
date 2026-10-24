@@ -28,8 +28,10 @@ for (const [file, name] of fontList) {
 globalThis.window = globalThis;
 require(path.join(ROOT, 'src/core.js'));
 require(path.join(ROOT, 'src/whale_girl_rig_data.js'));
+require(path.join(ROOT, 'src/whale_girl_actions.js'));
 require(path.join(ROOT, 'src/whale_girl.js'));
 require(path.join(ROOT, 'src/cast.js'));
+require(path.join(ROOT, 'src/mv_ba_huiyi_pinhao_gei_ni.js'));
 require(path.join(ROOT, 'src/mv_pack_short.js'));
 require(path.join(ROOT, 'src/mv_pack_long.js'));
 
@@ -37,27 +39,27 @@ const ALL_MVS = [
   {
     key: 'ba_huiyi_56',
     pack: globalThis.MV_PACK_SHORT.ba_huiyi_56,
-    audio: 'assets/mv_audio/ba_huiyi_56.mp3',
+    audio: 'mv/《把回忆拼好给你》.mp4',
     audioEnv: 'assets/mv_audio/ba_huiyi_56_audio.js',
     outRoot: 'mv_ba_huiyi_56_whale_girl.mp4',
     outMvLink: 'mv/《把回忆拼好给你》_whale_girl.mp4',
     fps: 24,
-    sampleTimes: [3.0, 14.5, 21.0, 34.0, 51.5]
+    sampleTimes: [2.0, 13.0, 21.0, 34.5, 50.0]
   },
   {
     key: 'lianai_ing',
     pack: globalThis.MV_PACK_SHORT.lianai_ing,
-    audio: 'assets/mv_audio/lianai_ing.mp3',
+    audio: 'mv/发现更多精彩视频 - 抖音搜索_2.mp4',
     audioEnv: 'assets/mv_audio/lianai_ing_audio.js',
     outRoot: 'mv_lianai_ing_whale_girl.mp4',
     outMvLink: 'mv/发现更多精彩视频 - 抖音搜索_2_whale_girl.mp4',
     fps: 24,
-    sampleTimes: [4.5, 10.5, 15.5, 27.5, 36.5]
+    sampleTimes: [4.5, 13.5, 22.5, 30.0, 44.5]
   },
   {
     key: 'jimo_yanhuo',
     pack: globalThis.MV_PACK_SHORT.jimo_yanhuo,
-    audio: 'assets/mv_audio/jimo_yanhuo.mp3',
+    audio: 'mv/寂寞烟火.mp4',
     audioEnv: 'assets/mv_audio/jimo_yanhuo_audio.js',
     outRoot: 'mv_jimo_yanhuo_whale_girl.mp4',
     outMvLink: 'mv/寂寞烟火_whale_girl.mp4',
@@ -67,27 +69,27 @@ const ALL_MVS = [
   {
     key: 'xinqiang',
     pack: globalThis.MV_PACK_SHORT.xinqiang,
-    audio: 'assets/mv_audio/xinqiang.mp3',
+    audio: 'mv/心墙.mp4',
     audioEnv: 'assets/mv_audio/xinqiang_audio.js',
     outRoot: 'mv_xinqiang_whale_girl.mp4',
     outMvLink: 'mv/心墙_whale_girl.mp4',
     fps: 24,
-    sampleTimes: [2.5, 13.5, 18.0, 23.5, 29.5]
+    sampleTimes: [1.5, 10.5, 16.5, 21.5, 27.5]
   },
   {
     key: 'ribuluo',
     pack: globalThis.MV_PACK_SHORT.ribuluo,
-    audio: 'assets/mv_audio/ribuluo.mp3',
+    audio: 'mv/日不落.mp4',
     audioEnv: 'assets/mv_audio/ribuluo_audio.js',
     outRoot: 'mv_ribuluo_whale_girl.mp4',
     outMvLink: 'mv/日不落_whale_girl.mp4',
     fps: 24,
-    sampleTimes: [5.0, 22.5, 26.5, 30.5, 43.5]
+    sampleTimes: [4.5, 18.0, 26.0, 34.5, 41.5]
   },
   {
     key: 'huainvhai',
     pack: globalThis.MV_PACK_LONG.huainvhai,
-    audio: 'assets/mv_audio/huainvhai.mp3',
+    audio: 'mv/坏女孩.mp4',
     audioEnv: 'assets/mv_audio/huainvhai_audio.js',
     outRoot: 'mv_huainvhai_whale_girl.mp4',
     outMvLink: 'mv/坏女孩_whale_girl.mp4',
@@ -97,7 +99,7 @@ const ALL_MVS = [
   {
     key: 'feng',
     pack: globalThis.MV_PACK_LONG.feng,
-    audio: 'assets/mv_audio/feng.mp3',
+    audio: 'mv/枫.mp4',
     audioEnv: 'assets/mv_audio/feng_audio.js',
     outRoot: 'mv_feng_whale_girl.mp4',
     outMvLink: 'mv/枫_whale_girl.mp4',
@@ -107,7 +109,7 @@ const ALL_MVS = [
   {
     key: 'meiguihua',
     pack: globalThis.MV_PACK_LONG.meiguihua,
-    audio: 'assets/mv_audio/meiguihua.mp3',
+    audio: 'mv/玫瑰花的葬礼.mp4',
     audioEnv: 'assets/mv_audio/meiguihua_audio.js',
     outRoot: 'mv_meiguihua_de_zangli_whale_girl.mp4',
     outMvLink: 'mv/玫瑰花的葬礼_whale_girl.mp4',
@@ -117,7 +119,7 @@ const ALL_MVS = [
   {
     key: 'suyan',
     pack: globalThis.MV_PACK_LONG.suyan,
-    audio: 'assets/mv_audio/suyan.mp3',
+    audio: 'mv/素颜1.mp4',
     audioEnv: 'assets/mv_audio/suyan_audio.js',
     outRoot: 'mv_suyan_whale_girl.mp4',
     outMvLink: 'mv/素颜1_whale_girl.mp4',
@@ -216,8 +218,10 @@ async function renderSingleMV(item) {
 
 const arg = process.argv[2] || 'all';
 (async () => {
-  await renderStoryboardSheet();
-  if (arg === 'sheet') return;
+  if (arg === 'sheet' || arg === 'all') {
+    await renderStoryboardSheet();
+    if (arg === 'sheet') return;
+  }
   for (const item of ALL_MVS) {
     if (arg === 'all' || arg === item.key) {
       await renderSingleMV(item);

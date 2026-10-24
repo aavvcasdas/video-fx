@@ -19,13 +19,14 @@ try {
 const { createCanvas, GlobalFonts } = canvasPkg;
 
 GlobalFonts.registerFromPath(path.resolve('assets/fonts/ZCOOLKuaiLe-Regular.ttf'), 'ZCOOLKuaiLe');
-GlobalFonts.registerFromPath(path.resolve('assets/fonts/NotoSansSC-Bold.woff2'), 'NotoSansSC');
+GlobalFonts.registerFromPath(path.resolve('assets/fonts/NotoSansSC-Bold.ttf'), 'NotoSansSC');
 GlobalFonts.registerFromPath(path.resolve('assets/fonts/Silkscreen-Regular.ttf'), 'Silkscreen');
 
 globalThis.window = globalThis;
 require('./assets/pengyou_de_jiu_audio.js');
 const CORE = require('./src/core.js');
 require('./src/whale_girl_rig_data.js');
+require('./src/whale_girl_actions.js');
 const WHALE = require('./src/whale_girl.js');
 const CLAWD = require('./src/clawd.js');
 const CAST = require('./src/cast.js');

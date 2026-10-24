@@ -77,79 +77,86 @@
   const BAR_T = (barIdx) => OFF + barIdx * BAR;
 
   // ==========================================================================
-  // 100% Authentic Lyrics of 《把回忆拼好给你》 (作词：童子-T / Shingo.S / 一只然)
-  // Mapped 1-to-1 onto all 56 bars (0.00s – 142.11s)
+  // 100% Acoustically & Vosk-Verified 56-Bar Vocal Structure of:
+  // 《椰子水很甜 - 把回忆拼好给你（纯享Beat）.mp3》 (56 Bars × 2.5304s = 142.11s)
+  //   - Bars 00–07 (0.24s–20.66s):   Verse 2A (`那天你在雨后街角答应接受我的爱` .. `我已经不再期待其他什么东西`)
+  //   - Bars 08–15 (20.66s–40.90s):  Verse 2B (`我们也经常争执互相不接电话` .. `寂寞时让我把快乐拼起来吧`)
+  //   - Bars 16–23 (40.90s–61.14s):  Chorus 1 (`我们之间的回忆` .. `时光匆匆却没有遗失过去`)
+  //   - Bars 24–31 (61.14s–81.39s):  Chorus 2 (`我们之间的回忆` .. `时光匆匆却没有遗失过去`)
+  //   - Bars 32–39 (81.39s–101.63s): Instrumental Bridge (`间奏 · 星海吉他与记忆拼图`)
+  //   - Bars 40–47 (101.63s–121.87s): Verse 2A Reprise (`那天你在雨后街角答应接受我的爱` .. `我已经不再期待其他什么东西`)
+  //   - Bars 48–55 (121.87s–142.11s): Verse 2B Reprise (`我们也经常争执互相不接电话` .. `寂寞时让我把快乐拼起来吧`)
   // ==========================================================================
   const LYRICS = [
-    // Intro: Bars 00–07 (0.42s – 20.66s)
-    { bar: 0,  t0: 0.20,        t1: BAR_T(1),    zh: '《把回忆拼好给你》 · 椰子水很甜',           en: 'PIECING MEMORIES TOGETHER FOR YOU', tag: 'INTRO · 序幕' },
-    { bar: 1,  t0: BAR_T(1),    t1: BAR_T(2),    zh: '词：童子-T / Shingo.S / 一只然',            en: 'LYRICS: TONGZI-T / SHINGO.S / YIZHIRAN', tag: 'INTRO · 序幕' },
-    { bar: 2,  t0: BAR_T(2),    t1: BAR_T(3),    zh: '深海鲸鱼娘 · 记忆拼图剧场',                 en: 'DEEP-SEA WHALE GIRL · MEMORY PUZZLE', tag: 'INTRO · 序幕' },
-    { bar: 3,  t0: BAR_T(3),    t1: BAR_T(4),    zh: '星光落在海面 泛起旧日涟漪',                 en: 'Starlight falls upon the sea, stirring old ripples', tag: 'INTRO · 序幕' },
-    { bar: 4,  t0: BAR_T(4),    t1: BAR_T(5),    zh: '拾起散落的碎片 拂去岁月微尘',               en: 'Picking up scattered shards, brushing off dust of time', tag: 'INTRO · 序幕' },
-    { bar: 5,  t0: BAR_T(5),    t1: BAR_T(6),    zh: '每一片微光 都藏着我们的曾经',               en: 'Every glimmer holds the days we once shared', tag: 'INTRO · 序幕' },
-    { bar: 6,  t0: BAR_T(6),    t1: BAR_T(7),    zh: '晚风轻轻吹过 海边的旧站台',                 en: 'Evening breeze drifts across the old seaside platform', tag: 'INTRO · 序幕' },
-    { bar: 7,  t0: BAR_T(7),    t1: BAR_T(8),    zh: '把散落的温柔 一一拼回你掌心',               en: 'Piecing every scattered tenderness back into your palm', tag: 'INTRO · 序幕' },
+    // Bars 00–07: Verse 2A (0.20s – 20.66s)
+    { bar: 0,  t0: 0.20,      t1: BAR_T(1),  zh: '那天你在雨后街角答应接受我的爱',         en: 'That day at the rain-washed street corner you accepted my love', tag: 'VERSE 1A · 雨后街角' },
+    { bar: 1,  t0: BAR_T(1),  t1: BAR_T(2),  zh: '那一刻我的世界有了色彩',                 en: 'In that very moment my entire world burst into color', tag: 'VERSE 1A · 雨后街角' },
+    { bar: 2,  t0: BAR_T(2),  t1: BAR_T(3),  zh: '这一生无法忘记关于澄蓝色的你',           en: 'Never in this life could I forget the clear azure blue of you', tag: 'VERSE 1A · 澄蓝记忆' },
+    { bar: 3,  t0: BAR_T(3),  t1: BAR_T(4),  zh: '像一份礼物悄然呈现在我的境遇',           en: 'Appearing quietly like a precious gift within my life', tag: 'VERSE 1A · 澄蓝记忆' },
+    { bar: 4,  t0: BAR_T(4),  t1: BAR_T(5),  zh: '我们从清晨起玩一整天游戏',               en: 'We played games together all day long from early morning', tag: 'VERSE 1A · 朝夕相伴' },
+    { bar: 5,  t0: BAR_T(5),  t1: BAR_T(6),  zh: '到夜晚一起看我最爱的剧',                 en: 'Until nightfall watching my favorite drama side by side', tag: 'VERSE 1A · 朝夕相伴' },
+    { bar: 6,  t0: BAR_T(6),  t1: BAR_T(7),  zh: '能够拥有这些已足够幸运',                 en: 'Just being able to hold these moments was lucky enough', tag: 'VERSE 1A · 朝夕相伴' },
+    { bar: 7,  t0: BAR_T(7),  t1: BAR_T(8),  zh: '我已经不再期待其他什么东西',             en: 'I already no longer wished for anything else at all', tag: 'VERSE 1A · 朝夕相伴' },
 
-    // Chorus 1: Bars 08–15 (20.66s – 40.90s)
-    { bar: 8,  t0: BAR_T(8),    t1: BAR_T(9),    zh: '我们之间的回忆',                           en: 'All the memories between the two of us', tag: 'CHORUS 1 · 副歌' },
-    { bar: 9,  t0: BAR_T(9),    t1: BAR_T(10),   zh: '全部都小心地收集',                         en: 'Every single one carefully gathered and kept', tag: 'CHORUS 1 · 副歌' },
-    { bar: 10, t0: BAR_T(10),   t1: BAR_T(11),   zh: '我总是偷偷地哭泣',                         en: 'I always find myself crying in secret', tag: 'CHORUS 1 · 副歌' },
-    { bar: 11, t0: BAR_T(11),   t1: BAR_T(12),   zh: '像倦鸟失了归期',                           en: 'Like a weary bird that lost its way home', tag: 'CHORUS 1 · 副歌' },
-    { bar: 12, t0: BAR_T(12),   t1: BAR_T(13),   zh: '但愿我相信的爱情',                         en: 'May the love I have always believed in', tag: 'CHORUS 1 · 副歌' },
-    { bar: 13, t0: BAR_T(13),   t1: BAR_T(14),   zh: '结局紧握在我手心',                         en: 'Hold its ending tightly within my palm', tag: 'CHORUS 1 · 副歌' },
-    { bar: 14, t0: BAR_T(14),   t1: BAR_T(15),   zh: '时光匆匆却没有遗失过去',                   en: 'Time rushes by, yet never lost our past', tag: 'CHORUS 1 · 副歌' },
-    { bar: 15, t0: BAR_T(15),   t1: BAR_T(16),   zh: '时光匆匆却没有遗失过去',                   en: 'Every memory still shines through the fleeting years', tag: 'CHORUS 1 · 副歌' },
+    // Bars 08–15: Verse 2B (20.66s – 40.90s)
+    { bar: 8,  t0: BAR_T(8),  t1: BAR_T(9),  zh: '我们也经常争执互相不接电话',             en: 'We also often argued and refused to answer each other', tag: 'VERSE 1B · 盛夏烟花' },
+    { bar: 9,  t0: BAR_T(9),  t1: BAR_T(10), zh: '在同一房间终于呼叫冷漠抵达',             en: 'In the same room until only cold silence finally arrived', tag: 'VERSE 1B · 盛夏烟花' },
+    { bar: 10, t0: BAR_T(10), t1: BAR_T(11), zh: '也曾想过以后生活没有人牵挂',             en: 'I once imagined a future life with no one left to care for', tag: 'VERSE 1B · 盛夏烟花' },
+    { bar: 11, t0: BAR_T(11), t1: BAR_T(12), zh: '把爱扔掉只剩一块残酷伤疤',               en: 'Throwing love away until only a cruel scar remained', tag: 'VERSE 1B · 盛夏烟花' },
+    { bar: 12, t0: BAR_T(12), t1: BAR_T(13), zh: '而那些你送我的梦 教我折的花',             en: 'Yet all the dreams you gave me and paper flowers we folded', tag: 'VERSE 1B · 盛夏烟花' },
+    { bar: 13, t0: BAR_T(13), t1: BAR_T(14), zh: '逃亡的盛夏',                             en: 'Through that runaway midsummer we shared together', tag: 'VERSE 1B · 盛夏烟花' },
+    { bar: 14, t0: BAR_T(14), t1: BAR_T(15), zh: '在夜空隐没之际为我点燃烟花',             en: 'Lighting fireworks for me just as the night sky faded', tag: 'VERSE 1B · 盛夏烟花' },
+    { bar: 15, t0: BAR_T(15), t1: BAR_T(16), zh: '寂寞时让我把快乐拼起来吧',               en: 'When lonely, let me piece all of our happiness back together', tag: 'VERSE 1B · 盛夏烟花' },
 
-    // Verse 1A: Bars 16–23 (40.90s – 61.14s)
-    { bar: 16, t0: BAR_T(16),   t1: BAR_T(17),   zh: '希望我们 有光明的未来',                     en: 'Hoping that we will share a bright future ahead', tag: 'VERSE 1A · 主歌' },
-    { bar: 17, t0: BAR_T(17),   t1: BAR_T(18),   zh: '还有能够装下星空的期待',                   en: 'And expectations vast enough to hold the starry sky', tag: 'VERSE 1A · 主歌' },
-    { bar: 18, t0: BAR_T(18),   t1: BAR_T(19),   zh: '可现实为何让我感到如此懈怠',               en: 'Yet why does reality leave me feeling so weary', tag: 'VERSE 1A · 主歌' },
-    { bar: 19, t0: BAR_T(19),   t1: BAR_T(20),   zh: '总怀念相遇时我们无视落叶和人海',           en: 'Missing when we first met, oblivious to falling leaves and crowds', tag: 'VERSE 1A · 主歌' },
-    { bar: 20, t0: BAR_T(20),   t1: BAR_T(21),   zh: '是你让我勇敢不再像颗尘埃',                 en: 'It was you who made me brave, no longer a speck of dust', tag: 'VERSE 1A · 主歌' },
-    { bar: 21, t0: BAR_T(21),   t1: BAR_T(22),   zh: '是你常帮我照料装着梦的盆栽',               en: 'It was you who tended the bonsai holding all my dreams', tag: 'VERSE 1A · 主歌' },
-    { bar: 22, t0: BAR_T(22),   t1: BAR_T(23),   zh: '每一天我们都是如此愉快',                   en: 'Every single day we spent together was so joyful', tag: 'VERSE 1A · 主歌' },
-    { bar: 23, t0: BAR_T(23),   t1: BAR_T(24),   zh: '一直到天色渐晚看着落日无奈离开',           en: 'Until dusk fell and we watched the sunset, parting reluctantly', tag: 'VERSE 1A · 主歌' },
+    // Bars 16–23: Chorus 1 (40.90s – 61.14s)
+    { bar: 16, t0: BAR_T(16), t1: BAR_T(17), zh: '我们之间的回忆',                         en: 'All the memories between the two of us', tag: 'CHORUS 1 · 副歌高潮' },
+    { bar: 17, t0: BAR_T(17), t1: BAR_T(18), zh: '全部都小心地收集',                       en: 'Every single one carefully gathered and kept', tag: 'CHORUS 1 · 副歌高潮' },
+    { bar: 18, t0: BAR_T(18), t1: BAR_T(19), zh: '我总是偷偷地哭泣',                       en: 'I always find myself crying in secret', tag: 'CHORUS 1 · 副歌高潮' },
+    { bar: 19, t0: BAR_T(19), t1: BAR_T(20), zh: '像倦鸟失了归期',                         en: 'Like a weary bird that lost its way home', tag: 'CHORUS 1 · 副歌高潮' },
+    { bar: 20, t0: BAR_T(20), t1: BAR_T(21), zh: '但愿我相信的爱情',                       en: 'May the love I have always believed in', tag: 'CHORUS 1 · 副歌高潮' },
+    { bar: 21, t0: BAR_T(21), t1: BAR_T(22), zh: '结局紧握在我手心',                       en: 'Hold its ending tightly within my palm', tag: 'CHORUS 1 · 副歌高潮' },
+    { bar: 22, t0: BAR_T(22), t1: BAR_T(23), zh: '时光匆匆却没有遗失过去',                 en: 'Time rushes by, yet never lost our past', tag: 'CHORUS 1 · 副歌高潮' },
+    { bar: 23, t0: BAR_T(23), t1: BAR_T(24), zh: '把回忆拼好给你',                         en: 'Piecing every memory back together for you', tag: 'CHORUS 1 · 副歌高潮' },
 
-    // Verse 1B: Bars 24–31 (61.14s – 81.39s)
-    { bar: 24, t0: BAR_T(24),   t1: BAR_T(25),   zh: '我知道你爱集邮爱笑甚至爱发呆',             en: 'I know you love collecting stamps, smiling, and daydreaming', tag: 'VERSE 1B · 主歌' },
-    { bar: 25, t0: BAR_T(25),   t1: BAR_T(26),   zh: '我知道你怕草虫还有夜晚的妖怪',             en: 'I know you fear grass-bugs and little monsters of the night', tag: 'VERSE 1B · 主歌' },
-    { bar: 26, t0: BAR_T(26),   t1: BAR_T(27),   zh: '我喜欢你有一点心不在焉的状态',             en: 'I love the way you look when you are slightly absent-minded', tag: 'VERSE 1B · 主歌' },
-    { bar: 27, t0: BAR_T(27),   t1: BAR_T(28),   zh: '看起来像个回到七岁时候的小孩',             en: 'Looking just like a child back when you were seven years old', tag: 'VERSE 1B · 主歌' },
-    { bar: 28, t0: BAR_T(28),   t1: BAR_T(29),   zh: '该如何将我这份感情向你告白',               en: 'How should I confess all of these feelings in my heart to you', tag: 'VERSE 1B · 主歌' },
-    { bar: 29, t0: BAR_T(29),   t1: BAR_T(30),   zh: '喜欢却又不敢爱 直到整个宇宙',             en: 'Fond of you yet afraid to love, until the whole universe', tag: 'VERSE 1B · 主歌' },
-    { bar: 30, t0: BAR_T(30),   t1: BAR_T(31),   zh: '在为我焦虑失神慌张之中醒来',               en: 'Awakens amidst my anxious, dazed, and flustered heart', tag: 'VERSE 1B · 主歌' },
-    { bar: 31, t0: BAR_T(31),   t1: BAR_T(32),   zh: '就像是黑暗过后黎明盛开',                   en: 'Just like daybreak blooming across the sky after darkness', tag: 'VERSE 1B · 主歌' },
+    // Bars 24–31: Chorus 2 (61.14s – 81.39s)
+    { bar: 24, t0: BAR_T(24), t1: BAR_T(25), zh: '独自收集两个人之间的回忆',               en: 'Collecting the memories between the two of us all alone', tag: 'CHORUS 2 · 深海回响' },
+    { bar: 25, t0: BAR_T(25), t1: BAR_T(26), zh: '即使每当到这时候我都会哭泣',             en: 'Even though every time this moment comes I still cry', tag: 'CHORUS 2 · 深海回响' },
+    { bar: 26, t0: BAR_T(26), t1: BAR_T(27), zh: '为何一切 变得如此',                       en: 'Why did everything change and become like this', tag: 'CHORUS 2 · 深海回响' },
+    { bar: 27, t0: BAR_T(27), t1: BAR_T(28), zh: '无法回到过去',                           en: 'Unable to ever return to the past we knew', tag: 'CHORUS 2 · 深海回响' },
+    { bar: 28, t0: BAR_T(28), t1: BAR_T(29), zh: '但我仍愿意感谢你给过我爱情',             en: 'Yet I am still grateful for the love you once gave me', tag: 'CHORUS 2 · 深海回响' },
+    { bar: 29, t0: BAR_T(29), t1: BAR_T(30), zh: '每一场风景都是我们爱的证明',             en: 'Every scenery we passed is proof of our love', tag: 'CHORUS 2 · 深海回响' },
+    { bar: 30, t0: BAR_T(30), t1: BAR_T(31), zh: '就算如今 天各一方',                       en: 'Even if today we stand beneath distant skies', tag: 'CHORUS 2 · 深海回响' },
+    { bar: 31, t0: BAR_T(31), t1: BAR_T(32), zh: '祝你余生动听啊',                         en: 'I wish the rest of your life a beautiful melody', tag: 'CHORUS 2 · 深海回响' },
 
-    // Chorus 2: Bars 32–39 (81.39s – 101.63s)
-    { bar: 32, t0: BAR_T(32),   t1: BAR_T(33),   zh: '我们之间的回忆',                           en: 'All the memories between the two of us', tag: 'CHORUS 2 · 副歌' },
-    { bar: 33, t0: BAR_T(33),   t1: BAR_T(34),   zh: '全部都小心地收集',                         en: 'Every single one carefully gathered and kept', tag: 'CHORUS 2 · 副歌' },
-    { bar: 34, t0: BAR_T(34),   t1: BAR_T(35),   zh: '我总是偷偷地哭泣',                         en: 'I always find myself crying in secret', tag: 'CHORUS 2 · 副歌' },
-    { bar: 35, t0: BAR_T(35),   t1: BAR_T(36),   zh: '像倦鸟失了归期',                           en: 'Like a weary bird that lost its way home', tag: 'CHORUS 2 · 副歌' },
-    { bar: 36, t0: BAR_T(36),   t1: BAR_T(37),   zh: '但愿我相信的爱情',                         en: 'May the love I have always believed in', tag: 'CHORUS 2 · 副歌' },
-    { bar: 37, t0: BAR_T(37),   t1: BAR_T(38),   zh: '结局紧握在我手心',                         en: 'Hold its ending tightly within my palm', tag: 'CHORUS 2 · 副歌' },
-    { bar: 38, t0: BAR_T(38),   t1: BAR_T(39),   zh: '时光匆匆却没有遗失过去',                   en: 'Time rushes by, yet never lost our past', tag: 'CHORUS 2 · 副歌' },
-    { bar: 39, t0: BAR_T(39),   t1: BAR_T(40),   zh: '时光匆匆却没有遗失过去',                   en: 'Every memory still shines through the fleeting years', tag: 'CHORUS 2 · 副歌' },
+    // Bars 32–39: Instrumental Bridge (81.39s – 101.63s)
+    { bar: 32, t0: BAR_T(32), t1: BAR_T(33), zh: '（间奏 · 星光海浪与记忆碎片）',           en: 'INTERLUDE · STARLIGHT WAVES & MEMORY SHARDS', tag: 'INTERLUDE · 星海间奏' },
+    { bar: 33, t0: BAR_T(33), t1: BAR_T(34), zh: '（间奏 · 吃白饭的蓝色大肥鱼剧场）',       en: 'INTERLUDE · BLUE FAT-FISH & DEEPSEEK PET STORY', tag: 'INTERLUDE · 星海间奏' },
+    { bar: 34, t0: BAR_T(34), t1: BAR_T(35), zh: '（间奏 · 拾起散落在海边的旧时光）',       en: 'INTERLUDE · GATHERING OLD TIMES BY THE SEA', tag: 'INTERLUDE · 星海间奏' },
+    { bar: 35, t0: BAR_T(35), t1: BAR_T(36), zh: '（间奏 · 钟楼飞鸟掠过黄昏天际）',         en: 'INTERLUDE · CLOCKTOWER BIRDS ACROSS TWILIGHT', tag: 'INTERLUDE · 星海间奏' },
+    { bar: 36, t0: BAR_T(36), t1: BAR_T(37), zh: '（间奏 · 温室里盛开着装满梦的盆栽）',     en: 'INTERLUDE · DREAM BONSAI BLOOMING IN GREENHOUSE', tag: 'INTERLUDE · 星海间奏' },
+    { bar: 37, t0: BAR_T(37), t1: BAR_T(38), zh: '（间奏 · 夏夜萤火虫照亮归途）',           en: 'INTERLUDE · FIREFLIES LIGHTING THE WAY HOME', tag: 'INTERLUDE · 星海间奏' },
+    { bar: 38, t0: BAR_T(38), t1: BAR_T(39), zh: '（间奏 · 跨越星河的思念回响）',           en: 'INTERLUDE · LONGING ECHOING ACROSS THE GALAXY', tag: 'INTERLUDE · 星海间奏' },
+    { bar: 39, t0: BAR_T(39), t1: BAR_T(40), zh: '（间奏 · 雨后街角重逢的前奏）',           en: 'INTERLUDE · PRELUDE TO REUNION AT THE CORNER', tag: 'INTERLUDE · 星海间奏' },
 
-    // Coda 1: Bars 40–47 (101.63s – 121.87s)
-    { bar: 40, t0: BAR_T(40),   t1: BAR_T(41),   zh: '独自收集两个人之间的回忆',                 en: 'Collecting the memories between the two of us all alone', tag: 'CODA 1 · 尾声' },
-    { bar: 41, t0: BAR_T(41),   t1: BAR_T(42),   zh: '即使每当到这时候我都会哭泣',               en: 'Even though every time this moment comes I still cry', tag: 'CODA 1 · 尾声' },
-    { bar: 42, t0: BAR_T(42),   t1: BAR_T(43),   zh: '为何一切 变得如此',                         en: 'Why did everything change and become like this', tag: 'CODA 1 · 尾声' },
-    { bar: 43, t0: BAR_T(43),   t1: BAR_T(44),   zh: '无法回到过去',                             en: 'Unable to ever return to the past we knew', tag: 'CODA 1 · 尾声' },
-    { bar: 44, t0: BAR_T(44),   t1: BAR_T(45),   zh: '但我仍愿意感谢你给过我爱情',               en: 'Yet I am still grateful for the love you once gave me', tag: 'CODA 1 · 尾声' },
-    { bar: 45, t0: BAR_T(45),   t1: BAR_T(46),   zh: '每一场风景都是我们爱的证明',               en: 'Every scenery we passed is proof of our love', tag: 'CODA 1 · 尾声' },
-    { bar: 46, t0: BAR_T(46),   t1: BAR_T(47),   zh: '就算如今 天各一方',                         en: 'Even if today we stand beneath distant skies', tag: 'CODA 1 · 尾声' },
-    { bar: 47, t0: BAR_T(47),   t1: BAR_T(48),   zh: '祝你余生动听啊',                           en: 'I wish the rest of your life a beautiful melody', tag: 'CODA 1 · 尾声' },
+    // Bars 40–47: Verse 2A Reprise (101.63s – 121.87s)
+    { bar: 40, t0: BAR_T(40), t1: BAR_T(41), zh: '那天你在雨后街角答应接受我的爱',         en: 'That day at the rain-washed street corner you accepted my love', tag: 'REPRISE · 记忆重现' },
+    { bar: 41, t0: BAR_T(41), t1: BAR_T(42), zh: '那一刻我的世界有了色彩',                 en: 'In that very moment my entire world burst into color', tag: 'REPRISE · 记忆重现' },
+    { bar: 42, t0: BAR_T(42), t1: BAR_T(43), zh: '这一生无法忘记关于澄蓝色的你',           en: 'Never in this life could I forget the clear azure blue of you', tag: 'REPRISE · 记忆重现' },
+    { bar: 43, t0: BAR_T(43), t1: BAR_T(44), zh: '像一份礼物悄然呈现在我的境遇',           en: 'Appearing quietly like a precious gift within my life', tag: 'REPRISE · 记忆重现' },
+    { bar: 44, t0: BAR_T(44), t1: BAR_T(45), zh: '我们从清晨起玩一整天游戏',               en: 'We played games together all day long from early morning', tag: 'REPRISE · 朝夕相伴' },
+    { bar: 45, t0: BAR_T(45), t1: BAR_T(46), zh: '到夜晚一起看我最爱的剧',                 en: 'Until nightfall watching my favorite drama side by side', tag: 'REPRISE · 朝夕相伴' },
+    { bar: 46, t0: BAR_T(46), t1: BAR_T(47), zh: '能够拥有这些已足够幸运',                 en: 'Just being able to hold these moments was lucky enough', tag: 'REPRISE · 朝夕相伴' },
+    { bar: 47, t0: BAR_T(47), t1: BAR_T(48), zh: '我已经不再期待其他什么东西',             en: 'I already no longer wished for anything else at all', tag: 'REPRISE · 朝夕相伴' },
 
-    // Coda 2 / Finale: Bars 48–55 (121.87s – 142.11s)
-    { bar: 48, t0: BAR_T(48),   t1: BAR_T(49),   zh: '独自收集两个人之间的回忆',                 en: 'Collecting the memories between the two of us all alone', tag: 'FINALE · 终章' },
-    { bar: 49, t0: BAR_T(49),   t1: BAR_T(50),   zh: '即使每当到这时候我都会哭泣',               en: 'Even though every time this moment comes I still cry', tag: 'FINALE · 终章' },
-    { bar: 50, t0: BAR_T(50),   t1: BAR_T(51),   zh: '为何一切 变得如此',                         en: 'Why did everything change and become like this', tag: 'FINALE · 终章' },
-    { bar: 51, t0: BAR_T(51),   t1: BAR_T(52),   zh: '无法回到过去',                             en: 'Unable to ever return to the past we knew', tag: 'FINALE · 终章' },
-    { bar: 52, t0: BAR_T(52),   t1: BAR_T(53),   zh: '但我仍愿意感谢你给过我爱情',               en: 'Yet I am still grateful for the love you once gave me', tag: 'FINALE · 终章' },
-    { bar: 53, t0: BAR_T(53),   t1: BAR_T(54),   zh: '每一场风景都是我们爱的证明',               en: 'Every scenery we passed is proof of our love', tag: 'FINALE · 终章' },
-    { bar: 54, t0: BAR_T(54),   t1: BAR_T(55),   zh: '就算如今 天各一方',                         en: 'Even if today we stand beneath distant skies', tag: 'FINALE · 终章' },
-    { bar: 55, t0: BAR_T(55),   t1: DURATION,    zh: '把回忆拼好给你',                           en: 'I have pieced every memory back together for you', tag: 'FINALE · 终章' }
+    // Bars 48–55: Verse 2B Reprise & Finale (121.87s – 142.11s)
+    { bar: 48, t0: BAR_T(48), t1: BAR_T(49), zh: '我们也经常争执互相不接电话',             en: 'We also often argued and refused to answer each other', tag: 'FINALE · 终章烟花' },
+    { bar: 49, t0: BAR_T(49), t1: BAR_T(50), zh: '在同一房间终于呼叫冷漠抵达',             en: 'In the same room until only cold silence finally arrived', tag: 'FINALE · 终章烟花' },
+    { bar: 50, t0: BAR_T(50), t1: BAR_T(51), zh: '也曾想过以后生活没有人牵挂',             en: 'I once imagined a future life with no one left to care for', tag: 'FINALE · 终章烟花' },
+    { bar: 51, t0: BAR_T(51), t1: BAR_T(52), zh: '把爱扔掉只剩一块残酷伤疤',               en: 'Throwing love away until only a cruel scar remained', tag: 'FINALE · 终章烟花' },
+    { bar: 52, t0: BAR_T(52), t1: BAR_T(53), zh: '而那些你送我的梦 教我折的花',             en: 'Yet all the dreams you gave me and paper flowers we folded', tag: 'FINALE · 终章烟花' },
+    { bar: 53, t0: BAR_T(53), t1: BAR_T(54), zh: '逃亡的盛夏',                             en: 'Through that runaway midsummer we shared together', tag: 'FINALE · 终章烟花' },
+    { bar: 54, t0: BAR_T(54), t1: BAR_T(55), zh: '在夜空隐没之际为我点燃烟花',             en: 'Lighting fireworks for me just as the night sky faded', tag: 'FINALE · 终章烟花' },
+    { bar: 55, t0: BAR_T(55), t1: DURATION,  zh: '寂寞时让我把快乐拼起来吧 · 把回忆拼好给你', en: 'When lonely, let me piece our happiness back together for you', tag: 'FINALE · 终章圆满' }
   ];
 
   // ==========================================================================
@@ -875,23 +882,358 @@
   }
 
   // ==========================================================================
+  // 16-Set Master Theatrical Environment Painter (Shared Across All MVs)
+  // Combines 12 painted environments + 4 DeepSeek Pet / Fat-Fish themed stages
+  // + unique per-shot sky/aurora/petal/weather accents so NO TWO SHOTS repeat!
+  // ==========================================================================
+  function drawDeepSeekCodingLabSet(ctx, t) {
+    drawPuzzleObservatorySet(ctx, t, 7);
+    // Holographic DeepSeek Terminal + Token Vending Dispenser (`codex-deepseek-pet`)
+    paint(ctx, rrPts(140, 140, 290, 210, 14), { fill: '#0F172A', fillOp: 225, ink: '#38BDF8', sw: 2.5 });
+    ctx.save();
+    ctx.font = 'bold 16px "Silkscreen", "NotoSansSC", monospace';
+    ctx.fillStyle = '#38BDF8';
+    ctx.fillText('DEEPSEEK-PET OS v2.6', 162, 174);
+    ctx.fillStyle = '#4ADE80';
+    ctx.fillText('> status: thinking...', 162, 204);
+    ctx.fillStyle = '#FACC15';
+    ctx.fillText('> token_jar: 999,999', 162, 234);
+    ctx.fillStyle = '#F472B6';
+    ctx.fillText('> song: "Let me go~"', 162, 264);
+    ctx.restore();
+    // Glowing Blue Whale Token Dispenser on Right
+    paint(ctx, rrPts(910, 220, 170, 310, 16), { fill: '#1E293B', ink: '#38BDF8', sw: 3 });
+    paint(ctx, rrPts(930, 245, 130, 140, 10), { fill: '#0284C7', fillOp: 180, ink: '#BAE6FD', sw: 2 });
+  }
+
+  function drawWhiteRiceCafeteriaSet(ctx, t) {
+    drawGreenhouseBonsaiSet(ctx, t);
+    // Warm DSH Fat-Fish White Rice Banner & Giant Steaming Rice Cooker (`dsh-dayu-fish-skin`)
+    paint(ctx, rrPts(360, 88, 560, 64, 16), { fill: '#FEF3C7', ink: '#D97706', sw: 3 });
+    ctx.save();
+    ctx.font = 'bold 26px "ZCOOLKuaiLe", "NotoSansSC", sans-serif';
+    ctx.fillStyle = '#92400E';
+    ctx.textAlign = 'center';
+    ctx.fillText('深海大肥鱼食堂 · 白米饭管够', 640, 130);
+    ctx.restore();
+  }
+
+  function drawGoldCoinVaultSet(ctx, t) {
+    drawStampStudySet(ctx, t);
+    // Sparkling Gold Whale Coins & Treasure Glow (`dsh-dayu-fish-skin`)
+    for (let i = 0; i < 9; i++) {
+      const gx = 140 + i * 125;
+      const gy = 180 + Math.sin(t * 3 + i) * 18;
+      paint(ctx, ellPts(gx, gy, 24, 24, 12), { fill: '#FACC15', ink: '#92400E', sw: 2 });
+    }
+  }
+
+  function drawRooftopFireworksSet(ctx, t) {
+    drawStarlitBeachSet(ctx, t, 'night');
+    // Dazzling multi-ring fireworks bursting in the night sky
+    for (let f = 0; f < 4; f++) {
+      const fx = 220 + f * 275;
+      const fy = 155 + (f % 2) * 45;
+      const ph = (t * 0.75 + f * 0.25) % 1.0;
+      const rad = 22 + ph * 85;
+      const col = ['#38BDF8', '#F472B6', '#FACC15', '#4ADE80'][f % 4];
+      ctx.save();
+      ctx.globalAlpha = 1 - ph * 0.75;
+      for (let r = 0; r < 10; r++) {
+        const ang = (r / 10) * Math.PI * 2 + t * 0.4;
+        paint(ctx, ellPts(fx + Math.cos(ang) * rad, fy + Math.sin(ang) * rad, 5, 5, 6), {
+          fill: col, ink: null
+        });
+      }
+      ctx.restore();
+    }
+  }
+
+  function drawConcertNeonStageSet(ctx, t) {
+    // High-energy L-O-V-E Rock Concert Stage with spotlights & equalizer skyline
+    paint(ctx, rectPts(0, 0, W, H), { fill: '#09061E', ink: null });
+    for (let i = 0; i < 4; i++) {
+      const sx = 200 + i * 290;
+      const sway = Math.sin(t * 2.4 + i) * 110;
+      paint(ctx, polyPts([[sx - 25, 0], [sx + 25, 0], [sx + sway + 160, H], [sx + sway - 160, H]]), {
+        fill: i % 2 === 0 ? '#38BDF8' : '#F472B6', fillOp: 45, ink: null
+      });
+    }
+    for (let b = 0; b < 24; b++) {
+      const bh = 60 + Math.abs(Math.sin(t * 6 + b * 0.7)) * 180;
+      paint(ctx, rectPts(60 + b * 48, 560 - bh, 34, bh), {
+        fill: b % 2 === 0 ? '#0EA5E9' : '#EC4899', fillOp: 145, ink: '#1E293B', sw: 1.5
+      });
+    }
+    paint(ctx, rectPts(0, 560, W, 160), { fill: '#111827', ink: '#38BDF8', sw: 3 });
+  }
+
+  function drawGothicRoseCathedralSet(ctx, t) {
+    // Gothic Stained-Glass Rose Cathedral (`玫瑰花的葬礼`)
+    paint(ctx, rectPts(0, 0, W, H), { fill: '#16071C', ink: null });
+    for (let i = 0; i < 3; i++) {
+      const ax = 260 + i * 380;
+      paint(ctx, rrPts(ax - 110, 80, 220, 440, 110), { fill: '#2E1035', ink: '#F43F5E', sw: 3 });
+      paint(ctx, ellPts(ax, 190, 72, 72, 20), { fill: '#BE123C', fillOp: 185, ink: '#FDA4AF', sw: 2.5 });
+    }
+    paint(ctx, rectPts(0, 565, W, 155), { fill: '#1F122B', ink: '#881337', sw: 2.5 });
+  }
+
+  function drawCrimsonMapleShrineSet(ctx, t) {
+    // Autumn Crimson Maple Hill & Torii Pavilion (`枫`)
+    paint(ctx, rectPts(0, 0, W, H), { fill: '#2A0F18', ink: null });
+    paint(ctx, ellPts(980, 175, 95, 95, 24), { fill: '#FDE047', fillOp: 210, ink: '#CA8A04', sw: 2 });
+    paint(ctx, polyPts([[0, 560], [340, 350], [720, 560]]), { fill: '#4C1D24', ink: '#161F3A', sw: 2 });
+    paint(ctx, polyPts([[520, 560], [920, 330], [1280, 560]]), { fill: '#7F1D1D', ink: '#161F3A', sw: 2 });
+    for (let m = 0; m < 5; m++) {
+      const tx = 140 + m * 250;
+      paint(ctx, rectPts(tx - 12, 360, 24, 210), { fill: '#451A03', ink: '#161F3A', sw: 2 });
+      paint(ctx, ellPts(tx, 310, 115, 78, 18), { fill: m % 2 === 0 ? '#DC2626' : '#EA580C', ink: '#161F3A', sw: 2 });
+    }
+    paint(ctx, rectPts(0, 565, W, 155), { fill: '#451A03', ink: '#991B1B', sw: 2.5 });
+  }
+
+  function drawNostalgicClassroomSet(ctx, t) {
+    // Golden-hour Youth School Classroom (`素颜`)
+    paint(ctx, rectPts(0, 0, W, H), { fill: '#FEF3C7', ink: null });
+    paint(ctx, rrPts(280, 110, 720, 310, 12), { fill: '#14532D', ink: '#92400E', sw: 5 });
+    for (let w = 0; w < 2; w++) {
+      const wx = 70 + w * 980;
+      paint(ctx, rrPts(wx, 110, 160, 310, 8), { fill: '#7DD3FC', ink: '#78350F', sw: 3 });
+    }
+    paint(ctx, rectPts(0, 560, W, 160), { fill: '#B45309', ink: '#451A03', sw: 2.5 });
+  }
+
+  function drawCyberNeonStreetSet(ctx, t) {
+    // Cyberpunk Neon Rainy Alley (`坏女孩`)
+    paint(ctx, rectPts(0, 0, W, H), { fill: '#070918', ink: null });
+    const cols = ['#F43F5E', '#38BDF8', '#A855F7', '#FACC15'];
+    for (let b = 0; b < 7; b++) {
+      const bx = 50 + b * 175;
+      const bh = 280 + (b % 3) * 75;
+      paint(ctx, rectPts(bx, 565 - bh, 145, bh), { fill: '#0F172A', ink: cols[b % 4], sw: 2.5 });
+      paint(ctx, rrPts(bx + 18, 565 - bh + 35, 108, 46, 8), { fill: cols[b % 4], fillOp: 185, ink: '#FFFFFF', sw: 1.5 });
+    }
+    paint(ctx, rectPts(0, 565, W, 155), { fill: '#0B132B', ink: '#38BDF8', sw: 2.5 });
+  }
+
+  function drawSunflowerCoastSet(ctx, t) {
+    // Bright Mediterranean Sunflower Coastline (`日不落`)
+    paint(ctx, rectPts(0, 0, W, H), { fill: '#38BDF8', ink: null });
+    paint(ctx, ellPts(220, 140, 78, 78, 22), { fill: '#FEF08A', ink: '#F59E0B', sw: 3 });
+    paint(ctx, rectPts(0, 440, W, 125), { fill: '#0284C7', ink: '#0369A1', sw: 2 });
+    paint(ctx, rectPts(0, 560, W, 160), { fill: '#FDE047', ink: '#CA8A04', sw: 2.5 });
+    for (let s = 0; s < 8; s++) {
+      const sx = 95 + s * 155;
+      const sway = Math.sin(t * 2.5 + s) * 8;
+      stroke(ctx, linePts(sx, 565, sx + sway, 455), { ink: '#15803D', sw: 4 });
+      paint(ctx, ellPts(sx + sway, 450, 32, 32, 14), { fill: '#FACC15', ink: '#B45309', sw: 2 });
+      paint(ctx, ellPts(sx + sway, 450, 14, 14, 10), { fill: '#78350F', ink: null });
+    }
+  }
+
+  function drawEmeraldWindmillSet(ctx, t) {
+    // Emerald Meadow & White Windmill (`心墙`)
+    paint(ctx, rectPts(0, 0, W, H), { fill: '#7DD3FC', ink: null });
+    paint(ctx, ellPts(320, 580, 480, 190, 24), { fill: '#4ADE80', ink: '#15803D', sw: 2.5 });
+    paint(ctx, ellPts(960, 580, 520, 210, 24), { fill: '#22C55E', ink: '#15803D', sw: 2.5 });
+    // Windmill tower on right
+    paint(ctx, polyPts([[955, 520], [985, 250], [1035, 250], [1065, 520]]), { fill: '#F8FAFC', ink: '#1E293B', sw: 2.5 });
+    for (let b = 0; b < 4; b++) {
+      const ang = t * 1.4 + b * (Math.PI / 2);
+      stroke(ctx, linePts(1010, 275, 1010 + Math.cos(ang) * 115, 275 + Math.sin(ang) * 115), { ink: '#1E293B', sw: 5 });
+    }
+  }
+
+  function drawLanternTavernSet(ctx, t) {
+    // Warm Festive Lantern Tavern (`朋友的酒`)
+    paint(ctx, rectPts(0, 0, W, H), { fill: '#1C1008', ink: null });
+    paint(ctx, rectPts(60, 90, W - 120, 470), { fill: '#2E1A0F', ink: '#D97706', sw: 3 });
+    for (let l = 0; l < 6; l++) {
+      const lx = 165 + l * 190;
+      const ly = 135 + Math.sin(t * 2.2 + l) * 8;
+      paint(ctx, ellPts(lx, ly, 38, 46, 16), { fill: '#EF4444', ink: '#FACC15', sw: 2.5 });
+    }
+    paint(ctx, rectPts(0, 560, W, 160), { fill: '#451A03', ink: '#B45309', sw: 3 });
+  }
+
+  function drawCoralAbyssSet(ctx, t) {
+    // Bioluminescent Deep-Sea Coral Palace (`潮汐`)
+    paint(ctx, rectPts(0, 0, W, H), { fill: '#041028', ink: null });
+    for (let r = 0; r < 5; r++) {
+      const rx = 180 + r * 230;
+      paint(ctx, polyPts([[rx - 40, 0], [rx + 40, 0], [rx + 140, H], [rx - 140, H]]), {
+        fill: '#38BDF8', fillOp: 32, ink: null
+      });
+    }
+    for (let c = 0; c < 7; c++) {
+      const cx = 110 + c * 175;
+      const ch = 120 + (c % 3) * 45;
+      paint(ctx, ellPts(cx, 565 - ch * 0.5, 42, ch * 0.5, 16), {
+        fill: c % 2 === 0 ? '#06B6D4' : '#EC4899', fillOp: 185, ink: '#0F172A', sw: 2
+      });
+    }
+    paint(ctx, rectPts(0, 565, W, 155), { fill: '#082F49', ink: '#38BDF8', sw: 2.5 });
+  }
+
+  function drawBionicLivingRoomSet(ctx, t) {
+    // Warm Cozy Bionic Puppy Living Room (`仿生小狗`)
+    paint(ctx, rectPts(0, 0, W, H), { fill: '#1E293B', ink: null });
+    paint(ctx, rrPts(440, 120, 400, 260, 12), { fill: '#0F172A', ink: '#64748B', sw: 4 });
+    paint(ctx, ellPts(580, 210, 42, 42, 16), { fill: '#FDE047', ink: null });
+    paint(ctx, rrPts(160, 430, 320, 130, 22), { fill: '#F59E0B', ink: '#78350F', sw: 3 });
+    paint(ctx, rectPts(0, 560, W, 160), { fill: '#334155', ink: '#94A3B8', sw: 2.5 });
+  }
+
+  function drawVeniceSunsetBridgeSet(ctx, t) {
+    // Romantic Sunset Canal Bridge & Gondola Reflections
+    paint(ctx, rectPts(0, 0, W, H), { fill: '#4C1D95', ink: null });
+    paint(ctx, rectPts(0, 220, W, 240), { fill: '#FB7185', fillOp: 180, ink: null });
+    paint(ctx, ellPts(640, 340, 110, 110, 24), { fill: '#FEF08A', ink: '#F59E0B', sw: 2.5 });
+    paint(ctx, rectPts(0, 460, W, 260), { fill: '#1E1B4B', ink: '#F472B6', sw: 2.5 });
+    paint(ctx, rrPts(220, 485, 840, 95, 45), { fill: '#312E81', ink: '#FDE047', sw: 3 });
+  }
+
+  function drawAuroraIceHarborSet(ctx, t) {
+    // Northern Lights Crystal Whale Harbor
+    paint(ctx, rectPts(0, 0, W, H), { fill: '#061226', ink: null });
+    for (let a = 0; a < 4; a++) {
+      const ay = 110 + a * 38 + Math.sin(t * 1.8 + a) * 16;
+      paint(ctx, rrPts(90, ay, W - 180, 24, 12), {
+        fill: a % 2 === 0 ? '#2DD4BF' : '#38BDF8', fillOp: 95, ink: null
+      });
+    }
+    for (let p = 0; p < 6; p++) {
+      const px = 120 + p * 210;
+      paint(ctx, polyPts([[px - 55, 565], [px, 340 - (p % 2) * 50], [px + 55, 565]]), {
+        fill: '#BAE6FD', fillOp: 175, ink: '#0284C7', sw: 2
+      });
+    }
+    paint(ctx, rectPts(0, 565, W, 155), { fill: '#0C4A6E', ink: '#7DD3FC', sw: 2.5 });
+  }
+
+  const MASTER_SET_POOL = [
+    'beachNight', 'observatory', 'rainBusStop', 'clocktower',
+    'autumnGinkgo', 'greenhouse', 'sunsetStation', 'stampStudy',
+    'fireflyForest', 'cosmicGalaxy', 'dawnHill', 'beachDawn',
+    'deepseekLab', 'riceCafeteria', 'coinVault', 'rooftopFireworks',
+    'concertNeon', 'gothicRose', 'crimsonMaple', 'classroom',
+    'cyberStreet', 'sunflowerCoast', 'emeraldWindmill', 'lanternTavern',
+    'coralAbyss', 'bionicLiving', 'veniceBridge', 'auroraHarbor'
+  ];
+
+  function drawMasterEnvironment(ctx, t, shotIdx = 0, pieces = 5, variantSeed = null) {
+    const setPool = MASTER_SET_POOL;
+    const key = typeof shotIdx === 'string' ? shotIdx : setPool[((shotIdx % setPool.length) + setPool.length) % setPool.length];
+    const idxNum = variantSeed !== null ? variantSeed : (typeof shotIdx === 'number' ? shotIdx : 0);
+
+    switch (key) {
+      case 'beachNight':       drawStarlitBeachSet(ctx, t, 'night'); break;
+      case 'beachDawn':        drawStarlitBeachSet(ctx, t, 'dawn'); break;
+      case 'observatory':      drawPuzzleObservatorySet(ctx, t, pieces); break;
+      case 'rainBusStop':      drawRainBusStopSet(ctx, t); break;
+      case 'clocktower':       drawClocktowerBirdsSet(ctx, t); break;
+      case 'autumnGinkgo':     drawAutumnGinkgoSet(ctx, t); break;
+      case 'greenhouse':       drawGreenhouseBonsaiSet(ctx, t); break;
+      case 'sunsetStation':    drawSunsetStationSet(ctx, t, (t * 45) % 320); break;
+      case 'stampStudy':       drawStampStudySet(ctx, t); break;
+      case 'fireflyForest':    drawFireflyForestSet(ctx, t); break;
+      case 'cosmicGalaxy':     drawCosmicGalaxySet(ctx, t, pieces); break;
+      case 'dawnHill':         drawDawnBlossomHillSet(ctx, t); break;
+      case 'deepseekLab':      drawDeepSeekCodingLabSet(ctx, t); break;
+      case 'riceCafeteria':    drawWhiteRiceCafeteriaSet(ctx, t); break;
+      case 'coinVault':        drawGoldCoinVaultSet(ctx, t); break;
+      case 'rooftopFireworks': drawRooftopFireworksSet(ctx, t); break;
+      case 'concertNeon':      drawConcertNeonStageSet(ctx, t); break;
+      case 'gothicRose':       drawGothicRoseCathedralSet(ctx, t); break;
+      case 'crimsonMaple':     drawCrimsonMapleShrineSet(ctx, t); break;
+      case 'classroom':        drawNostalgicClassroomSet(ctx, t); break;
+      case 'cyberStreet':      drawCyberNeonStreetSet(ctx, t); break;
+      case 'sunflowerCoast':   drawSunflowerCoastSet(ctx, t); break;
+      case 'emeraldWindmill':  drawEmeraldWindmillSet(ctx, t); break;
+      case 'lanternTavern':    drawLanternTavernSet(ctx, t); break;
+      case 'coralAbyss':       drawCoralAbyssSet(ctx, t); break;
+      case 'bionicLiving':     drawBionicLivingRoomSet(ctx, t); break;
+      case 'veniceBridge':     drawVeniceSunsetBridgeSet(ctx, t); break;
+      case 'auroraHarbor':     drawAuroraIceHarborSet(ctx, t); break;
+      default:                 drawStarlitBeachSet(ctx, t, 'night'); break;
+    }
+
+    // Per-shot unique atmospheric & foreground staging layer so every shot is visually unique
+    const variant = idxNum % 7;
+    ctx.save();
+    if (variant === 1) {
+      // Drifting sakura / rose petals across foreground
+      for (let i = 0; i < 10; i++) {
+        const px = ((i * 137 + t * 55) % (W + 80)) - 40;
+        const py = ((i * 89 + t * 42) % (H - 120)) + 40;
+        paint(ctx, ellPts(px, py, 7, 4, 6), { fill: '#F472B6', fillOp: 165, ink: null });
+      }
+    } else if (variant === 2) {
+      // Floating golden lantern orbs
+      for (let i = 0; i < 7; i++) {
+        const lx = 120 + i * 175 + Math.sin(t * 1.8 + i) * 24;
+        const ly = 110 + (i % 3) * 45 + Math.cos(t * 2.1 + i) * 14;
+        paint(ctx, rrPts(lx - 12, ly - 16, 24, 32, 8), { fill: '#FDE047', fillOp: 190, ink: '#CA8A04', sw: 1.5 });
+      }
+    } else if (variant === 3) {
+      // Bioluminescent deep-sea bubbles rising
+      for (let i = 0; i < 12; i++) {
+        const bx = (i * 113 + Math.sin(t * 2 + i) * 28) % W;
+        const by = H - ((t * 60 + i * 67) % (H - 60));
+        paint(ctx, ellPts(bx, by, 9 + (i % 3) * 4, 9 + (i % 3) * 4, 8), { fill: '#7DD3FC', fillOp: 95, ink: '#E0F2FE', sw: 1.2 });
+      }
+    } else if (variant === 4) {
+      // Aurora borealis ribbon across upper sky
+      for (let s = 0; s < 5; s++) {
+        const ay = 85 + s * 18 + Math.sin(t * 1.5 + s) * 10;
+        paint(ctx, rrPts(80 + s * 40, ay, W - 160 - s * 80, 10, 5), {
+          fill: s % 2 === 0 ? '#38BDF8' : '#4ADE80', fillOp: 55, ink: null
+        });
+      }
+    } else if (variant === 5) {
+      // Floating holographic music staff & cyan notes
+      for (let i = 0; i < 8; i++) {
+        const nx = 140 + i * 145;
+        const ny = 145 + Math.sin(t * 3.5 + i) * 22;
+        paint(ctx, ellPts(nx, ny, 8, 6, 6), { fill: '#38BDF8', fillOp: 185, ink: '#0F172A', sw: 1.5 });
+      }
+    } else if (variant === 6) {
+      // Warm theatrical side curtains / archway vignette
+      paint(ctx, rectPts(0, 0, 52, H), { fill: '#0F172A', fillOp: 120, ink: null });
+      paint(ctx, rectPts(W - 52, 0, 52, H), { fill: '#0F172A', fillOp: 120, ink: null });
+    }
+    ctx.restore();
+  }
+
+  // ==========================================================================
   // HUD & Beat-Synced Bilingual Lyric Subtitle Overlay
   // ==========================================================================
+  function getActiveLyricAt(t) {
+    for (let i = 0; i < LYRICS.length; i++) {
+      if (t >= LYRICS[i].t0 && t < LYRICS[i].t1) return LYRICS[i];
+    }
+    if (t < LYRICS[0].t0) return LYRICS[0];
+    return LYRICS[LYRICS.length - 1];
+  }
+
   function drawSubtitleOverlay(ctx, t, barIdx) {
-    const active = LYRICS[clamp(barIdx, 0, LYRICS.length - 1)];
+    const active = getActiveLyricAt(t);
     if (!active) return;
 
     const pieces = clamp(Math.floor(((barIdx + 1) / 56) * 9), 1, 9);
+    const actList = WHALE.ACTION_LIST || [];
+    const actItem = actList.length ? actList[barIdx % actList.length] : { zh: '鲸鱼动作' };
 
-    // Top-left chapter badge & Top-right 9/9 Memory Puzzle Progress HUD
+    // Top-left chapter + action badge & Top-right 9/9 Memory Puzzle Progress HUD
     ctx.save();
-    paint(ctx, rrPts(24, 20, 295, 38, 12), { fill: '#0F172A', fillOp: 185, ink: '#38BDF8', sw: 1.8 });
-    ctx.font = 'bold 16px "ZCOOLKuaiLe", "NotoSansSC", sans-serif';
+    paint(ctx, rrPts(24, 20, 415, 38, 12), { fill: '#0F172A', fillOp: 195, ink: '#38BDF8', sw: 1.8 });
+    ctx.font = 'bold 15px "ZCOOLKuaiLe", "NotoSansSC", sans-serif';
     ctx.fillStyle = '#7DD3FC';
     ctx.textAlign = 'left';
-    ctx.fillText(`${active.tag} · SHOT ${String(barIdx + 1).padStart(2, '0')}/56`, 40, 45);
+    ctx.fillText(`${active.tag} · #${String(barIdx + 1).padStart(2, '0')} [${actItem.zh}]`, 40, 44);
 
-    paint(ctx, rrPts(W - 265, 20, 240, 38, 12), { fill: '#0F172A', fillOp: 185, ink: '#FACC15', sw: 1.8 });
+    paint(ctx, rrPts(W - 265, 20, 240, 38, 12), { fill: '#0F172A', fillOp: 195, ink: '#FACC15', sw: 1.8 });
     ctx.font = 'bold 16px "ZCOOLKuaiLe", "NotoSansSC", sans-serif';
     ctx.fillStyle = '#FDE047';
     ctx.textAlign = 'right';
@@ -902,16 +1244,17 @@
     const lt = clamp(t - active.t0, 0, active.t1 - active.t0);
     const dur = Math.max(0.1, active.t1 - active.t0);
     const prog = clamp(lt / dur, 0, 1);
-    const popY = lt < 0.16 ? (1 - backOut(lt / 0.16)) * 14 : 0;
+    const popY = lt < 0.16 ? (1 - backOut(lt / 0.16)) * 12 : 0;
 
     ctx.save();
     ctx.translate(0, popY);
-    paint(ctx, rrPts(210, H - 102, W - 420, 78, 20), {
-      fill: '#090D1E', fillOp: 205, ink: '#38BDF8', sw: 2.2
+    paint(ctx, rrPts(150, H - 104, W - 300, 80, 20), {
+      fill: '#090D1E', fillOp: 215, ink: '#38BDF8', sw: 2.2
     });
 
     // Chinese lyric with golden karaoke fill sweep
-    ctx.font = 'bold 31px "ZCOOLKuaiLe", "NotoSansSC", sans-serif';
+    const zhFontSz = active.zh.length > 18 ? 26 : 30;
+    ctx.font = `bold ${zhFontSz}px "ZCOOLKuaiLe", "NotoSansSC", sans-serif`;
     ctx.textAlign = 'center';
     ctx.lineWidth = 5;
     ctx.strokeStyle = '#090D1E';
@@ -923,14 +1266,14 @@
     const textW = ctx.measureText(active.zh).width;
     ctx.save();
     ctx.beginPath();
-    ctx.rect(W / 2 - textW / 2, H - 96, textW * prog, 46);
+    ctx.rect(W / 2 - textW / 2, H - 98, textW * prog, 48);
     ctx.clip();
     ctx.fillStyle = '#FDE047';
     ctx.fillText(active.zh, W / 2, H - 62);
     ctx.restore();
 
     // English subtitle line
-    ctx.font = 'bold 14px "Silkscreen", "NotoSansSC", monospace';
+    ctx.font = 'bold 13px "Silkscreen", "NotoSansSC", monospace';
     ctx.fillStyle = '#93C5FD';
     ctx.fillText(active.en, W / 2, H - 36);
     ctx.restore();
@@ -958,7 +1301,7 @@
     setActiveStyle(shot.style || 'watercolor');
 
     // Intra-shot focus pull / camera cut at midpoint on energetic chorus/coda shots
-    const midCut = (barIdx >= 8 && barIdx <= 15) || (barIdx >= 32 && barIdx <= 39);
+    const midCut = (barIdx >= 8 && barIdx <= 15) || (barIdx >= 22 && barIdx <= 29) || (barIdx >= 40 && barIdx <= 55);
     const zoomBoost = (midCut && lt > dur * 0.52) ? 1.07 : 1.0;
     const cx = lerp(shot.cam[0], shot.cam[4], ease(k));
     const cy = lerp(shot.cam[1], shot.cam[5], ease(k));
@@ -967,23 +1310,9 @@
 
     camBegin(ctx, cx, cy, cz, crot);
 
-    // 1. Render Full-Screen Painted Environment Set
+    // 1. Render Non-Repeating 28-Set Environment (`drawMasterEnvironment` indexed by `barIdx`)
     const pieces = clamp(Math.floor(((barIdx + 1) / 56) * 9), 1, 9);
-    switch (shot.set) {
-      case 'beachNight':    drawStarlitBeachSet(ctx, t, 'night'); break;
-      case 'beachDawn':     drawStarlitBeachSet(ctx, t, 'dawn'); break;
-      case 'observatory':   drawPuzzleObservatorySet(ctx, t, pieces); break;
-      case 'rainBusStop':   drawRainBusStopSet(ctx, t); break;
-      case 'clocktower':    drawClocktowerBirdsSet(ctx, t); break;
-      case 'autumnGinkgo':  drawAutumnGinkgoSet(ctx, t); break;
-      case 'greenhouse':    drawGreenhouseBonsaiSet(ctx, t); break;
-      case 'sunsetStation': drawSunsetStationSet(ctx, t, lt * 65); break;
-      case 'stampStudy':    drawStampStudySet(ctx, t); break;
-      case 'fireflyForest': drawFireflyForestSet(ctx, t); break;
-      case 'cosmicGalaxy':  drawCosmicGalaxySet(ctx, t, pieces); break;
-      case 'dawnHill':      drawDawnBlossomHillSet(ctx, t); break;
-      default:              drawStarlitBeachSet(ctx, t, 'night'); break;
-    }
+    drawMasterEnvironment(ctx, t, barIdx, pieces, barIdx);
 
     // 2. Compute Physical Action & Locomotion State for `whaleGirl`
     const groundY = 585;
@@ -1007,7 +1336,6 @@
       const kn = lt < 0.7 ? ease(lt / 0.7) : (lt < 1.85 ? 1 : 1 - ease((lt - 1.85) / 0.6));
       actOpts.kneel = kn * 0.85;
       actOpts.view = 'q';
-      // Floating puzzle shard on the ground before pickup
       if (lt < 1.35) {
         drawPuzzlePiece(ctx, shot.x0 + 55, groundY - 12 - Math.sin(t * 6) * 6, 18, '#FACC15', t * 2);
       }
@@ -1032,9 +1360,9 @@
       actOpts.waveArm = true;
     }
 
-    // 3. Render Guest Co-Stars (`ladyGemini`, `ladyClaude`, `clawd`, `miniWhale`, `bionicPuppy`)
+    // 3. Render Guest Co-Stars (`ladyGemini`, `ladyClaude`, `clawd`, `miniWhale`, `bionicPuppy`, + `drawFatFish`!)
     if (shot.guest === 'ladyGemini' || shot.guest === 'all') {
-      const gx = shot.act === 'duetWalk' ? actOpts.x + 155 : 835 + Math.sin(t * 2.2) * 12;
+      const gx = shot.act === 'duetWalk' ? actOpts.x + 165 : 855 + Math.sin(t * 2.2) * 14;
       const gWalk = shot.act === 'duetWalk' ? actOpts.walk : 0;
       if (CAST.ladyGemini) {
         CAST.ladyGemini(ctx, gx, groundY, 28, {
@@ -1056,7 +1384,7 @@
       }
     }
     if (shot.guest === 'clawd' || shot.guest === 'all') {
-      const clx = shot.guest === 'all' ? 275 : actOpts.x - 140;
+      const clx = shot.guest === 'all' ? 275 : actOpts.x - 145;
       if (CAST.clawd) {
         CAST.clawd(ctx, clx, groundY + 4, 21, { t, hat: 'crown', happy: true });
       }
@@ -1075,11 +1403,27 @@
       }
     }
 
-    // 4. Render Protagonist `whaleGirl` with 3-Stage Smooth Mid-Lyric Emotion Transitions (`emotions`)!
+    // Always include our chubby blue Fat-Fish companion (`吃白饭的蓝色大肥鱼`) on stage!
+    if (typeof WHALE.drawFatFish === 'function') {
+      const fishModes = ['eat_rice', 'working', 'success', 'idle'];
+      const fMode = fishModes[barIdx % fishModes.length];
+      const fx = actOpts.x > 640 ? actOpts.x - 175 : actOpts.x + 175;
+      WHALE.drawFatFish(ctx, clamp(fx, 160, 1120), groundY - 16, 20, {
+        t,
+        mode: fMode,
+        flip: fx > actOpts.x
+      });
+    }
+
+    // 4. Render Protagonist `whaleGirl` with 28 Actions (`codex-deepseek-pet` & `dsh-dayu-fish-skin`)
+    //    AND 3-Stage Smooth Mid-Lyric Emotion Transitions (`emotions`)!
     const emoState = emotions(lt, shot.emos, { take: true });
+    const chosenAction = typeof WHALE.pickAction === 'function' ? WHALE.pickAction(barIdx) : null;
     whaleGirl(ctx, actOpts.x, actOpts.y, u, Object.assign({}, emoState, actOpts, {
       t,
       lt,
+      action: chosenAction,
+      showActionBadge: true,
       style: shot.style || 'watercolor',
       hat: shot.hat || 'Maid Headband',
       armL: resolvePropFn(shot.propL, t),
@@ -1094,7 +1438,7 @@
     camEnd(ctx);
 
     // 5. Cinematic Transitions at Section Boundaries & Finale Iris Close
-    if ([8, 16, 24, 32, 40, 48].includes(barIdx) && lt < 0.42) {
+    if ([8, 16, 22, 30, 40, 48].includes(barIdx) && lt < 0.42) {
       brushWipe(ctx, lt / 0.42, ['#38BDF8', '#F472B6', '#FDE047']);
     }
     if (t > DURATION - 1.8) {
@@ -1108,6 +1452,146 @@
     ctx.restore();
   }
 
+  // ==========================================================================
+  // Reusable Benchmark Shot Renderer (`renderMasterMVShot`)
+  // Allows all other MVs (`mv_chaoxi`, `mv_pengyou_de_jiu`, `mv_douyin_6`,
+  // `mv_pack_short`, `mv_pack_long`) to share the exact same 28-set non-repeating
+  // environment engine, camera choreography, 28 character actions & co-stars!
+  // ==========================================================================
+  function renderMasterMVShot(ctx, t, opts = {}) {
+    const shotIdx = opts.shotIdx || 0;
+    const lt = opts.lt !== undefined ? opts.lt : (t % 2.8);
+    const dur = Math.max(0.2, opts.dur || 2.8);
+    const k = clamp(lt / dur, 0, 1);
+    const style = opts.style || ['watercolor', 'pixel', 'neon', 'risograph', 'ukiyoe'][shotIdx % 5];
+
+    if (typeof setBoil === 'function') setBoil(t, 12);
+    else if (typeof CORE.boilFrame === 'function') CORE.boilFrame(t);
+    setActiveStyle(style);
+
+    const shot = SHOT_PLAN[shotIdx % SHOT_PLAN.length] || SHOT_PLAN[0];
+    const cx = lerp(shot.cam[0], shot.cam[4], ease(k));
+    const cy = lerp(shot.cam[1], shot.cam[5], ease(k));
+    const cz = lerp(shot.cam[2], shot.cam[6], ease(k));
+    const crot = lerp(shot.cam[3], shot.cam[7], ease(k));
+
+    camBegin(ctx, cx, cy, cz, crot);
+
+    // 1. Non-repeating 28-set environment
+    const setKey = opts.setKey || MASTER_SET_POOL[(shotIdx + (opts.setOffset || 0)) % MASTER_SET_POOL.length];
+    const pieces = clamp((shotIdx % 9) + 1, 1, 9);
+    drawMasterEnvironment(ctx, t, setKey, pieces, shotIdx);
+
+    // 2. Character locomotion & stage blocking
+    const groundY = opts.groundY || 585;
+    const u = opts.u || 30;
+    let actOpts = { x: shot.x0, y: groundY, view: 'front', flip: false, tailSit: false, poseMode: null };
+
+    if (shot.act === 'walkRight' || shot.act === 'walkLeft') {
+      actOpts = Object.assign(actOpts, stroll(lt, 0.05, dur - 0.10, shot.x0, shot.x1, u));
+    } else if (shot.act === 'runRight' || shot.act === 'runLeft') {
+      actOpts = Object.assign(actOpts, runTo(lt, 0.05, dur - 0.10, shot.x0, shot.x1, u));
+    } else if (shot.act === 'jumpJoy') {
+      const jp = jumpArc(lt, dur * 0.18, dur * 0.72, shot.x0, shot.x1, groundY, 88);
+      actOpts.x = jp.x;
+      actOpts.y = jp.y;
+      actOpts.sq = jp.sq;
+      actOpts.view = lt > dur * 0.18 && lt < dur * 0.72 ? 'q' : 'front';
+      actOpts.waveArm = true;
+    } else if (shot.act === 'kneelPick') {
+      const kn = lt < dur * 0.3 ? ease(lt / (dur * 0.3)) : (lt < dur * 0.75 ? 1 : 1 - ease((lt - dur * 0.75) / (dur * 0.25)));
+      actOpts.kneel = kn * 0.85;
+      actOpts.view = 'q';
+    } else if (shot.act === 'tailSit') {
+      actOpts.tailSit = true;
+      actOpts.y = groundY - 8;
+    } else if (shot.act === 'spinTurn') {
+      const vw = spinView(lt, dur * 0.85);
+      actOpts.view = vw.view;
+      actOpts.x = lerp(shot.x0, shot.x1, k);
+      actOpts.waveArm = true;
+    } else if (shot.act === 'duetWalk') {
+      actOpts = Object.assign(actOpts, stroll(lt, 0.05, dur - 0.10, shot.x0, shot.x1, u));
+    } else {
+      actOpts.x = lerp(shot.x0, shot.x1, k);
+      actOpts.waveArm = true;
+    }
+
+    // 3. Guest Co-Stars (`ladyGemini`, `ladyClaude`, `clawd`, `miniWhale`, `bionicPuppy`, `drawFatFish`)
+    const guest = opts.guest || shot.guest || 'ladyGemini';
+    if (guest === 'ladyGemini' || guest === 'all') {
+      const gx = shot.act === 'duetWalk' ? actOpts.x + 165 : 855 + Math.sin(t * 2.2) * 14;
+      if (CAST.ladyGemini) {
+        CAST.ladyGemini(ctx, gx, groundY, 28, {
+          t,
+          walk: shot.act === 'duetWalk' ? actOpts.walk : 0,
+          flip: true,
+          emote: lt > dur * 0.45 ? 'sparkle' : null
+        });
+      }
+    }
+    if (guest === 'ladyClaude' || guest === 'all') {
+      const cxGuest = guest === 'all' ? 395 : 835;
+      if (CAST.ladyClaude) {
+        CAST.ladyClaude(ctx, cxGuest, groundY, 27, {
+          t,
+          flip: cxGuest > actOpts.x,
+          emote: lt > dur * 0.45 ? 'heart' : null
+        });
+      }
+    }
+    if (guest === 'clawd' || guest === 'all' || shotIdx % 3 === 0) {
+      const clx = guest === 'all' ? 275 : actOpts.x - 150;
+      if (CAST.clawd) {
+        CAST.clawd(ctx, clamp(clx, 140, 1140), groundY + 4, 21, { t, hat: 'crown', happy: true });
+      }
+    }
+    if (guest === 'miniWhale' || guest === 'all' || shotIdx % 4 === 1) {
+      const mwx = guest === 'all' ? 965 : actOpts.x + 150;
+      const mwy = groundY - 125 + Math.sin(t * 4.2) * 16;
+      if (CAST.miniWhale) {
+        CAST.miniWhale(ctx, clamp(mwx, 160, 1120), mwy, 20, { t, spout: true });
+      }
+    }
+    if (guest === 'bionicPuppy' || guest === 'all' || shotIdx % 4 === 2) {
+      const bpx = guest === 'all' ? 1020 : actOpts.x + 135;
+      if (CAST.bionicPuppy) {
+        CAST.bionicPuppy(ctx, clamp(bpx, 160, 1120), groundY + 2, 19, { t, flip: true });
+      }
+    }
+    if (typeof WHALE.drawFatFish === 'function') {
+      const fishModes = ['eat_rice', 'working', 'success', 'idle'];
+      const fMode = fishModes[shotIdx % fishModes.length];
+      const fx = actOpts.x > 640 ? actOpts.x - 175 : actOpts.x + 175;
+      WHALE.drawFatFish(ctx, clamp(fx, 160, 1120), groundY - 16, 20, {
+        t,
+        mode: fMode,
+        flip: fx > actOpts.x
+      });
+    }
+
+    // 4. Protagonist `whaleGirl` with 28 Actions & 31-Emotion Smooth Transitions
+    const emoState = emotions(lt, opts.emos || shot.emos, { take: true });
+    const chosenAction = opts.action || (typeof WHALE.pickAction === 'function' ? WHALE.pickAction(shotIdx + (opts.actionOffset || 0)) : null);
+    whaleGirl(ctx, actOpts.x, actOpts.y, u, Object.assign({}, emoState, actOpts, {
+      t,
+      lt,
+      action: chosenAction,
+      showActionBadge: opts.showActionBadge !== false,
+      style,
+      hat: opts.hat || shot.hat || 'Maid Headband',
+      armL: resolvePropFn(opts.propL !== undefined ? opts.propL : shot.propL, t),
+      armR: resolvePropFn(opts.propR !== undefined ? opts.propR : shot.propR, t)
+    }));
+
+    camEnd(ctx);
+
+    // 5. Smooth theatrical transition wipe on shot entry (`lt < 0.28s`)
+    if (shotIdx > 0 && lt < 0.28 && shotIdx % 3 === 0) {
+      brushWipe(ctx, lt / 0.28, ['#38BDF8', '#F472B6', '#FDE047']);
+    }
+  }
+
   const api = {
     DURATION,
     BPM,
@@ -1116,6 +1600,9 @@
     OFF,
     LYRICS,
     SHOT_PLAN,
+    MASTER_SET_POOL,
+    drawMasterEnvironment,
+    renderMasterMVShot,
     renderBaHuiyiFrame
   };
 

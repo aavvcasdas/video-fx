@@ -81,9 +81,13 @@
     const emo = opts.emotion || 'happy';
     const bp = beatPulse(t);
     const dy = (opts.dy || 0) - bp * 0.06;
+    const shotIdx = Math.floor(t / 1.85);
+    const chosenAction = opts.action || (typeof WHALE.pickAction === 'function' ? WHALE.pickAction(shotIdx) : null);
 
     const baseOps = Object.assign({}, feel(emo, t), opts, {
       view,
+      action: chosenAction,
+      showActionBadge: u >= 26,
       style: opts.style || 'watercolor',
       constructMode: 'pixelRig',
       t,
@@ -92,6 +96,13 @@
 
     // Draw our main DeepSeek Whale Maid Girl (`src/whale_girl.js`)
     whaleGirl(ctx, x, y, u, baseOps);
+
+    if (u >= 28 && typeof WHALE.drawFatFish === 'function') {
+      WHALE.drawFatFish(ctx, clamp(x + (x > 640 ? -155 : 155), 140, 1140), y - 14, 18, {
+        t,
+        mode: ['eat_rice', 'working', 'success', 'idle'][shotIdx % 4]
+      });
+    }
 
     // Layer the iconic 《仿生小狗》 Bionic Companion ("年糕") Yellow Bandana & LED Collar!
     const cell = u / 10;
@@ -473,6 +484,14 @@
   // Supports daytime sunny (`mode: 'day'`), evening (`mode: 'dusk'`), and rainy night (`mode: 'night'`)
   // ==========================================================================
   function drawFoyerSet(ctx, t, mode = 'day', opts = {}) {
+    const BAHUIYI = root.MV_BA_HUIYI || (typeof require !== 'undefined' ? (() => {
+      try { return require('./mv_ba_huiyi_pinhao_gei_ni.js'); } catch (e) { return null; }
+    })() : null);
+    const shotIdx = Math.floor(t / 1.85);
+    if (BAHUIYI && typeof BAHUIYI.drawMasterEnvironment === 'function' && shotIdx % 4 !== 0) {
+      BAHUIYI.drawMasterEnvironment(ctx, t, shotIdx, 6, shotIdx);
+      return;
+    }
     const isNight = mode === 'night';
     const isDusk = mode === 'dusk';
 

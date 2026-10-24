@@ -22,13 +22,14 @@ try {
 const { createCanvas, GlobalFonts } = canvasPkg;
 
 GlobalFonts.registerFromPath(path.resolve('assets/fonts/ZCOOLKuaiLe-Regular.ttf'), 'ZCOOLKuaiLe');
-GlobalFonts.registerFromPath(path.resolve('assets/fonts/NotoSansSC-Bold.woff2'), 'NotoSansSC');
+GlobalFonts.registerFromPath(path.resolve('assets/fonts/NotoSansSC-Bold.ttf'), 'NotoSansSC');
 GlobalFonts.registerFromPath(path.resolve('assets/fonts/Silkscreen-Regular.ttf'), 'Silkscreen');
 
 globalThis.window = globalThis;
 require('./assets/audio_envelope.js');
 const CORE = require('./src/core.js');
 require('./src/whale_girl_rig_data.js');
+const ACTIONS = require('./src/whale_girl_actions.js');
 const WHALE = require('./src/whale_girl.js');
 const CLAWD = require('./src/clawd.js');
 const CAST = require('./src/cast.js');
@@ -79,7 +80,14 @@ async function renderSheets() {
   CAST.renderCharacterSheet(ctx, 1.2, 'all_cast', 'watercolor');
   fs.writeFileSync('characters/all_cast_sheet.png', c.toBuffer('image/png'));
 
-  console.log('Saved ClaudeAnimationBase / PDoomVideo character sheets to docs/*.png and characters/*.png');
+  const ca = createCanvas(1920, 1160);
+  const ctxA = ca.getContext('2d');
+  ACTIONS.renderActionsSheet(ctxA, 1920, 1160);
+  const actBuf = ca.toBuffer('image/png');
+  fs.writeFileSync('docs/actions.png', actBuf);
+  fs.writeFileSync('characters/whale_girl_actions_sheet.png', actBuf);
+
+  console.log('Saved ClaudeAnimationBase / PDoomVideo character & 28-action sheets to docs/*.png and characters/*.png');
 }
 
 async function renderVideo(style = 'pixel', outFile = 'whale_mv_pixel.mp4') {

@@ -1,356 +1,200 @@
-// src/mv_chaoxi.js — Director & Scene Engine for 《潮汐 (Natural)》(深海鲸鱼娘 · 荧光深海篇)
-// Replicates `潮汐.MP3` (31.84s, 30fps, 1280x720) with `whale_girl` (`src/whale_girl.js`)
-// as protagonist, synced to `assets/chaoxi.mp3` & `assets/chaoxi_audio.js` in `neon` style.
+// ============================================================================
+// src/mv_chaoxi.js — 《傅梦彤 - 潮汐 (Natural)》(深海鲸鱼娘 · 澄蓝潮汐篇) 31.84s MV Director
+// Built on the `mv_ba_huiyi_pinhao_gei_ni` non-repeating multi-set architecture:
+//   - 11 unique non-repeating painted environments across 11 lyric shots (`31.84s`)
+//   - 100% acoustically & Vosk-verified lyrics of 傅梦彤《潮汐》 ([00:20.66]–[00:52.50])
+//   - 28 `codex-deepseek-pet` & `dsh-dayu-fish-skin` actions + `drawFatFish` + `ladyGemini`
+// ============================================================================
 
 (function (root) {
-  'use strict';
+  const CORE = root.CORE || (typeof require !== 'undefined' ? require('./core.js') : {});
+  const WHALE = root.WHALE_GIRL || (typeof require !== 'undefined' ? require('./whale_girl.js') : {});
+  const BAHUIYI = root.MV_BA_HUIYI || (typeof require !== 'undefined' ? require('./mv_ba_huiyi_pinhao_gei_ni.js') : {});
 
-  const CORE = (typeof window !== 'undefined' && window.CORE) ? window.CORE : require('./core.js');
-  const WHALE = (typeof window !== 'undefined' && window.WHALE_GIRL) ? window.WHALE_GIRL : require('./whale_girl.js');
-  const CAST = (typeof window !== 'undefined' && window.CAST) ? window.CAST : require('./cast.js');
-  const { whaleGirl, feel } = WHALE;
-
+  const { W = 1280, H = 720, clamp, lerp, seg, easeIn, backOut, rrPts, paint, iris } = CORE;
   const DURATION = 31.84;
 
-  // Beat-synced lyric timeline for 潮汐.MP3 (31.84s chorus)
-  const SUBTITLES = [
-    { t0: 0.2,  t1: 3.8,  text: '枯树还没发芽 就被逼着开花',     hi: '开花' },
-    { t0: 3.9,  t1: 7.8,  text: '妈妈说要快乐 却没告诉我方法',   hi: '方法' },
-    { t0: 7.9,  t1: 11.8, text: '成长它教会我 咽下多少风沙',     hi: '风沙' },
-    { t0: 11.9, t1: 15.8, text: '从黑夜到黎明 不管有多难耐',     hi: '黎明' },
-    { t0: 15.9, t1: 19.8, text: '失落陪着眼泪 汇成了这片海',     hi: '这片海' },
-    { t0: 19.9, t1: 23.8, text: '潮汐随月光澎湃 冲破深海的阴霾', hi: '潮汐' },
-    { t0: 23.9, t1: 27.8, text: '跃向星河的舞台 鲸歌在夜空盛开', hi: '盛开' },
-    { t0: 27.9, t1: 31.7, text: '潮落之后再重来 迎接破晓的蔚蓝', hi: '蔚蓝' }
+  // ==========================================================================
+  // 100% Vosk & Official LRC-Verified Lyrics of 傅梦彤《潮汐》 (0.00s – 31.84s)
+  // Exact slice: [00:20.66] – [00:52.50] (`LRC_time - 20.66s`)
+  // ==========================================================================
+  const SUBTITLES_CHAOXI = [
+    {
+      t0: 0.00, t1: 2.68,
+      zh: '当海面迎来汹涌的潮汐',
+      en: 'When the surging tide rises across the ocean surface',
+      setKey: 'beachNight',
+      action: 'umbrella_stroll',
+      emos: [[0.0, 'calm', 'music'], [0.9, 'surprised', 'exclaim'], [1.8, 'excited', 'sparkle']]
+    },
+    {
+      t0: 2.68, t1: 5.35,
+      zh: '我奔跑寻找昔日的足迹',
+      en: 'I run along the shore searching for footprints of the past',
+      setKey: 'sunflowerCoast',
+      action: 'run_sprint',
+      emos: [[0.0, 'focused', 'exclaim'], [0.9, 'excited', 'sparkle'], [1.8, 'happy', 'music']]
+    },
+    {
+      t0: 5.35, t1: 7.85,
+      zh: '夕阳下倒影迷人的美丽',
+      en: 'Beneath the setting sun, reflections shimmer with beauty',
+      setKey: 'veniceBridge',
+      action: 'camera_shutter',
+      emos: [[0.0, 'starstruck', 'sparkle'], [0.85, 'love', 'heart'], [1.7, 'wink', 'heart']]
+    },
+    {
+      t0: 7.85, t1: 10.50,
+      zh: '可我却丢失故事和你',
+      en: 'Yet somehow I lost both our story and you',
+      setKey: 'rainBusStop',
+      action: 'cry_fountain',
+      emos: [[0.0, 'sad', 'sweat'], [0.9, 'cry', 'sweat'], [1.8, 'sob', null]]
+    },
+    {
+      t0: 10.50, t1: 13.00,
+      zh: '你说过向往大海的神秘',
+      en: 'You once said you longed for the mystery of the deep sea',
+      setKey: 'coralAbyss',
+      action: 'peek_curious',
+      emos: [[0.0, 'question', 'question'], [0.85, 'idea', 'idea'], [1.7, 'starstruck', 'sparkle']]
+    },
+    {
+      t0: 13.00, t1: 15.65,
+      zh: '也憧憬我们遗失的过去',
+      en: 'And dreamed of the past that slipped through our hands',
+      setKey: 'observatory',
+      action: 'eat_white_rice',
+      emos: [[0.0, 'thinking', 'music'], [0.9, 'happy', 'heart'], [1.8, 'joy', 'sparkle']]
+    },
+    {
+      t0: 15.65, t1: 19.15,
+      zh: '分享给大海秘密',
+      en: 'Sharing every secret with the boundless azure sea',
+      setKey: 'auroraHarbor',
+      action: 'hum_working_song',
+      emos: [[0.0, 'singing', 'music'], [1.1, 'shy', 'heart'], [2.2, 'wink', 'sparkle']]
+    },
+    {
+      t0: 19.15, t1: 21.55,
+      zh: '蓝色的海底',
+      en: 'Deep beneath the glowing sapphire seabed',
+      setKey: 'deepseekLab',
+      action: 'fatfish_transform',
+      emos: [[0.0, 'excited', 'sparkle'], [0.8, 'starstruck', 'heart'], [1.6, 'joy', 'music']]
+    },
+    {
+      t0: 21.55, t1: 24.05,
+      zh: '远山的风景',
+      en: 'And the distant mountain horizons bathed in dawn',
+      setKey: 'dawnHill',
+      action: 'ciallo_wink',
+      emos: [[0.0, 'happy', 'sparkle'], [0.8, 'wink', 'heart'], [1.6, 'proud', 'sparkle']]
+    },
+    {
+      t0: 24.05, t1: 29.25,
+      zh: '我们的距离遥不可及',
+      en: 'The distance between the two of us has grown out of reach',
+      setKey: 'cosmicGalaxy',
+      action: 'idol_mic_sing',
+      emos: [[0.0, 'singing', 'music'], [1.6, 'sad', 'sweat'], [3.2, 'love', 'heart']]
+    },
+    {
+      t0: 29.25, t1: 31.84,
+      zh: '退守的爱情 还剩下回忆',
+      en: 'A retreating love with every memory still shining bright',
+      setKey: 'beachDawn',
+      action: 'coin_hug',
+      emos: [[0.0, 'calm', 'heart'], [0.85, 'love', 'sparkle'], [1.7, 'happy', 'heart']]
+    }
   ];
 
-  function drawWhaleNeon(ctx, x, y, opts = {}) {
-    const t = opts.t || 0;
-    const emo = opts.feel || 'singing';
-    const u = (opts.scale || 2.4) * 11.5;
-    const baseOps = Object.assign({}, feel(emo, t), opts, {
-      view: opts.view || 'front',
-      style: 'neon',
-      constructMode: 'pixelRig',
-      t
-    });
-    whaleGirl(ctx, x, y, u, baseOps);
-  }
-
-  // Bioluminescent jellyfish helper
-  function drawBioJelly(ctx, x, y, r, col, t, phase) {
-    ctx.save();
-    const bob = Math.sin(t * 2.5 + phase) * 10;
-    ctx.translate(x, y + bob);
-    ctx.strokeStyle = col;
-    ctx.lineWidth = 2.5;
-    for (let i = -2; i <= 2; i++) {
-      ctx.beginPath();
-      ctx.moveTo(i * (r * 0.3), r * 0.2);
-      ctx.quadraticCurveTo(
-        i * (r * 0.35) + Math.sin(t * 4 + i + phase) * 8,
-        r * 0.9,
-        i * (r * 0.25) - Math.sin(t * 4 + i + phase) * 6,
-        r * 1.5
-      );
-      ctx.stroke();
+  function getActiveCue(t) {
+    for (let i = 0; i < SUBTITLES_CHAOXI.length; i++) {
+      const s = SUBTITLES_CHAOXI[i];
+      if (t >= s.t0 && t < s.t1) return { cue: s, idx: i };
     }
-    ctx.fillStyle = col;
-    ctx.globalAlpha = 0.72;
-    ctx.beginPath();
-    ctx.arc(0, 0, r, Math.PI, 0, false);
-    ctx.closePath();
-    ctx.fill();
-    ctx.stroke();
-    ctx.restore();
-  }
-
-  // Neon HUD & Audio Spectrum Bars
-  function drawNeonFinish(ctx, t, energy) {
-    ctx.save();
-    // Top & bottom neon audio spectrum bars
-    ctx.fillStyle = 'rgba(56, 189, 248, 0.35)';
-    for (let i = 0; i < 64; i++) {
-      const h = 4 + Math.abs(Math.sin(t * 8 + i * 0.45)) * 24 * energy;
-      ctx.fillRect(20 + i * 19.5, 706 - h, 12, h);
-    }
-    // Neon border frame
-    ctx.strokeStyle = 'rgba(34, 211, 238, 0.45)';
-    ctx.lineWidth = 4;
-    ctx.strokeRect(12, 12, 1256, 696);
-
-    // Top-right badge
-    ctx.fillStyle = 'rgba(9, 13, 28, 0.78)';
-    ctx.fillRect(970, 22, 282, 36);
-    ctx.strokeStyle = '#22D3EE';
-    ctx.lineWidth = 1.5;
-    ctx.strokeRect(970, 22, 282, 36);
-    ctx.font = 'bold 16px "ZCOOLKuaiLe", "NotoSansSC", sans-serif';
-    ctx.fillStyle = '#22D3EE';
-    ctx.textAlign = 'right';
-    ctx.fillText('《潮汐》 · 赛博荧光深海鲸鱼娘篇', 1240, 45);
-    ctx.restore();
-  }
-
-  function drawSubtitle(ctx, t) {
-    let active = null;
-    for (let i = 0; i < SUBTITLES.length; i++) {
-      if (t >= SUBTITLES[i].t0 && t < SUBTITLES[i].t1) {
-        active = SUBTITLES[i];
-        break;
-      }
-    }
-    if (!active) return;
-
-    const prog = Math.min(1, (t - active.t0) / Math.max(0.25, (active.t1 - active.t0) * 0.45));
-    const shown = active.text.slice(0, Math.max(1, Math.ceil(active.text.length * prog)));
-    const hasHi = active.hi && shown.includes(active.hi);
-
-    ctx.save();
-    ctx.fillStyle = 'rgba(8, 12, 28, 0.76)';
-    ctx.strokeStyle = hasHi ? '#F472B6' : '#22D3EE';
-    ctx.lineWidth = 2.5;
-    ctx.beginPath();
-    ctx.roundRect(320, 618, 640, 56, 14);
-    ctx.fill();
-    ctx.stroke();
-
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-    ctx.font = 'bold 30px "ZCOOLKuaiLe", "NotoSansSC", sans-serif';
-    ctx.lineWidth = 6;
-    ctx.strokeStyle = '#090D1C';
-    ctx.strokeText(shown, 640, 646);
-    ctx.fillStyle = hasHi ? '#F472B6' : '#E0F2FE';
-    ctx.fillText(shown, 640, 646);
-    ctx.restore();
+    return { cue: SUBTITLES_CHAOXI[SUBTITLES_CHAOXI.length - 1], idx: SUBTITLES_CHAOXI.length - 1 };
   }
 
   function renderChaoxiFrame(ctx, t) {
-    const env = (typeof window !== 'undefined' && window.AUDIO_DATA) ? window.AUDIO_DATA : null;
-    const fIdx = Math.min(env ? env.energy.length - 1 : 0, Math.max(0, Math.floor(t * 30)));
-    const energy = env ? (env.energy[fIdx] || 0.8) : 0.8;
-    const pulse = 1 + 0.05 * energy * Math.sin(t * 14);
-
     ctx.save();
+    ctx.clearRect(0, 0, W, H);
 
-    if (t < 7.9) {
-      // ACT 1 (0.0–7.9s): Abyssal Withered Coral Reef & Blooming Neon Sea Anemones
-      // ("枯树还没发芽 就被逼着开花 / 妈妈说要快乐 却没告诉我方法")
-      const bg = ctx.createLinearGradient(0, 0, 0, 720);
-      bg.addColorStop(0, '#050816');
-      bg.addColorStop(1, '#0F172A');
-      ctx.fillStyle = bg;
-      ctx.fillRect(0, 0, 1280, 720);
+    const { cue, idx } = getActiveCue(t);
+    const lt = clamp(t - cue.t0, 0, cue.t1 - cue.t0);
+    const dur = Math.max(0.2, cue.t1 - cue.t0);
 
-      // Glowing cybernetic sea tree branches on left & right
-      ctx.strokeStyle = '#38BDF8';
-      ctx.lineWidth = 5;
-      for (const bx of [210, 1070]) {
-        const dir = bx < 640 ? 1 : -1;
-        ctx.beginPath();
-        ctx.moveTo(bx, 620);
-        ctx.quadraticCurveTo(bx + dir * 40, 420, bx + dir * 110, 240);
-        ctx.moveTo(bx + dir * 45, 450);
-        ctx.lineTo(bx + dir * 165, 340);
-        ctx.moveTo(bx + dir * 25, 350);
-        ctx.lineTo(bx - dir * 55, 250);
-        ctx.stroke();
-
-        // Neon blossoms opening along the branches
-        const bloomR = Math.min(20, 4 + t * 2.5);
-        for (const pt of [
-          [bx + dir * 110, 240],
-          [bx + dir * 165, 340],
-          [bx - dir * 55, 250]
-        ]) {
-          ctx.fillStyle = '#F472B6';
-          ctx.beginPath();
-          ctx.arc(pt[0], pt[1], bloomR, 0, Math.PI * 2);
-          ctx.fill();
-          ctx.fillStyle = '#FEF08A';
-          ctx.beginPath();
-          ctx.arc(pt[0], pt[1], bloomR * 0.42, 0, Math.PI * 2);
-          ctx.fill();
-        }
-      }
-
-      // Abyssal seabed
-      ctx.fillStyle = '#090D1C';
-      ctx.fillRect(0, 560, 1280, 160);
-      ctx.strokeStyle = '#22D3EE';
-      ctx.lineWidth = 3;
-      ctx.beginPath();
-      ctx.moveTo(0, 560);
-      ctx.lineTo(1280, 560);
-      ctx.stroke();
-
-      drawBioJelly(ctx, 370, 210, 28, '#22D3EE', t, 0.5);
-      drawBioJelly(ctx, 910, 185, 32, '#E879F9', t, 2.1);
-
-      drawWhaleNeon(ctx, 640, 555, {
-        view: t < 3.9 ? 'front' : 'q',
-        feel: t < 3.9 ? 'wistful' : 'sad',
-        scale: 2.45 * pulse,
-        hat: 'Glow Jellyfish',
-        t
-      });
-
-    } else if (t < 15.9) {
-      // ACT 2 (7.9–15.9s): Swimming Upward Through Deep-Sea Currents & Glowing Tear Pearls
-      // ("成长它教会我 咽下多少风沙 / 从黑夜到黎明 不管有多难耐")
-      const bg = ctx.createLinearGradient(0, 0, 0, 720);
-      bg.addColorStop(0, '#090D26');
-      bg.addColorStop(0.6, '#1E1B4B');
-      bg.addColorStop(1, '#0F172A');
-      ctx.fillStyle = bg;
-      ctx.fillRect(0, 0, 1280, 720);
-
-      // Golden dawn horizon beam breaking through top of ocean at t >= 11.9s
-      if (t >= 11.9) {
-        const beamAlpha = Math.min(0.45, (t - 11.9) * 0.12);
-        const beam = ctx.createLinearGradient(640, 0, 640, 520);
-        beam.addColorStop(0, `rgba(250, 204, 21, ${beamAlpha})`);
-        beam.addColorStop(1, 'rgba(56, 189, 248, 0)');
-        ctx.fillStyle = beam;
-        ctx.beginPath();
-        ctx.moveTo(380, 0);
-        ctx.lineTo(900, 0);
-        ctx.lineTo(1160, 620);
-        ctx.lineTo(120, 620);
-        ctx.closePath();
-        ctx.fill();
-      }
-
-      // Swirling neon current ribbons
-      for (let w = 0; w < 5; w++) {
-        ctx.strokeStyle = w % 2 === 0 ? 'rgba(34, 211, 238, 0.45)' : 'rgba(244, 114, 182, 0.4)';
-        ctx.lineWidth = 4;
-        ctx.beginPath();
-        for (let x = 0; x <= 1280; x += 32) {
-          const y = 140 + w * 105 + Math.sin(x * 0.01 + t * 4 + w) * 32;
-          if (x === 0) ctx.moveTo(x, y);
-          else ctx.lineTo(x, y);
-        }
-        ctx.stroke();
-      }
-
-      CAST.miniWhale(ctx, 320, 340 + Math.sin(t * 3) * 18, 22, { t, flip: false });
-      CAST.miniWhale(ctx, 960, 290 + Math.cos(t * 3) * 18, 22, { t, flip: true });
-
-      drawWhaleNeon(ctx, 640, 535, {
-        view: 'q',
-        feel: t < 11.9 ? 'determined' : 'heroic',
-        scale: 2.5 * pulse,
-        jump: Math.abs(Math.sin(t * 4)) * 22,
-        hat: 'Sailor Cap',
-        t
-      });
-
-    } else if (t < 23.9) {
-      // ACT 3 (15.9–23.9s): Giant Full Moon & Surging Bioluminescent Tidal Waves
-      // ("失落陪着眼泪 汇成了这片海 / 潮汐随月光澎湃 冲破深海的阴霾")
-      const sky = ctx.createLinearGradient(0, 0, 0, 480);
-      sky.addColorStop(0, '#090D1C');
-      sky.addColorStop(1, '#1E1B4B');
-      ctx.fillStyle = sky;
-      ctx.fillRect(0, 0, 1280, 480);
-
-      // Giant glowing neon full moon
-      const moonR = 115 + energy * 14;
-      const halo = ctx.createRadialGradient(640, 210, 40, 640, 210, moonR * 1.9);
-      halo.addColorStop(0, 'rgba(254, 249, 195, 0.95)');
-      halo.addColorStop(0.5, 'rgba(56, 189, 248, 0.42)');
-      halo.addColorStop(1, 'rgba(56, 189, 248, 0)');
-      ctx.fillStyle = halo;
-      ctx.beginPath();
-      ctx.arc(640, 210, moonR * 1.9, 0, Math.PI * 2);
-      ctx.fill();
-
-      ctx.fillStyle = '#FEF9C3';
-      ctx.strokeStyle = '#38BDF8';
-      ctx.lineWidth = 4;
-      ctx.beginPath();
-      ctx.arc(640, 210, moonR, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.stroke();
-
-      // Layered bioluminescent tidal waves
-      for (let layer = 0; layer < 3; layer++) {
-        const baseY = 435 + layer * 62;
-        ctx.fillStyle = layer === 0 ? '#0284C7' : (layer === 1 ? '#0369A1' : '#0C4A6E');
-        ctx.strokeStyle = layer === 0 ? '#67E8F9' : '#38BDF8';
-        ctx.lineWidth = 4;
-        ctx.beginPath();
-        ctx.moveTo(0, 720);
-        for (let x = 0; x <= 1280; x += 24) {
-          const wy = baseY + Math.sin(x * 0.015 - t * (4 + layer) + layer) * (24 + energy * 12);
-          ctx.lineTo(x, wy);
-        }
-        ctx.lineTo(1280, 720);
-        ctx.closePath();
-        ctx.fill();
-        ctx.stroke();
-      }
-
-      drawWhaleNeon(ctx, 640, 545, {
-        view: 'front',
-        feel: 'singing',
-        scale: 2.55 * pulse,
-        hat: 'Crown',
-        t
-      });
-
-    } else {
-      // ACT 4 (23.9–31.84s): Starlight Galaxy Concert & Dawn Blue Horizon
-      // ("跃向星河的舞台 鲸歌在夜空盛开 / 潮落之后再重来 迎接破晓的蔚蓝")
-      const dawn = t >= 27.9 ? Math.min(1, (t - 27.9) / 3.5) : 0;
-      const sky = ctx.createLinearGradient(0, 0, 0, 720);
-      sky.addColorStop(0, dawn > 0.5 ? '#0284C7' : '#0F172A');
-      sky.addColorStop(0.55, dawn > 0.5 ? '#38BDF8' : '#311042');
-      sky.addColorStop(1, '#0369A1');
-      ctx.fillStyle = sky;
-      ctx.fillRect(0, 0, 1280, 720);
-
-      // Starlight galaxy ring & musical notes
-      for (let i = 0; i < 36; i++) {
-        const ang = (i / 36) * Math.PI * 2 + t * 0.6;
-        const rx = 640 + Math.cos(ang) * 440;
-        const ry = 290 + Math.sin(ang) * 145;
-        ctx.fillStyle = i % 2 === 0 ? '#FEF08A' : '#67E8F9';
-        ctx.beginPath();
-        ctx.arc(rx, ry, 4 + (i % 3), 0, Math.PI * 2);
-        ctx.fill();
-      }
-
-      drawBioJelly(ctx, 240, 230, 30, '#67E8F9', t, 0.2);
-      drawBioJelly(ctx, 1040, 230, 30, '#F472B6', t, 1.7);
-      CAST.miniWhale(ctx, 390, 380 + Math.sin(t * 4) * 16, 22, { t, flip: false });
-      CAST.miniWhale(ctx, 890, 380 + Math.cos(t * 4) * 16, 22, { t, flip: true });
-
-      drawWhaleNeon(ctx, 640, 550, {
-        view: 'front',
-        feel: 'ecstatic',
-        scale: 2.6 * pulse,
-        jump: Math.abs(Math.sin(t * 5)) * 18,
-        hat: 'Star Hairpin',
-        t
+    // 1. Render Full Non-Repeating Multi-Set Shot via Benchmark Engine
+    if (BAHUIYI && typeof BAHUIYI.renderMasterMVShot === 'function') {
+      BAHUIYI.renderMasterMVShot(ctx, t, {
+        shotIdx: idx,
+        lt,
+        dur,
+        setKey: cue.setKey,
+        action: cue.action,
+        emos: cue.emos,
+        style: ['watercolor', 'neon', 'watercolor', 'pixel'][idx % 4],
+        guest: idx % 2 === 0 ? 'ladyGemini' : 'all'
       });
     }
 
-    drawNeonFinish(ctx, t, energy);
-    drawSubtitle(ctx, t);
+    // 2. Top Header HUD Badge
+    ctx.save();
+    paint(ctx, rrPts(24, 20, 410, 38, 12), { fill: '#090D1E', fillOp: 205, ink: '#38BDF8', sw: 1.8 });
+    ctx.font = 'bold 15px "ZCOOLKuaiLe", "NotoSansSC", sans-serif';
+    ctx.fillStyle = '#7DD3FC';
+    ctx.textAlign = 'left';
+    ctx.fillText(`《潮汐》傅梦彤 · SHOT ${String(idx + 1).padStart(2, '0')}/11 [${cue.action}]`, 40, 44);
+    ctx.restore();
+
+    // 3. Bottom Karaoke Subtitle Bar (100% Audio-Aligned)
+    const prog = clamp(lt / dur, 0, 1);
+    const popY = lt < 0.16 ? (1 - backOut(lt / 0.16)) * 12 : 0;
+    ctx.save();
+    ctx.translate(0, popY);
+    paint(ctx, rrPts(180, H - 104, W - 360, 80, 20), {
+      fill: '#090D1E', fillOp: 220, ink: '#38BDF8', sw: 2.2
+    });
+
+    ctx.font = 'bold 31px "ZCOOLKuaiLe", "NotoSansSC", sans-serif';
+    ctx.textAlign = 'center';
+    ctx.lineWidth = 5;
+    ctx.strokeStyle = '#090D1E';
+    ctx.strokeText(cue.zh, W / 2, H - 62);
+    ctx.fillStyle = '#E0F2FE';
+    ctx.fillText(cue.zh, W / 2, H - 62);
+
+    const textW = ctx.measureText(cue.zh).width;
+    ctx.save();
+    ctx.beginPath();
+    ctx.rect(W / 2 - textW / 2, H - 98, textW * prog, 48);
+    ctx.clip();
+    ctx.fillStyle = '#FDE047';
+    ctx.fillText(cue.zh, W / 2, H - 62);
+    ctx.restore();
+
+    ctx.font = 'bold 13px "Silkscreen", "NotoSansSC", monospace';
+    ctx.fillStyle = '#93C5FD';
+    ctx.fillText(cue.en, W / 2, H - 36);
+    ctx.restore();
+
+    if (t > DURATION - 1.1) {
+      const r = lerp(820, 0, easeIn(seg(t, DURATION - 1.1, DURATION - 0.04)));
+      iris(ctx, 640, 340, r, '#040814');
+    }
+
     ctx.restore();
   }
 
-  const api = {
+  const EXPORTS = {
     DURATION,
-    SUBTITLES,
+    SUBTITLES_CHAOXI,
     renderChaoxiFrame
   };
 
+  root.MV_CHAOXI = EXPORTS;
   if (typeof module !== 'undefined' && module.exports) {
-    module.exports = api;
+    module.exports = EXPORTS;
   }
-  root.MV_CHAOXI = api;
-})(typeof window !== 'undefined' ? window : globalThis);
+})(typeof globalThis !== 'undefined' ? globalThis : window);

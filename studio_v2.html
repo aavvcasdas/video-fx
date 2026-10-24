@@ -1,0 +1,438 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>深海鲸鱼娘 · 动作库 / 布景库 / 分镜工作台 v2</title>
+<style>
+  @font-face { font-family: 'ZCOOLKuaiLe'; src: url('assets/fonts/ZCOOLKuaiLe-Regular.ttf') format('truetype'); font-display: swap; }
+  @font-face { font-family: 'NotoSansSC'; src: url('assets/fonts/NotoSansSC-Bold.woff2') format('woff2'); font-display: swap; }
+  @font-face { font-family: 'Silkscreen'; src: url('assets/fonts/Silkscreen-Regular.ttf') format('truetype'); font-display: swap; }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: radial-gradient(circle at 50% -10%, #123a6b 0%, #071122 60%, #04080f 100%);
+    color: #dbeafe; font-family: 'ZCOOLKuaiLe', 'NotoSansSC', system-ui, sans-serif;
+    min-height: 100vh; padding: 16px 20px 40px;
+  }
+  header { display: flex; flex-wrap: wrap; align-items: baseline; gap: 14px; margin-bottom: 14px; }
+  h1 { font-size: 26px; color: #7dd3fc; letter-spacing: 1px; }
+  header .sub { font-size: 13px; color: #94a3b8; }
+  nav { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 14px; }
+  nav button {
+    background: #0f1e34; border: 1px solid #1e3a5f; color: #bae6fd; padding: 7px 16px;
+    border-radius: 999px; font-family: inherit; font-size: 14px; cursor: pointer; transition: all .15s;
+  }
+  nav button:hover { border-color: #38bdf8; color: #e0f2fe; }
+  nav button.active { background: #0369a1; border-color: #38bdf8; color: #fff; }
+  .panel { display: none; }
+  .panel.active { display: block; }
+  #stage-wrap { position: relative; width: 100%; max-width: 1280px; margin: 0 auto; }
+  canvas#stage {
+    width: 100%; height: auto; display: block; border-radius: 14px;
+    border: 1px solid #1e3a5f; box-shadow: 0 18px 50px rgba(0,0,0,.55); background: #04080f;
+  }
+  .controls { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin: 12px auto 0; max-width: 1280px; }
+  .controls label { font-size: 13px; color: #94a3b8; display: flex; align-items: center; gap: 6px; }
+  .controls input[type=range] { width: 200px; accent-color: #38bdf8; }
+  .controls select, .controls button {
+    background: #0f1e34; color: #bae6fd; border: 1px solid #1e3a5f; border-radius: 8px;
+    padding: 6px 12px; font-family: inherit; font-size: 13px; cursor: pointer;
+  }
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 10px; margin-top: 14px; }
+  .card {
+    background: #08131f; border: 1px solid #16304d; border-radius: 12px; overflow: hidden; cursor: pointer;
+    transition: transform .12s, border-color .12s;
+  }
+  .card:hover { transform: translateY(-2px); border-color: #38bdf8; }
+  .card.sel { border-color: #facc15; box-shadow: 0 0 0 2px rgba(250,204,21,.35); }
+  .card canvas { width: 100%; display: block; background: #04080f; }
+  .card .cap { padding: 6px 8px; font-size: 12px; color: #93c5fd; display: flex; justify-content: space-between; gap: 6px; }
+  .card .cap b { color: #fde047; font-weight: 600; }
+  .hint { font-size: 13px; color: #94a3b8; line-height: 1.7; max-width: 1280px; margin: 8px auto 0; }
+  .hint code { color: #7dd3fc; background: #0b1a2b; padding: 1px 5px; border-radius: 4px; }
+  .row { display: flex; gap: 16px; flex-wrap: wrap; align-items: center; margin: 10px 0; }
+  .stat { font-size: 13px; color: #a5b4fc; }
+</style>
+</head>
+<body>
+<header>
+  <h1>🐋 深海鲸鱼娘 · 工作台 v2</h1>
+  <span class="sub">37 个动作 · 21 个布景 · 一句歌词一个镜头</span>
+</header>
+
+<nav>
+  <button data-tab="mv" class="active">MV 预览</button>
+  <button data-tab="actions">动作库 (37)</button>
+  <button data-tab="sets">布景库 (21)</button>
+  <button data-tab="shots">分镜表</button>
+</nav>
+
+<!-- ================= MV 预览 ================= -->
+<section class="panel active" id="tab-mv">
+  <div id="stage-wrap"><canvas id="stage" width="1280" height="720"></canvas></div>
+  <div class="controls">
+    <label>影片
+      <select id="mv-select"></select>
+    </label>
+    <label>播放 <input id="mv-play" type="checkbox" checked></label>
+    <label>时间 <input id="mv-time" type="range" min="0" max="100" step="0.01" value="0"></label>
+    <span class="stat" id="mv-clock">0.00s</span>
+    <span class="stat" id="mv-info"></span>
+  </div>
+  <p class="hint">
+    字幕时间轴来自 <code>src/timings/&lt;key&gt;.json</code>（用 <code>tools/ocr_reference_subs.py</code>
+    从参考片逐帧 OCR 出字幕出现时刻，再用 <code>tools/merge_timings.py</code> 对齐到正确歌词）。
+    每个镜头从动作库取动作、从布景库取布景，同一部片子里相邻镜头不重复。
+  </p>
+</section>
+
+<!-- ================= 动作库 ================= -->
+<section class="panel" id="tab-actions">
+  <div class="controls">
+    <label>分类
+      <select id="act-cat">
+        <option value="all">全部</option>
+        <option value="idle">待机</option>
+        <option value="move">移动</option>
+        <option value="body">身体</option>
+        <option value="express">表情表演</option>
+        <option value="life">生活小动作</option>
+      </select>
+    </label>
+    <label>画风
+      <select id="act-style">
+        <option value="watercolor">水彩</option>
+        <option value="pixel">像素</option>
+        <option value="neon">赛博霓虹</option>
+        <option value="risograph">孔版</option>
+        <option value="ukiyoe">浮世绘</option>
+      </select>
+    </label>
+    <span class="stat">点击卡片 → 上方大图单独回放该动作</span>
+  </div>
+  <div id="stage-wrap" style="max-width:640px;margin-top:12px"><canvas id="act-stage" width="1280" height="720"></canvas></div>
+  <div class="grid" id="act-grid"></div>
+  <p class="hint">
+    动作定义在 <code>src/actions.js</code>：每个动作带 <code>准备 → 表演 → 恢复</code> 的包络，
+    循环动作会持续，单次动作播完回到待机。参考了
+    <code>YunYueSama/codex-deepseek-pet</code>（大肥鱼桌宠）的动作分组与
+    <code>roseion/dsh-dayu-fish-skin</code>（女仆巡游 / 喂饭 / 视线跟随）。
+  </p>
+</section>
+
+<!-- ================= 布景库 ================= -->
+<section class="panel" id="tab-sets">
+  <div class="controls">
+    <label>光色
+      <select id="set-mood">
+        <option value="">原色</option>
+        <option value="night">夜色</option>
+      </select>
+    </label>
+    <span class="stat">点击卡片放大查看</span>
+  </div>
+  <div id="stage-wrap" style="max-width:900px;margin-top:12px"><canvas id="set-stage" width="1280" height="720"></canvas></div>
+  <div class="grid" id="set-grid"></div>
+  <p class="hint">布景定义在 <code>src/sets.js</code>，全部是参数化的（seed / pan / pieces / mood），同一个布景换参数就是新画面。</p>
+</section>
+
+<!-- ================= 分镜表 ================= -->
+<section class="panel" id="tab-shots">
+  <div class="controls">
+    <label>影片 <select id="shots-mv"></select></label>
+    <span class="stat" id="shots-stat"></span>
+  </div>
+  <div class="grid" id="shot-grid"></div>
+</section>
+
+<script src="assets/audio_envelope.js"></script>
+<script src="src/core.js"></script>
+<script src="src/whale_girl_rig_data.js"></script>
+<script src="src/whale_girl.js"></script>
+<script src="src/clawd.js"></script>
+<script src="src/cast.js"></script>
+<script src="src/actions.js"></script>
+<script src="src/sets.js"></script>
+<script src="src/shotlib.js"></script>
+<script src="src/mv_packs_v2.js"></script>
+<script>
+// ---------------------------------------------------------------------------
+// 数据加载：Node 环境读 src/timings/*.json；浏览器里通过 fetch 读
+// ---------------------------------------------------------------------------
+const TIMINGS = {};
+const PACKS = window.MV_PACKS_V2.PACKS;
+const KEYS = Object.keys(PACKS);
+
+async function loadTimings() {
+  await Promise.all(KEYS.map(async (k) => {
+    try {
+      const r = await fetch(`src/timings/${k}.json`);
+      if (r.ok) {
+        TIMINGS[k] = await r.json();
+      }
+    } catch (e) {}
+  }));
+  window.MV_TIMINGS = TIMINGS;
+  // 注入到 SHOT 的缓存
+  if (window.SHOT && window.SHOT.allTimings) {
+    const cache = window.SHOT.allTimings();
+    Object.assign(cache, TIMINGS);
+  }
+}
+
+function planFor(key) {
+  const pl = window.MV_PACKS_V2.makePlan(key);
+  pl.duration = PACKS[key].duration;
+  return pl;
+}
+
+// ---------------------------------------------------------------------------
+// 标签页
+// ---------------------------------------------------------------------------
+const tabs = document.querySelectorAll('nav button');
+tabs.forEach((b) => b.addEventListener('click', () => {
+  tabs.forEach((x) => x.classList.toggle('active', x === b));
+  document.querySelectorAll('.panel').forEach((p) => p.classList.toggle('active', p.id === 'tab-' + b.dataset.tab));
+}));
+
+// ---------------------------------------------------------------------------
+// MV 预览
+// ---------------------------------------------------------------------------
+const stage = document.getElementById('stage');
+const sctx = stage.getContext('2d');
+const mvSel = document.getElementById('mv-select');
+const mvPlay = document.getElementById('mv-play');
+const mvTime = document.getElementById('mv-time');
+const mvClock = document.getElementById('mv-clock');
+const mvInfo = document.getElementById('mv-info');
+
+KEYS.forEach((k) => {
+  const o = document.createElement('option');
+  o.value = k;
+  o.textContent = PACKS[k].title;
+  mvSel.appendChild(o);
+});
+
+let current = null;
+let playT = 0;
+let lastTs = 0;
+
+function setMV(key) {
+  current = planFor(key);
+  mvTime.max = String(PACKS[key].duration);
+  playT = 0;
+  mvTime.value = '0';
+  const st = window.SHOT.stats(current);
+  mvInfo.textContent = `${st.shots} 镜头 · ${st.uniqueSets} 布景 · ${st.uniqueActions} 动作 · ${st.uniqueCams} 机位`;
+}
+
+mvSel.addEventListener('change', () => setMV(mvSel.value));
+mvTime.addEventListener('input', () => { playT = Number(mvTime.value); mvPlay.checked = false; });
+
+function drawMV(t) {
+  if (!current) return;
+  sctx.clearRect(0, 0, 1280, 720);
+  window.SHOT.render(sctx, current, t, { tag: PACKS[current.key].title });
+  window.SHOT.drawBeatBar(sctx, t, current.duration, PACKS[current.key].accent);
+  mvClock.textContent = t.toFixed(2) + 's';
+  if (mvPlay.checked) mvTime.value = String(t);
+}
+
+function loopMV(ts) {
+  const dt = lastTs ? Math.min(0.06, (ts - lastTs) / 1000) : 0;
+  lastTs = ts;
+  if (current) {
+    if (mvPlay.checked) {
+      playT += dt;
+      if (playT > current.duration) playT = 0;
+    }
+    drawMV(playT);
+  }
+  requestAnimationFrame(loopMV);
+}
+
+// ---------------------------------------------------------------------------
+// 动作库
+// ---------------------------------------------------------------------------
+const actGrid = document.getElementById('act-grid');
+const actStage = document.getElementById('act-stage');
+const actCtx = actStage.getContext('2d');
+let actSel = 'wave';
+let actStyle = 'watercolor';
+
+function buildActionCards() {
+  actGrid.innerHTML = '';
+  const cat = document.getElementById('act-cat').value;
+  const names = window.ACT.ACTION_LIST.filter((n) => cat === 'all' || window.ACT.ACTIONS[n].cat === cat);
+  names.forEach((name) => {
+    const def = window.ACT.ACTIONS[name];
+    const card = document.createElement('div');
+    card.className = 'card' + (name === actSel ? ' sel' : '');
+    card.dataset.name = name;
+    const c = document.createElement('canvas');
+    c.width = 320; c.height = 180;
+    card.appendChild(c);
+    const cap = document.createElement('div');
+    cap.className = 'cap';
+    cap.innerHTML = `<span>${def.zh}</span><b>${def.loop ? 'LOOP' : 'ONCE'}</b>`;
+    card.appendChild(cap);
+    card.addEventListener('click', () => {
+      actSel = name;
+      document.querySelectorAll('#act-grid .card').forEach((el) => el.classList.toggle('sel', el.dataset.name === name));
+    });
+    actGrid.appendChild(card);
+  });
+}
+
+function drawActionThumbs(t) {
+  document.querySelectorAll('#act-grid .card').forEach((card) => {
+    const c = card.querySelector('canvas');
+    const ctx = c.getContext('2d');
+    ctx.save();
+    ctx.fillStyle = '#0a1727';
+    ctx.fillRect(0, 0, 320, 180);
+    ctx.translate(0, 0);
+    ctx.scale(320 / 1280, 180 / 720);
+    window.ACT.drawAction(ctx, 640, 640, 34, card.dataset.name, t, { t, style: actStyle, hat: 'maidHeadband' });
+    ctx.restore();
+  });
+}
+
+function drawActionStage(t) {
+  actCtx.clearRect(0, 0, 1280, 720);
+  const g = actCtx.createLinearGradient(0, 0, 0, 720);
+  g.addColorStop(0, '#0b1a33'); g.addColorStop(1, '#050c17');
+  actCtx.fillStyle = g; actCtx.fillRect(0, 0, 1280, 720);
+  window.ACT.drawAction(actCtx, 640, 640, 46, actSel, t, { t, style: actStyle, hat: 'maidHeadband' });
+  const def = window.ACT.ACTIONS[actSel];
+  actCtx.fillStyle = 'rgba(3,7,18,.8)';
+  actCtx.beginPath(); actCtx.roundRect(26, 24, 520, 60, 14); actCtx.fill();
+  actCtx.strokeStyle = '#38bdf8'; actCtx.lineWidth = 2; actCtx.stroke();
+  actCtx.fillStyle = '#7dd3fc'; actCtx.font = 'bold 26px "ZCOOLKuaiLe", sans-serif';
+  actCtx.fillText(def.zh, 46, 62);
+  actCtx.font = 'bold 14px "Silkscreen", monospace'; actCtx.fillStyle = '#fde047';
+  actCtx.fillText(`${actSel.toUpperCase()} · ${def.cat} · ${def.loop ? 'LOOP' : 'ONESHOT'} · ${def.dur.toFixed(1)}s`, 46, 78);
+}
+
+// ---------------------------------------------------------------------------
+// 布景库
+// ---------------------------------------------------------------------------
+const setGrid = document.getElementById('set-grid');
+const setStage = document.getElementById('set-stage');
+const setCtx = setStage.getContext('2d');
+let setSel = window.SET_NAMES[0];
+
+function buildSetCards() {
+  setGrid.innerHTML = '';
+  window.SET_NAMES.forEach((name) => {
+    const card = document.createElement('div');
+    card.className = 'card';
+    card.dataset.name = name;
+    const c = document.createElement('canvas');
+    c.width = 320; c.height = 180;
+    card.appendChild(c);
+    const cap = document.createElement('div');
+    cap.className = 'cap';
+    cap.innerHTML = `<span>${name}</span>`;
+    card.appendChild(cap);
+    card.addEventListener('click', () => { setSel = name; });
+    setGrid.appendChild(card);
+  });
+}
+
+function drawSetThumbs(t) {
+  document.querySelectorAll('#set-grid .card').forEach((card) => {
+    const c = card.querySelector('canvas');
+    const ctx = c.getContext('2d');
+    ctx.save();
+    ctx.scale(320 / 1280, 180 / 720);
+    window.drawSet(ctx, card.dataset.name, t, { seed: 5 });
+    ctx.restore();
+  });
+  setCtx.clearRect(0, 0, 1280, 720);
+  window.drawSet(setCtx, setSel, t, { seed: 5 });
+  setCtx.fillStyle = 'rgba(3,7,18,.8)';
+  setCtx.beginPath(); setCtx.roundRect(26, 24, 360, 46, 12); setCtx.fill();
+  setCtx.strokeStyle = '#38bdf8'; setCtx.lineWidth = 2; setCtx.stroke();
+  setCtx.fillStyle = '#7dd3fc'; setCtx.font = 'bold 22px "ZCOOLKuaiLe", sans-serif';
+  setCtx.fillText(setSel, 46, 55);
+}
+
+// ---------------------------------------------------------------------------
+// 分镜表
+// ---------------------------------------------------------------------------
+const shotsSel = document.getElementById('shots-mv');
+const shotGrid = document.getElementById('shot-grid');
+const shotsStat = document.getElementById('shots-stat');
+
+KEYS.forEach((k) => {
+  const o = document.createElement('option');
+  o.value = k; o.textContent = PACKS[k].title;
+  shotsSel.appendChild(o);
+});
+
+function buildShots() {
+  shotGrid.innerHTML = '';
+  const pl = planFor(shotsSel.value);
+  const st = window.SHOT.stats(pl);
+  shotsStat.textContent = `${st.shots} 镜头 / ${st.uniqueSets} 布景 / ${st.uniqueActions} 动作 / ${st.uniqueCams} 机位 · 相邻重复：动作 ${st.adjacentSameAction}，布景 ${st.adjacentSameSet}`;
+  const frame = document.createElement('canvas');
+  frame.width = 1280; frame.height = 720;
+  const fctx = frame.getContext('2d');
+  pl.shots.forEach((s) => {
+    const card = document.createElement('div');
+    card.className = 'card';
+    const c = document.createElement('canvas');
+    c.width = 320; c.height = 180;
+    const ctx = c.getContext('2d');
+    fctx.clearRect(0, 0, 1280, 720);
+    window.SHOT.render(fctx, pl, s.t0 + (s.t1 - s.t0) * 0.45, { tag: PACKS[pl.key].title });
+    ctx.drawImage(frame, 0, 0, 1280, 720, 0, 0, 320, 180);
+    card.appendChild(c);
+    const cap = document.createElement('div');
+    cap.className = 'cap';
+    cap.innerHTML = `<span>${s.t0.toFixed(1)}s ${s.set}</span><b>${s.action}</b>`;
+    card.appendChild(cap);
+    card.addEventListener('click', () => {
+      playT = s.t0 + (s.t1 - s.t0) * 0.3;
+      mvSel.value = pl.key; setMV(pl.key); playT = s.t0 + (s.t1 - s.t0) * 0.3;
+      mvPlay.checked = false;
+      document.querySelector('nav button[data-tab="mv"]').click();
+    });
+    shotGrid.appendChild(card);
+  });
+}
+
+// ---------------------------------------------------------------------------
+// 启动
+// ---------------------------------------------------------------------------
+(async () => {
+  await loadTimings();
+  setMV(KEYS[0]);
+  buildActionCards();
+  buildSetCards();
+  buildShots();
+  document.getElementById('act-cat').addEventListener('change', buildActionCards);
+  document.getElementById('act-style').addEventListener('change', (e) => { actStyle = e.target.value; });
+  shotsSel.addEventListener('change', buildShots);
+
+  let tt = 0, last = 0;
+  function frame(ts) {
+    const dt = last ? Math.min(0.05, (ts - last) / 1000) : 0;
+    last = ts;
+    tt += dt;
+    loopMV(ts);
+    if (document.getElementById('tab-actions').classList.contains('active')) {
+      drawActionThumbs(tt);
+      drawActionStage(tt);
+    }
+    if (document.getElementById('tab-sets').classList.contains('active')) {
+      drawSetThumbs(tt);
+    }
+    requestAnimationFrame(frame);
+  }
+  requestAnimationFrame(frame);
+})();
+</script>
+</body>
+</html>

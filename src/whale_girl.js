@@ -810,11 +810,12 @@
     const emoTag = o.emotion || o.emo || 'idle';
     const emoWave = ['happy', 'joy', 'yay', 'excited', 'love', 'starry', 'proud', 'wink'].includes(emoTag);
     const emoTremble = ['panic', 'shock', 'shocked', 'gasp', 'cry', 'bawl', 'rage', 'furious'].includes(emoTag);
+    const armRotScale = o.armRotScale !== undefined ? o.armRotScale : 0.55;
     const armRRot = o.aR !== undefined
-      ? (0.55 - o.aR) * 0.55
+      ? (0.55 - o.aR) * armRotScale
       : ((o.waveArm || emoWave) ? Math.sin(t * 9.5) * 0.34 : (isMoving ? Math.sin(walkRad) * 0.58 : (emoTremble ? Math.sin(t * 28) * 0.16 : Math.sin(t * 4.2) * 0.12)));
     const armLRot = o.aL !== undefined
-      ? (o.aL - 0.35) * 0.55
+      ? (o.aL - 0.35) * armRotScale
       : (isMoving ? -Math.sin(walkRad) * 0.58 : (emoWave ? -Math.sin(t * 9.5) * 0.28 : Math.sin(t * 3.8 + 1.2) * 0.10));
 
     if (poseBones.armR && poseBones.armR.length > 0) {

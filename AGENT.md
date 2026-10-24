@@ -4,6 +4,15 @@ This repository implements a deterministic 30fps HTML5 Canvas + Node (`@napi-rs/
 
 ---
 
+> **2026-10-24 重制版（v2）**：14 部 MV 已统一到新的镜头引擎
+> （`src/shotlib.js` + `src/mv_packs_v2.js` + `render_mv_v2.mjs`），
+> 字幕时间轴改为「参考片 OCR 实测时刻 + 人工歌词文本」混合生成（`docs/SUB_TIMING.md`），
+> 画面新增细节层 `src/detail.js`，动作库 37 个动作 `src/actions.js`。
+> **先看 `docs/REWORK_V2.md`**（改造记录 + 成果表 + 复核方法），再看 `docs/MV_ISSUES.md`。
+> 浏览器工作台：`node tools/serve_studio.mjs 4173` → `studio_v2.html`。
+
+---
+
 ## 1. Project Architecture & Core Modules
 
 | File / Directory | Purpose |

@@ -84,10 +84,10 @@ function renderStoryboardSheet(outFile = 'docs/mv_ba_huiyi_pinhao_gei_ni_storybo
 
 function renderLocomotionStrip(outFile = 'docs/mv_ba_huiyi_walk_run_strip.png') {
   fs.mkdirSync(path.dirname(outFile), { recursive: true });
-  // 12 moments showing walking stride, kneeling pickup, tail-cushion sitting, fast run with smear, jump, and finale
+  // 12 moments showing walking stride, kneeling pickup, tail-cushion sitting, fast run with smear, jump, and finale (Whale Maid Girl is the only character).
   const stripTimes = [
     0.8,  1.3,  1.8,  2.3,   // Row 1: Beach walk cycle (`stroll` stride + emotion transitions)
-    3.2,  3.7,  4.2,  6.5,   // Row 2: Kneeling pickup (`kneel`) + Tail-cushion sitting (`tailSit`) with Lady Gemini
+    3.2,  3.7,  4.2,  6.5,   // Row 2: Kneeling pickup (`kneel`) + tail-cushion sitting (solo protagonist)
     14.0, 29.0, 29.6, 140.2  // Row 3: Parabolic leap (`jumpJoy`), Fast run (`runRight` + smear), Grand Finale
   ];
   const cols = 4, rows = 3;

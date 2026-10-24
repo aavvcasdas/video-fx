@@ -1221,24 +1221,8 @@
     const active = getActiveLyricAt(t);
     if (!active) return;
 
-    const pieces = clamp(Math.floor(((barIdx + 1) / 56) * 9), 1, 9);
-    const actList = WHALE.ACTION_LIST || [];
-    const actItem = actList.length ? actList[barIdx % actList.length] : { zh: '鲸鱼动作' };
-
-    // Top-left chapter + action badge & Top-right 9/9 Memory Puzzle Progress HUD
-    ctx.save();
-    paint(ctx, rrPts(24, 20, 415, 38, 12), { fill: '#0F172A', fillOp: 195, ink: '#38BDF8', sw: 1.8 });
-    ctx.font = 'bold 15px "ZCOOLKuaiLe", "NotoSansSC", sans-serif';
-    ctx.fillStyle = '#7DD3FC';
-    ctx.textAlign = 'left';
-    ctx.fillText(`${active.tag} · #${String(barIdx + 1).padStart(2, '0')} [${actItem.zh}]`, 40, 44);
-
-    paint(ctx, rrPts(W - 265, 20, 240, 38, 12), { fill: '#0F172A', fillOp: 195, ink: '#FACC15', sw: 1.8 });
-    ctx.font = 'bold 16px "ZCOOLKuaiLe", "NotoSansSC", sans-serif';
-    ctx.fillStyle = '#FDE047';
-    ctx.textAlign = 'right';
-    ctx.fillText(`记忆拼图 ${pieces}/9 片`, W - 40, 45);
-    ctx.restore();
+    // Keep the frame cinematic and single-character: no chapter HUD, cast labels,
+    // puzzle counter, or persistent action tags. The lyric is the only overlay.
 
     // Bottom lyric subtitle pill with karaoke progress glow
     const lt = clamp(t - active.t0, 0, active.t1 - active.t0);
@@ -1360,62 +1344,12 @@
       actOpts.waveArm = true;
     }
 
-    // 3. Render Guest Co-Stars (`ladyGemini`, `ladyClaude`, `clawd`, `miniWhale`, `bionicPuppy`, + `drawFatFish`!)
-    if (shot.guest === 'ladyGemini' || shot.guest === 'all') {
-      const gx = shot.act === 'duetWalk' ? actOpts.x + 165 : 855 + Math.sin(t * 2.2) * 14;
-      const gWalk = shot.act === 'duetWalk' ? actOpts.walk : 0;
-      if (CAST.ladyGemini) {
-        CAST.ladyGemini(ctx, gx, groundY, 28, {
-          t,
-          walk: gWalk,
-          flip: true,
-          emote: lt > 1.2 ? 'sparkle' : null
-        });
-      }
-    }
-    if (shot.guest === 'ladyClaude' || shot.guest === 'all') {
-      const cxGuest = shot.guest === 'all' ? 395 : 830;
-      if (CAST.ladyClaude) {
-        CAST.ladyClaude(ctx, cxGuest, groundY, 27, {
-          t,
-          flip: cxGuest > actOpts.x,
-          emote: lt > 1.1 ? 'heart' : null
-        });
-      }
-    }
-    if (shot.guest === 'clawd' || shot.guest === 'all') {
-      const clx = shot.guest === 'all' ? 275 : actOpts.x - 145;
-      if (CAST.clawd) {
-        CAST.clawd(ctx, clx, groundY + 4, 21, { t, hat: 'crown', happy: true });
-      }
-    }
-    if (shot.guest === 'miniWhale' || shot.guest === 'all') {
-      const mwx = shot.guest === 'all' ? 965 : actOpts.x + 150;
-      const mwy = groundY - 125 + Math.sin(t * 4.2) * 16;
-      if (CAST.miniWhale) {
-        CAST.miniWhale(ctx, mwx, mwy, 20, { t, spout: true });
-      }
-    }
-    if (shot.guest === 'bionicPuppy' || shot.guest === 'all') {
-      const bpx = shot.guest === 'all' ? 1020 : actOpts.x + 135;
-      if (CAST.bionicPuppy) {
-        CAST.bionicPuppy(ctx, bpx, groundY + 2, 19, { t, flip: true });
-      }
-    }
+    // 3. Single-character staging: this is a Whale Maid Girl MV, not a cast ensemble.
+    // Co-star modules remain available in the character library but are intentionally not
+    // placed into the replicated film. The blue fat-fish appears only in its dedicated
+    // protagonist action (`fatfish_transform`), never as a permanent second character.
 
-    // Always include our chubby blue Fat-Fish companion (`吃白饭的蓝色大肥鱼`) on stage!
-    if (typeof WHALE.drawFatFish === 'function') {
-      const fishModes = ['eat_rice', 'working', 'success', 'idle'];
-      const fMode = fishModes[barIdx % fishModes.length];
-      const fx = actOpts.x > 640 ? actOpts.x - 175 : actOpts.x + 175;
-      WHALE.drawFatFish(ctx, clamp(fx, 160, 1120), groundY - 16, 20, {
-        t,
-        mode: fMode,
-        flip: fx > actOpts.x
-      });
-    }
-
-    // 4. Render Protagonist `whaleGirl` with 28 Actions (`codex-deepseek-pet` & `dsh-dayu-fish-skin`)
+    // 4. Render the sole protagonist `whaleGirl` with reference-derived actions.
     //    AND 3-Stage Smooth Mid-Lyric Emotion Transitions (`emotions`)!
     const emoState = emotions(lt, shot.emos, { take: true });
     const chosenAction = typeof WHALE.pickAction === 'function' ? WHALE.pickAction(barIdx) : null;
@@ -1423,7 +1357,7 @@
       t,
       lt,
       action: chosenAction,
-      showActionBadge: true,
+      showActionBadge: false,
       style: shot.style || 'watercolor',
       hat: shot.hat || 'Maid Headband',
       armL: resolvePropFn(shot.propL, t),

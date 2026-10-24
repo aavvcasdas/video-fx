@@ -140,3 +140,9 @@ node render_qunian_xiatian.mjs
 node render_mv_folder.mjs all
 node render_mv_folder.mjs sheet
 ```
+
+## 5. User correction: single protagonist, directed scenes, one rebuild
+
+See [`docs/DIRECTION_AND_CHARACTER_FIX.md`](docs/DIRECTION_AND_CHARACTER_FIX.md) for the reference review, scope locks, and this correction's implementation. Key correction: the benchmark MV now renders Whale Maid Girl alone; cast modules are not placed in the film, and `drawFatFish` is limited to its dedicated action rather than appearing in every shot. The character rig has added whale-apron, gold hem, and blue fin-ear bow details inspired by the two fish references. The benchmark renderer keeps only lyric subtitles and removes cast/action/puzzle HUD clutter. This pass rebuilds only `mv_ba_huiyi_pinhao_gei_ni_whale_girl.mp4`; other MVs remain untouched.
+
+**Single-MV verification (2026-10-24):** rebuilt only `mv_ba_huiyi_pinhao_gei_ni_whale_girl.mp4` at 1280×720, 30 fps, 142.10s; decoded all 4,263 H.264 frames and AAC audio. The benchmark render path contains no co-star drawing calls. Only the benchmark storyboard and locomotion review sheet were regenerated alongside that one MP4. No other MV was rendered or modified.

@@ -666,6 +666,13 @@
     if (bodyRot) ctx.rotate(bodyRot);
     ctx.scale(sx, sy);
 
+    if (actionMod && typeof actionMod.underlay === 'function') {
+      ctx.save();
+      if (o.flip) ctx.scale(-1, 1);
+      actionMod.underlay(ctx, u, t);
+      ctx.restore();
+    }
+
     // Use Articulated 7-Bone Pixel-Grid Rig across ALL 5 turnaround views (front, q, side, qback, back)!
     const usePixelRig = (
       root.WHALE_GIRL_PIXEL_RIG &&
@@ -673,7 +680,7 @@
     );
 
     if (usePixelRig) {
-      drawArticulatedPixelRig(ctx, u, t, o, poseKey, headBob, headTilt, style, view);
+      drawArticulatedPixelRig(ctx, u, t, o, poseKey, headBob, headTilt, style, view, actionMod);
     } else {
       drawVectorConstruct(ctx, u, t, o, poseKey, view, vx, isBack, isQBack, headBob, headTilt, style);
     }
@@ -681,7 +688,7 @@
     if (actionMod && typeof actionMod.overlay === 'function') {
       ctx.save();
       if (o.flip) ctx.scale(-1, 1);
-      actionMod.overlay(ctx, u);
+      actionMod.overlay(ctx, u, t);
       ctx.restore();
     }
 
@@ -689,10 +696,11 @@
   }
 
   // ==========================================================================
-  // MODE A: Articulated 7-Bone Pixel-Grid Rig (100% faithful to 42868804351-1-192.mp4)
-  // Supports all 5 Canonical Poses AND all 5 Turnaround Views (front/q/side/qback/back)
+  // MODE A: Articulated 7-Bone Pixel-Grid Rig (100% faithful to 42868804351-1-192.mp4
+  // + codex-deepseek-pet & dsh-dayu-fish-skin apron whale logo, fin-ear bows & gold trim)
+  // Supports all 5 Canonical Poses, 5 Turnaround Views, and Full-Body Action Postures
   // ==========================================================================
-  function drawArticulatedPixelRig(ctx, u, t, o, poseKey, headBob, headTilt, style, view = 'front') {
+  function drawArticulatedPixelRig(ctx, u, t, o, poseKey, headBob, headTilt, style, view = 'front', actionMod = null) {
     const rig = root.WHALE_GIRL_PIXEL_RIG;
     const basePal = rig.palette;
     const isTurnView = (view && view !== 'front' && rig.views && rig.views[view]);
@@ -769,114 +777,182 @@
       ctx.restore();
     }
 
-    // 1. Back Hair Bone (shares upper-body headBob so there is zero vertical seam!)
-    if (poseKey !== 'wink') {
-      ctx.save();
-      ctx.translate(0, -5.2 * u + headBob);
-      ctx.rotate(hairSway * 0.45);
-      ctx.translate(0, 5.2 * u);
-      drawBoneRuns(poseBones.backHair);
-      ctx.restore();
-    }
+    const hTr = (actionMod && actionMod.headTransform) ? actionMod.headTransform : { dx: 0, dy: 0, rot: 0 };
 
-    // 2. Whale Tail Bone (wags dynamically around hip pivot!)
-    ctx.save();
-    if (poseKey === 'laptop') {
-      const cBreathe = 1 + Math.sin(t * 3.0) * 0.015;
-      ctx.scale(cBreathe, 1 / cBreathe);
-      drawBoneRuns(poseBones.tail);
-    } else {
-      const px = poseKey === 'wave' ? -1.0 * u : 1.0 * u;
-      const py = -1.8 * u;
-      ctx.translate(px, py + headBob * 0.5);
-      ctx.rotate(tailWag * (poseKey === 'wave' ? -1 : 1));
-      ctx.translate(-px, -py);
-      drawBoneRuns(poseBones.tail);
-    }
-    ctx.restore();
-
-    if (poseKey === 'wink') {
+    // Helper: Authentic codex-deepseek-pet & dsh-dayu-fish-skin Apron Blue Whale Logo + Gold Skirt Hem Trim
+    const drawApronAndGoldDetails = () => {
+      if (view === 'back' || view === 'qback') return;
+      const vxOff = view === 'side' ? 0.32 * u : (view === 'q' ? 0.16 * u : 0);
       ctx.save();
-      ctx.translate(0, -5.2 * u + headBob);
-      ctx.rotate(hairSway * 0.45);
-      ctx.translate(0, 5.2 * u);
-      drawBoneRuns(poseBones.backHair);
-      ctx.restore();
-    }
-
-    // 3. Left & Right Leg Bones (both drawn BEFORE torso with upper thigh extending to gy=-22
-    //    so legs NEVER detach or split from the skirt hem during walking/running!)
-    const drawLegBone = (runs, pivotX, strideX, liftY, hipAng) => {
-      if (!runs || !runs.length) return;
-      ctx.save();
-      ctx.translate(pivotX + strideX, -1.65 * u + headBob + liftY);
-      ctx.rotate(hipAng);
-      ctx.translate(-pivotX, 1.65 * u);
-      drawBoneRuns(runs);
+      ctx.translate(vxOff, 0);
+      // 1. Gold Hem Embroidery & Twin Gold Bows along dark-navy maid skirt hem
+      ctx.fillStyle = '#F5C542';
+      ctx.fillRect(-1.45 * u, -1.78 * u, 2.90 * u, 0.07 * u);
+      for (const bx of [-0.95 * u, 0.95 * u]) {
+        ctx.fillRect(bx - 0.12 * u, -1.84 * u, 0.24 * u, 0.12 * u);
+        ctx.fillStyle = '#FFFBEB';
+        ctx.fillRect(bx - 0.04 * u, -1.81 * u, 0.08 * u, 0.06 * u);
+        ctx.fillStyle = '#F5C542';
+      }
+      // 2. Iconic DeepSeek Blue Whale Emblem in the center of her white apron
+      const wx = 0, wy = -2.62 * u;
+      ctx.fillStyle = '#2563EB';
+      ctx.beginPath();
+      ctx.ellipse(wx - 0.04 * u, wy, 0.30 * u, 0.21 * u, -0.06, 0, Math.PI * 2);
+      ctx.fill();
+      // Whale tail fluke
+      ctx.beginPath();
+      ctx.moveTo(wx + 0.20 * u, wy - 0.02 * u);
+      ctx.lineTo(wx + 0.40 * u, wy - 0.18 * u);
+      ctx.lineTo(wx + 0.34 * u, wy + 0.02 * u);
+      ctx.lineTo(wx + 0.40 * u, wy + 0.16 * u);
+      ctx.closePath();
+      ctx.fill();
+      // White belly & tiny eye + water spout
+      ctx.fillStyle = '#E0F2FE';
+      ctx.beginPath();
+      ctx.ellipse(wx - 0.08 * u, wy + 0.08 * u, 0.18 * u, 0.08 * u, 0, 0, Math.PI);
+      ctx.fill();
+      ctx.fillStyle = '#FFFFFF';
+      ctx.fillRect(wx - 0.18 * u, wy - 0.06 * u, 0.06 * u, 0.06 * u);
+      ctx.fillStyle = '#60A5FA';
+      ctx.fillRect(wx - 0.10 * u, wy - 0.32 * u, 0.05 * u, 0.09 * u);
+      ctx.fillRect(wx - 0.18 * u, wy - 0.36 * u, 0.07 * u, 0.05 * u);
+      ctx.fillRect(wx - 0.04 * u, wy - 0.36 * u, 0.07 * u, 0.05 * u);
       ctx.restore();
     };
 
-    const leftForward = Math.sin(walkRad) >= 0;
-    if (poseKey !== 'laptop') {
-      if (leftForward) {
-        drawLegBone(poseBones.legR, 1.10 * u, strideRx, liftRy, hipR);
-        drawLegBone(poseBones.legL, -0.70 * u, strideLx, liftLy, hipL);
+    // Helper: Sky-Blue Ribbon Bows at the base of both Whale-Fin Ears (codex-deepseek-pet & dsh-dayu-fish-skin)
+    const drawFinEarBlueBows = () => {
+      if (view === 'back') return;
+      const bows = view === 'side' ? [[0.15 * u, -6.95 * u]] : [[-1.38 * u, -6.88 * u], [1.38 * u, -6.88 * u]];
+      for (const [bx, by] of bows) {
+        ctx.fillStyle = '#38BDF8';
+        ctx.beginPath();
+        ctx.ellipse(bx - 0.14 * u, by, 0.15 * u, 0.09 * u, -0.25, 0, Math.PI * 2);
+        ctx.ellipse(bx + 0.14 * u, by, 0.15 * u, 0.09 * u, 0.25, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.fillStyle = '#0284C7';
+        ctx.beginPath();
+        ctx.arc(bx, by, 0.065 * u, 0, Math.PI * 2);
+        ctx.fill();
+      }
+    };
+
+    // 1. Back Hair Bone (shares upper-body headBob + headTransform so there is zero vertical seam!)
+    if (poseKey !== 'wink') {
+      ctx.save();
+      ctx.translate(hTr.dx, hTr.dy - 5.2 * u + headBob);
+      ctx.rotate(hairSway * 0.45 + hTr.rot * 0.65);
+      ctx.translate(0, 5.2 * u);
+      drawBoneRuns(poseBones.backHair);
+      ctx.restore();
+    }
+
+    if (actionMod && actionMod.replaceBody && typeof actionMod.drawBody === 'function') {
+      // Full-body posture override (lie_flat_tanle, sleep_curl, lie_dead_soul, kneel_empty_bowl, crouch, sit, etc.)
+      actionMod.drawBody(ctx, u, t, pal, drawBoneRuns, poseBones, drawApronAndGoldDetails);
+    } else {
+      // 2. Whale Tail Bone (wags dynamically around hip pivot!)
+      ctx.save();
+      if (poseKey === 'laptop') {
+        const cBreathe = 1 + Math.sin(t * 3.0) * 0.015;
+        ctx.scale(cBreathe, 1 / cBreathe);
+        drawBoneRuns(poseBones.tail);
       } else {
-        drawLegBone(poseBones.legL, -0.70 * u, strideLx, liftLy, hipL);
-        drawLegBone(poseBones.legR, 1.10 * u, strideRx, liftRy, hipR);
+        const px = poseKey === 'wave' ? -1.0 * u : 1.0 * u;
+        const py = -1.8 * u;
+        ctx.translate(px, py + headBob * 0.5);
+        ctx.rotate(tailWag * (poseKey === 'wave' ? -1 : 1));
+        ctx.translate(-px, -py);
+        drawBoneRuns(poseBones.tail);
+      }
+      ctx.restore();
+
+      if (poseKey === 'wink') {
+        ctx.save();
+        ctx.translate(hTr.dx, hTr.dy - 5.2 * u + headBob);
+        ctx.rotate(hairSway * 0.45 + hTr.rot * 0.65);
+        ctx.translate(0, 5.2 * u);
+        drawBoneRuns(poseBones.backHair);
+        ctx.restore();
+      }
+
+      // 3. Left & Right Leg Bones (both drawn BEFORE torso with upper thigh extending to gy=-22
+      //    so legs NEVER detach or split from the skirt hem during walking/running!)
+      const drawLegBone = (runs, pivotX, strideX, liftY, hipAng) => {
+        if (!runs || !runs.length) return;
+        ctx.save();
+        ctx.translate(pivotX + strideX, -1.65 * u + headBob + liftY);
+        ctx.rotate(hipAng);
+        ctx.translate(-pivotX, 1.65 * u);
+        drawBoneRuns(runs);
+        ctx.restore();
+      };
+
+      const leftForward = Math.sin(walkRad) >= 0;
+      if (poseKey !== 'laptop') {
+        if (leftForward) {
+          drawLegBone(poseBones.legR, 1.10 * u, strideRx, liftRy, hipR);
+          drawLegBone(poseBones.legL, -0.70 * u, strideLx, liftLy, hipL);
+        } else {
+          drawLegBone(poseBones.legL, -0.70 * u, strideLx, liftLy, hipL);
+          drawLegBone(poseBones.legR, 1.10 * u, strideRx, liftRy, hipR);
+        }
+      }
+
+      // 4. Torso, Bodice, Apron & Skirt Bone (overlaps upper thighs seamlessly!)
+      ctx.save();
+      ctx.translate(0, headBob);
+      if (isMoving) {
+        ctx.translate(0, -3.2 * u);
+        ctx.rotate(Math.sin(walkRad) * 0.045);
+        ctx.translate(0, 3.2 * u);
+      }
+      drawBoneRuns(poseBones.torso);
+      drawApronAndGoldDetails();
+      ctx.restore();
+
+      // 5. Articulated Right Arm Bone & Left/Right Prop Hooks
+      const emoTag = o.emotion || o.emo || 'idle';
+      const emoWave = ['happy', 'joy', 'yay', 'excited', 'love', 'starry', 'proud', 'wink'].includes(emoTag);
+      const emoTremble = ['panic', 'shock', 'shocked', 'gasp', 'cry', 'bawl', 'rage', 'furious'].includes(emoTag);
+      const armRRot = o.aR !== undefined
+        ? (0.55 - o.aR) * 0.55
+        : ((o.waveArm || emoWave) ? Math.sin(t * 9.5) * 0.34 : (isMoving ? Math.sin(walkRad) * 0.58 : (emoTremble ? Math.sin(t * 28) * 0.16 : Math.sin(t * 4.2) * 0.12)));
+      const armLRot = o.aL !== undefined
+        ? (o.aL - 0.35) * 0.55
+        : (isMoving ? -Math.sin(walkRad) * 0.58 : (emoWave ? -Math.sin(t * 9.5) * 0.28 : Math.sin(t * 3.8 + 1.2) * 0.10));
+
+      if (poseBones.armR && poseBones.armR.length > 0) {
+        ctx.save();
+        ctx.translate(1.55 * u, -4.55 * u + headBob);
+        ctx.rotate(armRRot);
+        ctx.translate(-1.55 * u, 4.55 * u);
+        drawBoneRuns(poseBones.armR);
+        ctx.restore();
+      }
+
+      // Prop attachment hooks (`armL` / `armR` callbacks follow arm swing!)
+      if (typeof o.armL === 'function') {
+        ctx.save();
+        ctx.translate(-1.55 * u, -4.45 * u + headBob);
+        ctx.rotate(armLRot);
+        ctx.translate(-0.35 * u, 1.30 * u);
+        o.armL(ctx, u, style);
+        ctx.restore();
+      }
+      if (typeof o.armR === 'function') {
+        ctx.save();
+        ctx.translate(1.55 * u, -4.55 * u + headBob);
+        ctx.rotate(armRRot);
+        ctx.translate(0.35 * u, (poseKey === 'wave' ? -0.60 : 1.35) * u);
+        o.armR(ctx, u, style);
+        ctx.restore();
       }
     }
 
-    // 4. Torso, Bodice, Apron & Skirt Bone (overlaps upper thighs seamlessly!)
-    ctx.save();
-    ctx.translate(0, headBob);
-    if (isMoving) {
-      ctx.translate(0, -3.2 * u);
-      ctx.rotate(Math.sin(walkRad) * 0.045);
-      ctx.translate(0, 3.2 * u);
-    }
-    drawBoneRuns(poseBones.torso);
-    ctx.restore();
-
-    // 5. Articulated Right Arm Bone & Left/Right Prop Hooks
-    const emoTag = o.emotion || o.emo || 'idle';
-    const emoWave = ['happy', 'joy', 'yay', 'excited', 'love', 'starry', 'proud', 'wink'].includes(emoTag);
-    const emoTremble = ['panic', 'shock', 'shocked', 'gasp', 'cry', 'bawl', 'rage', 'furious'].includes(emoTag);
-    const armRRot = o.aR !== undefined
-      ? (0.55 - o.aR) * 0.55
-      : ((o.waveArm || emoWave) ? Math.sin(t * 9.5) * 0.34 : (isMoving ? Math.sin(walkRad) * 0.58 : (emoTremble ? Math.sin(t * 28) * 0.16 : Math.sin(t * 4.2) * 0.12)));
-    const armLRot = o.aL !== undefined
-      ? (o.aL - 0.35) * 0.55
-      : (isMoving ? -Math.sin(walkRad) * 0.58 : (emoWave ? -Math.sin(t * 9.5) * 0.28 : Math.sin(t * 3.8 + 1.2) * 0.10));
-
-    if (poseBones.armR && poseBones.armR.length > 0) {
-      ctx.save();
-      ctx.translate(1.55 * u, -4.55 * u + headBob);
-      ctx.rotate(armRRot);
-      ctx.translate(-1.55 * u, 4.55 * u);
-      drawBoneRuns(poseBones.armR);
-      ctx.restore();
-    }
-
-    // Prop attachment hooks (`armL` / `armR` callbacks follow arm swing!)
-    if (typeof o.armL === 'function') {
-      ctx.save();
-      ctx.translate(-1.55 * u, -4.45 * u + headBob);
-      ctx.rotate(armLRot);
-      ctx.translate(-0.35 * u, 1.30 * u);
-      o.armL(ctx, u, style);
-      ctx.restore();
-    }
-    if (typeof o.armR === 'function') {
-      ctx.save();
-      ctx.translate(1.55 * u, -4.55 * u + headBob);
-      ctx.rotate(armRRot);
-      ctx.translate(0.35 * u, (poseKey === 'wave' ? -0.60 : 1.35) * u);
-      o.armR(ctx, u, style);
-      ctx.restore();
-    }
-
-    // 6. Head Bone (tilts & nods around neck pivot)
+    // 6. Head Bone (tilts & nods around neck pivot + follows actionMod.headTransform)
     let headPoseKey = poseKey;
     if (!isTurnView && o.eyes === 'happy' && poseKey !== 'laptop' && poseKey !== 'heart') {
       headPoseKey = 'heart';
@@ -884,10 +960,11 @@
     const headRuns = isTurnView ? poseBones.head : (rig.poses[headPoseKey] || poseBones).head;
     const neckY = (poseKey === 'laptop' ? -3.85 : -4.68) * u;
     ctx.save();
-    ctx.translate(0, neckY + headBob);
-    ctx.rotate(headTilt * 0.45);
+    ctx.translate(hTr.dx, hTr.dy + neckY + headBob);
+    ctx.rotate(headTilt * 0.45 + hTr.rot);
     ctx.translate(0, -neckY);
     drawBoneRuns(headRuns);
+    drawFinEarBlueBows();
 
     // Layer surgical pixel-art emotion details directly at the exact eye/mouth coordinates
     // across front, q, and side views, including smooth `squint` transition blinks & all 31 emotions!

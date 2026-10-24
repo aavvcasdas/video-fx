@@ -296,6 +296,9 @@
       poseMode: undefined,
       emotion: undefined,
       emote: undefined,
+      replaceBody: false,
+      drawBody: null,
+      headTransform: { dx: 0, dy: 0, rot: 0 },
       underlay: null,
       overlay: null
     };
@@ -668,6 +671,7 @@
         mod.rot = -0.18;
         mod.sq = breathe * 0.04;
         mod.headTilt = 0.24;
+        mod.headTransform = { dx: Math.sin(t * 2.4) * 0.7, dy: Math.sin(t * 2.4) * 0.5, rot: 0.025 * breathe };
         mod.dy = 0.22;
         mod.overlay = (ctx, u) => {
           // Plush curled blue whale-tail cushion under knees
@@ -1321,9 +1325,26 @@
       // ----------------------------------------------------------------------
       case 'walk_brisk':
       case 'walk': {
+        const gait = t * 1.6;
         mod.emotion = 'happy';
-        mod.walk = t * 1.6;
+        mod.walk = gait;
         mod.tailWag = Math.sin(t * 8.0) * 0.22;
+        mod.underlay = (ctx, u) => {
+          // Alternating tiny shoe taps and a drifting ground shadow make the stride read.
+          ctx.fillStyle = 'rgba(15, 23, 42, 0.18)';
+          ctx.beginPath();
+          ctx.ellipse(0, 0.14 * u, 1.9 * u, 0.24 * u, 0, 0, TAU);
+          ctx.fill();
+          for (let i = 0; i < 2; i++) {
+            const phase = (gait * 2 + i * 0.5) % 1;
+            const x = (i ? 1 : -1) * (0.65 + 0.55 * Math.sin(phase * TAU)) * u;
+            const y = 0.04 * u - Math.max(0, Math.sin(phase * TAU)) * 0.28 * u;
+            ctx.fillStyle = `rgba(125, 211, 252, ${0.18 + 0.32 * Math.max(0, Math.sin(phase * TAU))})`;
+            ctx.beginPath();
+            ctx.ellipse(x, y, 0.34 * u, 0.11 * u, (i ? -1 : 1) * 0.18, 0, TAU);
+            ctx.fill();
+          }
+        };
         break;
       }
 
@@ -1332,11 +1353,38 @@
       // ----------------------------------------------------------------------
       case 'run_sprint':
       case 'run': {
+        const sprint = t * 2.8;
         mod.emotion = 'excited';
-        mod.walk = t * 2.8;
+        mod.walk = sprint;
         mod.rot = 0.16;
         mod.smear = 0.55;
         mod.tailWag = Math.sin(t * 14.0) * 0.35;
+        mod.underlay = (ctx, u) => {
+          // Moving shoe-dust and long speed streaks trail behind the runner.
+          ctx.fillStyle = 'rgba(15, 23, 42, 0.24)';
+          ctx.beginPath();
+          ctx.ellipse(0, 0.15 * u, 2.1 * u, 0.25 * u, 0, 0, TAU);
+          ctx.fill();
+          for (let i = 0; i < 8; i++) {
+            const k = (t * 3.4 + i * 0.137) % 1;
+            const x = -(1.0 + k * 2.6) * u;
+            const y = (-0.30 + (i % 4) * 0.22) * u + Math.sin((t + i) * 5) * 0.06 * u;
+            ctx.strokeStyle = `rgba(125, 211, 252, ${(1 - k) * 0.58})`;
+            ctx.lineWidth = Math.max(1, 0.07 * u * (1 - k));
+            ctx.beginPath();
+            ctx.moveTo(x, y);
+            ctx.lineTo(x - (0.30 + (i % 3) * 0.15) * u, y);
+            ctx.stroke();
+          }
+          for (let i = 0; i < 4; i++) {
+            const k = (t * 1.8 + i * 0.25) % 1;
+            const r = (0.08 + (1 - k) * 0.15) * u;
+            ctx.fillStyle = `rgba(226, 232, 240, ${(1 - k) * 0.45})`;
+            ctx.beginPath();
+            ctx.arc((-0.8 - k * 0.8) * u, -0.04 * u, r, 0, TAU);
+            ctx.fill();
+          }
+        };
         break;
       }
 

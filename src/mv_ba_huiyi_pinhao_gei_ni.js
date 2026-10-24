@@ -1516,6 +1516,7 @@
       action: chosenAction,
       showActionBadge: opts.showActionBadge !== false,
       style,
+      tailScale: opts.tailScale,
       hat: opts.hat || shot.hat || 'Maid Headband',
       armL: resolvePropFn(opts.propL !== undefined ? opts.propL : shot.propL, t),
       armR: resolvePropFn(opts.propR !== undefined ? opts.propR : shot.propR, t)

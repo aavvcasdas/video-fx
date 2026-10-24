@@ -37,7 +37,7 @@
       t0: 5.38, t1: 7.85,
       zh: '夕阳下倒影迷人的美丽',
       setKey: 'veniceBridge',
-      action: 'camera_shutter',
+      action: 'sparkler_firework',
       emos: [[0.0, 'starstruck', 'sparkle'], [0.85, 'love', 'heart'], [1.7, 'wink', 'heart']]
     },
     {
@@ -51,14 +51,14 @@
       t0: 10.55, t1: 13.00,
       zh: '你说过向往大海的神秘',
       setKey: 'coralAbyss',
-      action: 'peek_curious',
+      action: 'ciallo_wink',
       emos: [[0.0, 'question', 'question'], [0.85, 'idea', 'idea'], [1.7, 'starstruck', 'sparkle']]
     },
     {
       t0: 13.02, t1: 15.64,
       zh: '也憧憬我们遗失的过去',
       setKey: 'observatory',
-      action: 'eat_white_rice',
+      action: 'tail_wag_dance',
       emos: [[0.0, 'thinking', 'music'], [0.9, 'happy', 'heart'], [1.8, 'joy', 'sparkle']]
     },
     {
@@ -72,7 +72,7 @@
       t0: 19.20, t1: 21.52,
       zh: '蓝色的海底',
       setKey: 'deepseekLab',
-      action: 'fatfish_transform',
+      action: 'tail_wag_dance',
       emos: [[0.0, 'excited', 'sparkle'], [0.8, 'starstruck', 'heart'], [1.6, 'joy', 'music']]
     },
     {
@@ -86,14 +86,14 @@
       t0: 24.07, t1: 29.24,
       zh: '我们的距离遥不可及',
       setKey: 'cosmicGalaxy',
-      action: 'idol_mic_sing',
+      action: 'tail_wag_dance',
       emos: [[0.0, 'singing', 'music'], [1.6, 'sad', 'sweat'], [3.2, 'love', 'heart']]
     },
     {
       t0: 29.28, t1: 31.80,
       zh: '退守的爱情',
       setKey: 'beachDawn',
-      action: 'coin_hug',
+      action: 'ciallo_wink',
       emos: [[0.0, 'calm', 'heart'], [0.85, 'love', 'sparkle'], [1.7, 'happy', 'heart']]
     }
   ];
@@ -131,6 +131,10 @@
         emos: cue.emos,
         style: ['watercolor', 'neon', 'watercolor', 'pixel'][idx % 4],
         solo: true,
+        u: 36,
+        tailScale: 0.68,
+        propL: null,
+        propR: null,
         showActionBadge: false,
       });
     }
@@ -139,32 +143,32 @@
 
     // 2. Audio-aligned Chinese karaoke subtitle (only during the verified vocal cue)
     if (visible) {
-    const prog = clamp(lt / dur, 0, 1);
-    const popY = lt < 0.16 ? (1 - backOut(lt / 0.16)) * 12 : 0;
-    ctx.save();
-    ctx.translate(0, popY);
-    paint(ctx, rrPts(180, H - 104, W - 360, 80, 20), {
-      fill: '#090D1E', fillOp: 220, ink: '#38BDF8', sw: 2.2
-    });
+        const prog = clamp(lt / dur, 0, 1);
+      const popY = lt < 0.16 ? (1 - backOut(lt / 0.16)) * 12 : 0;
+      ctx.save();
+      ctx.translate(0, popY);
+      paint(ctx, rrPts(180, H - 104, W - 360, 80, 20), {
+        fill: '#090D1E', fillOp: 220, ink: '#38BDF8', sw: 2.2
+      });
 
-    ctx.font = 'bold 31px "ZCOOLKuaiLe", "NotoSansSC", sans-serif';
-    ctx.textAlign = 'center';
-    ctx.lineWidth = 5;
-    ctx.strokeStyle = '#090D1E';
-    ctx.strokeText(cue.zh, W / 2, H - 62);
-    ctx.fillStyle = '#E0F2FE';
-    ctx.fillText(cue.zh, W / 2, H - 62);
+      ctx.font = 'bold 31px "ZCOOLKuaiLe", "NotoSansSC", sans-serif';
+      ctx.textAlign = 'center';
+      ctx.lineWidth = 5;
+      ctx.strokeStyle = '#090D1E';
+      ctx.strokeText(cue.zh, W / 2, H - 62);
+      ctx.fillStyle = '#E0F2FE';
+      ctx.fillText(cue.zh, W / 2, H - 62);
 
-    const textW = ctx.measureText(cue.zh).width;
-    ctx.save();
-    ctx.beginPath();
-    ctx.rect(W / 2 - textW / 2, H - 98, textW * prog, 48);
-    ctx.clip();
-    ctx.fillStyle = '#FDE047';
-    ctx.fillText(cue.zh, W / 2, H - 62);
-    ctx.restore();
+      const textW = ctx.measureText(cue.zh).width;
+      ctx.save();
+      ctx.beginPath();
+      ctx.rect(W / 2 - textW / 2, H - 98, textW * prog, 48);
+      ctx.clip();
+      ctx.fillStyle = '#FDE047';
+      ctx.fillText(cue.zh, W / 2, H - 62);
+      ctx.restore();
 
-    ctx.restore();
+      ctx.restore();
     }
 
     if (t > DURATION - 1.1) {

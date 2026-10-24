@@ -1,6 +1,6 @@
 // src/mv_pengyou_de_jiu.js — Director & Scene Engine for 《朋友的酒》(深海鲸鱼娘 · 挚友欢聚篇)
-// Replicates `朋友的酒.mp3` (188.25s, 30fps, 1280x720) with `whale_girl` (`src/whale_girl.js`)
-// and all `CAST` friends (`src/cast.js`), synced to `assets/pengyou_de_jiu.mp3` &
+// Replicates `朋友的酒.mp3` (188.25s, 30fps, 1280x720) with the sole Whale Maid Girl lead,
+// synced to `assets/pengyou_de_jiu.mp3` &
 // `assets/pengyou_de_jiu_audio.js` in `risograph` duotone print style.
 
 (function (root) {
@@ -8,7 +8,6 @@
 
   const CORE = (typeof window !== 'undefined' && window.CORE) ? window.CORE : require('./core.js');
   const WHALE = (typeof window !== 'undefined' && window.WHALE_GIRL) ? window.WHALE_GIRL : require('./whale_girl.js');
-  const CAST = (typeof window !== 'undefined' && window.CAST) ? window.CAST : require('./cast.js');
   const { whaleGirl, feel } = WHALE;
 
   const DURATION = 188.25;
@@ -32,7 +31,7 @@
     { t0: 85.93,  t1: 89.82,  text: '让我们抬起头学会了坚强',                       hi: '学会了坚强' },
     { t0: 89.87,  t1: 93.88,  text: '就像朋友的这杯烈酒烫我心上',                   hi: '烫我心上' },
     { t0: 93.92,  t1: 100.50, text: '温暖我凡事别再放心上',                         hi: '别再放心上' },
-    { t0: 100.55, t1: 114.08, text: '（间奏 · 挚友欢聚 · 举杯共饮大肥鱼干饭篇）',   hi: '挚友欢聚' },
+    { t0: 100.55, t1: 114.08, text: '（间奏 · 挚友欢聚 · 举杯共饮）',                 hi: '挚友欢聚' },
     { t0: 114.13, t1: 121.98, text: '今天我们来相会 哦也',                         hi: '来相会' },
     { t0: 122.02, t1: 130.08, text: '深情斟满了酒杯',                               hi: '斟满了酒杯' },
     { t0: 130.12, t1: 137.98, text: '岁月匆匆如流水 哦也',                         hi: '如流水' },
@@ -55,22 +54,18 @@
     const emo = opts.feel || 'happy';
     const u = (opts.scale || 2.35) * 11.5;
     const actIdx = Math.floor(t / 3.4);
-    const chosenAction = opts.action || (typeof WHALE.pickAction === 'function' ? WHALE.pickAction(actIdx) : 'toast_cheers');
+    const socialActions = ['toast_cheers', 'tail_wag_dance', 'jump_joy', 'idol_mic_sing', 'walk_brisk', 'ciallo_wink', 'confident_hips', 'playful_fists'];
+    const chosenAction = opts.action || socialActions[actIdx % socialActions.length];
     const baseOps = Object.assign({}, feel(emo, t), opts, {
       view: opts.view || 'front',
       style: 'risograph',
       constructMode: 'pixelRig',
+      tailScale: 0.68,
       action: chosenAction,
-      showActionBadge: true,
+      showActionBadge: false,
       t
     });
     whaleGirl(ctx, x, y, u, baseOps);
-    if (typeof WHALE.drawFatFish === 'function') {
-      WHALE.drawFatFish(ctx, x + 150, y - 12, 19, {
-        t,
-        mode: ['eat_rice', 'success', 'working', 'idle'][actIdx % 4]
-      });
-    }
   }
 
   // Sparkling golden cheers mug prop
@@ -125,16 +120,6 @@
     ctx.lineWidth = 3;
     ctx.strokeRect(10, 10, 1252, 692);
 
-    // Top-right badge
-    ctx.fillStyle = 'rgba(24, 16, 40, 0.82)';
-    ctx.fillRect(960, 22, 292, 36);
-    ctx.strokeStyle = '#FB7185';
-    ctx.lineWidth = 1.5;
-    ctx.strokeRect(960, 22, 292, 36);
-    ctx.font = 'bold 16px "ZCOOLKuaiLe", "NotoSansSC", sans-serif';
-    ctx.fillStyle = '#FDE047';
-    ctx.textAlign = 'right';
-    ctx.fillText('《朋友的酒》 · 孔版印刷鲸鱼娘篇', 1240, 45);
     ctx.restore();
   }
 
@@ -210,10 +195,10 @@
 
     // Wooden banquet table at bottom
     ctx.fillStyle = '#78350F';
-    ctx.fillRect(80, 490, 1120, 230);
+    ctx.fillRect(80, 560, 1120, 160);
     ctx.strokeStyle = '#FACC15';
     ctx.lineWidth = 4;
-    ctx.strokeRect(80, 490, 1120, 230);
+    ctx.strokeRect(80, 560, 1120, 160);
   }
 
   function renderPengyouDeJiuFrame(ctx, t) {
@@ -240,18 +225,16 @@
         ctx.ellipse(px, py, 7, 4, t + i, 0, Math.PI * 2);
         ctx.fill();
       }
-      CAST.miniWhale(ctx, 290, 360 - beatBounce, 22, { t, flip: false });
-      CAST.bionicPuppy(ctx, 980, 470 - beatBounce * 0.6, 20, { t, flip: true });
-      drawWhaleRiso(ctx, 640, 540, {
+      drawWhaleRiso(ctx, 640, 560, {
         view: 'front',
         feel: 'singing',
-        scale: 2.45 * pulse,
+        scale: 3.0 * pulse,
         jump: beatBounce,
         hat: 'Party Cone',
         t
       });
-      drawCheersMug(ctx, 510, 455, 0.9, -0.15);
-      drawCheersMug(ctx, 770, 455, 0.9, 0.15);
+      drawCheersMug(ctx, 260, 548, 0.78, -0.15);
+      drawCheersMug(ctx, 1020, 548, 0.78, 0.15);
 
     } else if (cycleT >= 16.0 && cycleT < 32.2) {
       // VERSE ("昨日一去不复回 开心比什么都贵 / 覆水不能再收回 桃花谢了又开 / 来吧朋友干了这杯酒")
@@ -274,21 +257,19 @@
       ctx.fillStyle = '#1E1B4B';
       ctx.fillRect(0, 550, 1280, 170);
 
-      // WhaleGirl & friends toasting under the peach blossoms
-      if (CAST.ladyGemini) CAST.ladyGemini(ctx, 410, 545, 24, { t, flip: false });
-      drawWhaleRiso(ctx, 640, 555, {
+      // The lead toasts under the peach blossoms
+      drawWhaleRiso(ctx, 640, 560, {
         view: 'front',
         feel: 'happy',
-        scale: 2.4 * pulse,
+        scale: 3.0 * pulse,
         jump: beatBounce * 0.7,
         hat: 'Flower Crown',
         t
       });
-      CAST.ladyClaude(ctx, 870, 545, 24, { t, flip: true });
 
       const clink = Math.sin(t * 6) * 14;
-      drawCheersMug(ctx, 560 + clink, 430, 0.95, 0.2);
-      drawCheersMug(ctx, 720 - clink, 430, 0.95, -0.2);
+      drawCheersMug(ctx, 320 + clink, 555, 0.78, 0.2);
+      drawCheersMug(ctx, 960 - clink, 555, 0.78, -0.2);
 
     } else if (cycleT >= 32.2 && cycleT < 54.0) {
       // CHORUS A ("快把酒满上干了这杯大声歌唱 / 好朋友好朋友今宵多欢畅 / 理想改变了我们的模样 / 珍惜朋友的肩膀")
@@ -311,24 +292,20 @@
       }
       ctx.restore();
 
-      // Full cast gathered around the banquet table
-      CAST.clawd(ctx, 250, 480 - beatBounce * 0.5, 22, { t });
-      CAST.bionicPuppy(ctx, 430, 485 - beatBounce * 0.7, 20, { t });
-      drawWhaleRiso(ctx, 640, 535, {
+      // Solo lead, with the toast props staged at the table edges
+      drawWhaleRiso(ctx, 640, 560, {
         view: 'front',
         feel: 'ecstatic',
-        scale: 2.5 * pulse,
+        scale: 3.0 * pulse,
         jump: beatBounce,
         hat: 'Crown',
         t
       });
-      CAST.agentReachBot(ctx, 855, 480 - beatBounce * 0.7, 21, { t, flip: true });
-      CAST.miniWhale(ctx, 1030, 430 - beatBounce * 0.5, 22, { t, flip: true });
 
       // Clinking mugs in center with golden foam sparks
       const clink = Math.abs(Math.sin(t * 7)) * 18;
-      drawCheersMug(ctx, 565 + clink, 415, 1.05, 0.22);
-      drawCheersMug(ctx, 715 - clink, 415, 1.05, -0.22);
+      drawCheersMug(ctx, 270 + clink, 548, 0.82, 0.22);
+      drawCheersMug(ctx, 1010 - clink, 548, 0.82, -0.22);
 
     } else if (cycleT >= 54.0 && cycleT < 66.6) {
       // BRIDGE ("阳光总会在风雨之后撒向苍茫 / 让我们抬起头学会了坚强")
@@ -361,18 +338,11 @@
       drawWhaleRiso(ctx, 550, 560, {
         view: 'q',
         feel: 'heroic',
-        scale: 2.45 * pulse,
+        scale: 3.0 * pulse,
         hat: 'Sailor Cap',
         t
       });
-      drawWhaleRiso(ctx, 740, 560, {
-        view: 'q',
-        flip: true,
-        feel: 'confident',
-        scale: 2.35 * pulse,
-        hat: 'Star Hairpin',
-        t: t + 0.5
-      });
+
 
     } else {
       // CHORUS B & GRAND FINALE ("就像朋友的这杯烈酒烫我心上 / 温暖我凡事别再放心上 / 敬永远的知己 · 干杯！")
@@ -392,21 +362,17 @@
         }
       }
 
-      if (CAST.ladyGemini) CAST.ladyGemini(ctx, 260, 535, 23, { t });
-      CAST.ladyClaude(ctx, 435, 535, 23, { t });
-      drawWhaleRiso(ctx, 640, 545, {
+      drawWhaleRiso(ctx, 640, 560, {
         view: 'front',
         feel: 'love',
-        scale: 2.55 * pulse,
+        scale: 3.0 * pulse,
         jump: beatBounce,
         hat: 'Crown',
         t
       });
-      CAST.clawd(ctx, 845, 485 - beatBounce * 0.6, 22, { t, flip: true });
-      CAST.bionicPuppy(ctx, 1020, 490 - beatBounce * 0.6, 21, { t, flip: true });
 
-      drawCheersMug(ctx, 560, 415, 1.1, 0.25);
-      drawCheersMug(ctx, 720, 415, 1.1, -0.25);
+      drawCheersMug(ctx, 280, 548, 0.82, 0.25);
+      drawCheersMug(ctx, 1000, 548, 0.82, -0.25);
     }
 
     drawRisographFinish(ctx, t, energy);

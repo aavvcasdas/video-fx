@@ -1,6 +1,6 @@
 // render_pengyou_de_jiu.mjs — Deterministic 30fps Renderer for 《朋友的酒》(深海鲸鱼娘 · 挚友欢聚篇)
 // Replicates `朋友的酒.mp3` (188.25s, 30fps, 1280x720) with `whale_girl` (`src/whale_girl.js`)
-// and all `CAST` friends (`src/cast.js`), synced to `assets/pengyou_de_jiu.mp3` &
+// with a single Whale Maid Girl lead, synced to `assets/pengyou_de_jiu.mp3` &
 // `assets/pengyou_de_jiu_audio.js`.
 
 import fs from 'node:fs';
@@ -29,7 +29,6 @@ require('./src/whale_girl_rig_data.js');
 require('./src/whale_girl_actions.js');
 const WHALE = require('./src/whale_girl.js');
 const CLAWD = require('./src/clawd.js');
-const CAST = require('./src/cast.js');
 const MV = require('./src/mv_pengyou_de_jiu.js');
 
 const FPS = 30;

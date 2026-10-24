@@ -609,6 +609,7 @@
         walk: autoStep
       });
     }
+    o.tailScale = clamp(o.tailScale === undefined ? 1 : o.tailScale, 0.5, 1.1);
     const style = o.style || (typeof getActiveStyle === 'function' ? getActiveStyle() : 'pixel');
     const view = o.view || 'front';
     const vx = VIEW_VX[view] || 0;
@@ -865,6 +866,9 @@
         ctx.translate(px, py + headBob * 0.5);
         ctx.rotate(tailWag * (poseKey === 'wave' ? -1 : 1));
         ctx.translate(-px, -py);
+        ctx.translate(px, py);
+        ctx.scale(o.tailScale === undefined ? 1 : o.tailScale, o.tailScale === undefined ? 1 : o.tailScale);
+        ctx.translate(-px, -py);
         drawBoneRuns(poseBones.tail);
       }
       ctx.restore();
@@ -1096,6 +1100,7 @@
   // ==========================================================================
   function drawVectorConstruct(ctx, u, t, o, poseKey, view, vx, isBack, isQBack, headBob, headTilt, style) {
     const isTailSit = poseKey === 'laptop';
+    const tailScale = clamp(o.tailScale === undefined ? 1 : o.tailScale, 0.5, 1.1);
     const sitDrop = isTailSit ? 0.85 * u : 0;
 
     ctx.save();
@@ -1111,7 +1116,14 @@
       poseKey === 'laptop' ? 'cushion' : 'left'
     );
     if (!isTailSit) {
+      const tailAnchorX = tailMode === 'highRight' || tailMode === 'lowRight' ? 1.0 * u : -1.0 * u;
+      const tailAnchorY = -1.8 * u;
+      ctx.save();
+      ctx.translate(tailAnchorX, tailAnchorY);
+      ctx.scale(tailScale, tailScale);
+      ctx.translate(-tailAnchorX, -tailAnchorY);
       drawVectorTail(ctx, u, t, tailMode);
+      ctx.restore();
     }
 
     // 3. Legs, Ruffled White Lace Socks & Dark-Navy Mary-Jane Shoes

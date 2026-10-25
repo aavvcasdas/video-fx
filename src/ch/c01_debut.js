@@ -204,7 +204,7 @@
     const facing = t < 5.6
       ? { view: 'side', walk: walk.walk, dy: walk.dy }
       : turning
-        ? turn(t, 5.6, 5.88, 0.25, 0)
+        ? turn(t, 5.6, 5.88, 0.5, 0)
         : { view: 'front' };
     const md = emotions(t, [[4.8, 'happy'], [5.65, 'proud', { emote: 'spout' }]]);
 

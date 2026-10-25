@@ -1328,7 +1328,7 @@
       actOpts.y = groundY - 8;
     } else if (shot.act === 'spinTurn') {
       const vw = spinView(lt, 2.2);
-      actOpts.view = vw.view;
+      Object.assign(actOpts, vw);
       actOpts.x = lerp(shot.x0, shot.x1, k);
       actOpts.waveArm = true;
     } else if (shot.act === 'duetWalk') {
@@ -1441,7 +1441,7 @@
       actOpts.y = groundY - 8;
     } else if (shot.act === 'spinTurn') {
       const vw = spinView(lt, dur * 0.85);
-      actOpts.view = vw.view;
+      Object.assign(actOpts, vw);
       actOpts.x = lerp(shot.x0, shot.x1, k);
       actOpts.waveArm = true;
     } else if (shot.act === 'duetWalk') {

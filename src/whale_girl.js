@@ -414,6 +414,8 @@
     // 1. Smooth posture interpolation over 0.28s after each emotion change
     const blend = idx > 0 ? clamp(age / 0.28, 0, 1) : 1;
     const k = blend * blend * (3 - 2 * blend);
+    const poseBlendRaw = idx > 0 ? clamp(age / 0.12, 0, 1) : 1;
+    const poseBlend = poseBlendRaw * poseBlendRaw * (3 - 2 * poseBlendRaw);
     const dy = lerp(prev.dy || 0, cur.dy || 0, k);
     const sqBase = lerp(prev.sq || 0, cur.sq || 0, k);
     const headTilt = lerp(prev.headTilt || 0, cur.headTilt || 0, k);
@@ -444,7 +446,10 @@
       take,
       emote: em,
       emoteK,
-      transitionBlend: k
+      transitionBlend: k,
+      poseFrom: resolvePoseKey(prev),
+      poseTo: resolvePoseKey(cur),
+      poseBlend
     });
   }
 
@@ -490,17 +495,48 @@
     };
   }
 
+  function viewIndex(view) {
+    if (typeof view === 'number' && Number.isFinite(view)) {
+      return clamp(Math.round(view * (VIEWS.length - 1)), 0, VIEWS.length - 1);
+    }
+    const idx = VIEWS.indexOf(view);
+    return idx < 0 ? 0 : idx;
+  }
+
   function turn(t, t0, dur, fromView = 'front', toView = 'side') {
     const p = clamp((t - t0) / Math.max(0.001, dur), 0, 1);
-    const i0 = Math.max(0, VIEWS.indexOf(fromView));
-    const i1 = Math.max(0, VIEWS.indexOf(toView));
-    const idx = Math.round(lerp(i0, i1, p));
-    return { view: VIEWS[idx] || toView };
+    const a = viewIndex(fromView), b = viewIndex(toView);
+    const position = lerp(a, b, p);
+    let fromIdx, toIdx, progress;
+    if (b >= a) {
+      fromIdx = Math.floor(position);
+      toIdx = Math.min(VIEWS.length - 1, fromIdx + 1);
+      progress = position - fromIdx;
+    } else {
+      fromIdx = Math.ceil(position);
+      toIdx = Math.max(0, fromIdx - 1);
+      progress = fromIdx - position;
+    }
+    const eased = progress * progress * (3 - 2 * progress);
+    return { view: VIEWS[toIdx], viewFrom: VIEWS[fromIdx], viewBlend: eased };
   }
 
   function spinView(t, speed = 4.0) {
-    const idx = Math.floor(t * speed) % VIEWS.length;
-    return { view: VIEWS[idx] };
+    const phase = Math.max(0, t * speed);
+    const cycle = Math.floor(phase);
+    const idx = cycle % VIEWS.length;
+    const local = phase - cycle;
+    if (cycle === 0) return { view: VIEWS[0], viewFrom: VIEWS[0], viewBlend: 1 };
+    const blendWindow = 0.24;
+    const fromIdx = (idx - 1 + VIEWS.length) % VIEWS.length;
+    const viewBlend = local < blendWindow
+      ? (local / blendWindow) ** 2 * (3 - 2 * (local / blendWindow))
+      : 1;
+    return {
+      view: VIEWS[idx],
+      viewFrom: local < blendWindow ? VIEWS[fromIdx] : VIEWS[idx],
+      viewBlend
+    };
   }
 
   function resolvePoseKey(o = {}) {
@@ -606,12 +642,18 @@
         squint: Math.max(o.squint || 0, autoEmo.squint || 0),
         sq: (o.sq || 0) + (autoEmo.take || 0),
         headTilt: (o.headTilt || 0) + (autoEmo.headTilt || 0) * 0.5,
-        walk: autoStep
+        walk: autoStep,
+        poseFrom: autoEmo.poseFrom,
+        poseTo: autoEmo.poseTo,
+        poseBlend: autoEmo.poseBlend
       });
     }
     o.tailScale = clamp(o.tailScale === undefined ? 1 : o.tailScale, 0.5, 1.1);
     const style = o.style || (typeof getActiveStyle === 'function' ? getActiveStyle() : 'pixel');
     const view = o.view || 'front';
+    const viewFrom = o.viewFrom || view;
+    const viewFade = clamp(o.viewBlend === undefined ? 1 : o.viewBlend, 0, 1);
+    const blendViews = viewFrom !== view && viewFade < 1;
     const vx = VIEW_VX[view] || 0;
     const isBack = view === 'back';
     const isQBack = view === 'qback';
@@ -641,6 +683,59 @@
     const emoTilt = isDroop ? -0.07 : (['curious', 'huh', 'question', 'think', 'shy', 'wink'].includes(emoName) ? 0.085 : 0);
     const headTilt = (o.headTilt || 0) + emoTilt + Math.sin(t * 2.1) * 0.045 + (walkRaw ? Math.sin(walkRad) * 0.06 : 0);
     const poseKey = resolvePoseKey(o);
+    let poseFade = clamp(o.poseBlend === undefined ? 1 : o.poseBlend, 0, 1);
+    let transitionFromPose = (
+      o.poseFrom && o.poseFrom !== poseKey && poseFade < 1 &&
+      !rawO.poseMode && !(actionMod && actionMod.poseMode) &&
+      !(actionMod && actionMod.replaceBody)
+    ) ? o.poseFrom : null;
+
+    // Actions can switch canonical rig poses at phase boundaries (e.g. hum → notice).
+    // Detect a pose change in the previous frame, locate its boundary, and cross-fade
+    // the connected body layers over 120 ms instead of snapping detached limbs.
+    if (!transitionFromPose && rawO.action && !rawO.poseMode && !(actionMod && actionMod.replaceBody)) {
+      const poseAt = (sampleTime) => {
+        const age = t - sampleTime;
+        const sampleRaw = Object.assign({}, rawO, { t: sampleTime });
+        if (rawO.lt !== undefined) sampleRaw.lt = Math.max(0, rawO.lt - age);
+        const sampleMod = actLib.evaluateAction(rawO.action, sampleTime, sampleRaw);
+        let sampleO = Object.assign({}, sampleRaw);
+        if (sampleMod) {
+          if (sampleMod.emotion && !sampleO.emotion && !sampleO.emo) sampleO.emotion = sampleMod.emotion;
+          if (sampleMod.poseMode && !sampleO.poseMode) sampleO.poseMode = sampleMod.poseMode;
+          if (sampleMod.walk !== undefined) sampleO.walk = (sampleO.walk || 0) + sampleMod.walk;
+          if (sampleMod.kneel !== undefined) sampleO.kneel = (sampleO.kneel || 0) + sampleMod.kneel;
+        }
+        if (Array.isArray(rawO.emotions) && rawO.emotions.length) {
+          sampleO = Object.assign({}, emotions(sampleO.lt !== undefined ? sampleO.lt : sampleTime, rawO.emotions, { take: rawO.take !== false }), sampleO);
+        } else if ((sampleO.emo || sampleO.emotion) && !sampleO.eyes) {
+          sampleO = Object.assign({}, feel(sampleO.emo || sampleO.emotion, sampleTime), sampleO);
+        }
+        if (!Array.isArray(rawO.emotions) && rawO.transitionBlend === undefined && sampleO.emotion) {
+          const baseKey = EMO[sampleO.emotion] ? sampleO.emotion : (EMO_ALIASES[sampleO.emotion] || 'happy');
+          const triad = EMO_PROGRESSION[baseKey] || ['happy', 'excited', 'joy'];
+          const cycT = (sampleTime + (rawO.seed || 0) * 0.41) % 2.4;
+          const auto = emotions(cycT, [[0.0, triad[0]], [0.8, triad[1]], [1.6, triad[2]]], { take: 0.75 });
+          sampleO = Object.assign({}, sampleO, { eyes: auto.eyes, mouth: auto.mouth });
+        }
+        return resolvePoseKey(sampleO);
+      };
+      const frameStep = 1 / 60;
+      const priorPose = poseAt(Math.max(0, t - frameStep));
+      if (priorPose !== poseKey) {
+        let oldT = Math.max(0, t - frameStep);
+        let newT = t;
+        for (let i = 0; i < 6; i++) {
+          const midT = (oldT + newT) * 0.5;
+          if (poseAt(midT) === poseKey) newT = midT;
+          else oldT = midT;
+        }
+        transitionFromPose = poseAt(oldT);
+        const elapsed = Math.max(0, t - (oldT + newT) * 0.5);
+        const blend = clamp(elapsed / 0.12, 0, 1);
+        poseFade = blend * blend * (3 - 2 * blend);
+      }
+    }
 
     // Motion smear ghost (16-bit Pixel-Rig Afterimage Trail!)
     if (o.smear && o.smear > 0.05 && root.WHALE_GIRL_PIXEL_RIG) {
@@ -680,11 +775,29 @@
       o.constructMode !== 'vector'
     );
 
-    if (usePixelRig) {
-      drawArticulatedPixelRig(ctx, u, t, o, poseKey, headBob, headTilt, style, view, actionMod);
-    } else {
-      drawVectorConstruct(ctx, u, t, o, poseKey, view, vx, isBack, isQBack, headBob, headTilt, style);
-    }
+    const drawOnePose = (key, alpha, viewKey) => {
+      if (alpha <= 0) return;
+      ctx.save();
+      ctx.globalAlpha *= alpha;
+      if (usePixelRig) {
+        drawArticulatedPixelRig(ctx, u, t, o, key, headBob, headTilt, style, viewKey, actionMod);
+      } else {
+        const viewX = VIEW_VX[viewKey] || 0;
+        drawVectorConstruct(ctx, u, t, o, key, viewKey, viewX, viewKey === 'back', viewKey === 'qback', headBob, headTilt, style);
+      }
+      ctx.restore();
+    };
+    const drawPose = (key, alpha) => {
+      if (blendViews) {
+        drawOnePose(key, alpha * (1 - viewFade), viewFrom);
+        drawOnePose(key, alpha * viewFade, view);
+      } else {
+        drawOnePose(key, alpha, view);
+      }
+    };
+
+    if (transitionFromPose) drawPose(transitionFromPose, 1 - poseFade);
+    drawPose(poseKey, transitionFromPose ? poseFade : 1);
 
     if (actionMod && typeof actionMod.overlay === 'function') {
       ctx.save();
@@ -706,6 +819,11 @@
     const basePal = rig.palette;
     const isTurnView = (view && view !== 'front' && rig.views && rig.views[view]);
     const poseBones = isTurnView ? rig.views[view] : (rig.poses[poseKey] || rig.poses.wave);
+    // Keep the tail socket anchored to one stable hip pose while expressions/arms change.
+    // Wink/heart pose sheets contain a raised fluke that used to jump across the torso.
+    const tailRuns = (!isTurnView && poseKey !== 'laptop')
+      ? (rig.poses.wave.tail || poseBones.tail)
+      : poseBones.tail;
     const cell = u / rig.scale; // 1u = 10 grid cells; total character height ~9.5u
 
     // Style-specific palette transformation so Watercolor, Ukiyo-e, Risograph, and Neon look distinct
@@ -859,17 +977,18 @@
       if (poseKey === 'laptop') {
         const cBreathe = 1 + Math.sin(t * 3.0) * 0.015;
         ctx.scale(cBreathe, 1 / cBreathe);
-        drawBoneRuns(poseBones.tail);
+        drawBoneRuns(tailRuns);
       } else {
-        const px = poseKey === 'wave' ? -1.0 * u : 1.0 * u;
+        const stableSocket = !isTurnView && poseKey !== 'laptop';
+        const px = stableSocket || poseKey === 'wave' ? -1.0 * u : 1.0 * u;
         const py = -1.8 * u;
         ctx.translate(px, py + headBob * 0.5);
-        ctx.rotate(tailWag * (poseKey === 'wave' ? -1 : 1));
+        ctx.rotate(tailWag * (px < 0 ? -1 : 1));
         ctx.translate(-px, -py);
         ctx.translate(px, py);
         ctx.scale(o.tailScale === undefined ? 1 : o.tailScale, o.tailScale === undefined ? 1 : o.tailScale);
         ctx.translate(-px, -py);
-        drawBoneRuns(poseBones.tail);
+        drawBoneRuns(tailRuns);
       }
       ctx.restore();
 
@@ -1110,11 +1229,8 @@
     drawVectorBackHair(ctx, u, t, vx);
 
     // 2. Glossy Whale Tail (behind skirt for standing poses)
-    const tailMode = o.tailMode || (
-      poseKey === 'wink' ? 'highRight' :
-      (poseKey === 'panic' || poseKey === 'heart') ? 'lowRight' :
-      poseKey === 'laptop' ? 'cushion' : 'left'
-    );
+    // Use a consistent left hip socket across emotional poses so the fluke cannot teleport.
+    const tailMode = o.tailMode || (isTailSit ? 'cushion' : 'left');
     if (!isTailSit) {
       const tailAnchorX = tailMode === 'highRight' || tailMode === 'lowRight' ? 1.0 * u : -1.0 * u;
       const tailAnchorY = -1.8 * u;
